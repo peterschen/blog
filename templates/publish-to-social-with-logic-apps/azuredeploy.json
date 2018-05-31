@@ -13,7 +13,9 @@
     },
     "variables": {
         "connectionNameRss": "rss",
-        "connectionNameLinkedin": "linkedin"
+        "connectionNameLinkedin": "linkedin",
+        "apiIdRss": "[concat(subscription().Id, '/providers/Microsoft.Web/locations/westeurope/managedApis/', variables('connectionNameRss'))]",
+        "apiIdLinkedIn": "[concat(subscription().Id, '/providers/Microsoft.Web/locations/westeurope/managedApis/', variables('connectionNameLinkedin'))]"
     },
     "resources": [
         {
@@ -123,11 +125,13 @@
                         "value": {
                             "linkedin": {
                                 "connectionId": "[resourceId('Microsoft.Web/connections', variables('connectionNameLinkedin'))]",
-                                "connectionName": "linkedin"
+                                "connectionName": "linkedin",
+                                "id": "[variables('apiIdLinkedin')]"
                             },
                             "rss": {
                                 "connectionId": "[resourceId('Microsoft.Web/connections', variables('connectionNameRss'))]",
-                                "connectionName": "rss"
+                                "connectionName": "rss",
+                                "id": "[variables('apiIdRss')]"
                             }
                         }
                     }
@@ -148,7 +152,7 @@
                 "displayName": "[concat(variables('connectionNameLinkedin'),'LinkedIn', variables('connectionNameLinkedin'))]",
                 "customParameterValues": {},
                 "api": {
-                    "id": "[concat('/subscriptions/', deployment().subscriptionId, '/providers/Microsoft.Web/locations/westeurope/managedApis/', variables('connectionNameLinkedin'))]"
+                    "id": "[variables('apiIdLinkedIn')]"
                 }
             },
             "dependsOn": []
@@ -163,7 +167,7 @@
                 "displayName": "[concat(variables('connectionNameRss'),'RSS', variables('connectionNameRss'))]",
                 "customParameterValues": {},
                 "api": {
-                    "id": "[concat('/subscriptions/', deployment().subscriptionId, '/providers/Microsoft.Web/locations/westeurope/managedApis/', variables('connectionNameRss'))]"
+                    "id": "[variables('apiIdRss')]"
                 }
             },
             "dependsOn": []
