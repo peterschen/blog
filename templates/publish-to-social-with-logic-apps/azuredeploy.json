@@ -149,7 +149,7 @@
             "location": "westeurope",
             "scale": null,
             "properties": {
-                "displayName": "[concat(variables('connectionNameLinkedin'),'LinkedIn', variables('connectionNameLinkedin'))]",
+                "displayName": "LinkedIn",
                 "customParameterValues": {},
                 "api": {
                     "id": "[variables('apiIdLinkedIn')]"
@@ -164,7 +164,7 @@
             "location": "westeurope",
             "scale": null,
             "properties": {
-                "displayName": "[concat(variables('connectionNameRss'),'RSS', variables('connectionNameRss'))]",
+                "displayName": "RSS",
                 "customParameterValues": {},
                 "api": {
                     "id": "[variables('apiIdRss')]"
