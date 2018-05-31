@@ -1,0 +1,170 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "WorkflowName": {
+            "defaultValue": "Blog2Linkedin",
+            "type": "string"
+        },
+        "FeedUrl": {
+            "defaultValue": "https://blog.peterschen.de/rss/",
+            "type": "string"
+        }
+    },
+    "variables": {
+        "connectionNameRss": "rss",
+        "connectionNameLinkedin": "linkedin"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Logic/workflows",
+            "name": "[parameters('WorkflowName')]",
+            "apiVersion": "2017-07-01",
+            "location": "westeurope",
+            "tags": {},
+            "scale": null,
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "When_a_feed_item_is_published": {
+                            "recurrence": {
+                                "frequency": "Hour",
+                                "interval": 2
+                            },
+                            "splitOn": "@triggerBody()?['value']",
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['rss']['connectionId']"
+                                    }
+                                },
+                                "method": "get",
+                                "path": "/OnNewFeed",
+                                "queries": {
+                                    "feedUrl": "[parameters('FeedUrl')]"
+                                }
+                            }
+                        }
+                    },
+                    "actions": {
+                        "For_each": {
+                            "foreach": "@triggerBody()?['categories']",
+                            "actions": {
+                                "Append_to_string_variable": {
+                                    "runAfter": {},
+                                    "type": "AppendToStringVariable",
+                                    "inputs": {
+                                        "name": "hashtags",
+                                        "value": "@concat('#', concat(replace(item(), ' ', ''), ' '))"
+                                    }
+                                }
+                            },
+                            "runAfter": {
+                                "Initialize_variable": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Foreach"
+                        },
+                        "Initialize_variable": {
+                            "runAfter": {},
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "hashtags",
+                                        "type": "String"
+                                    }
+                                ]
+                            }
+                        },
+                        "Share_an_article": {
+                            "runAfter": {
+                                "For_each": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "body": {
+                                    "comment": "@variables('hashtags')",
+                                    "content": {
+                                        "submitted-url": "@triggerBody()?['primaryLink']",
+                                        "title": "@triggerBody()?['title']"
+                                    },
+                                    "visibility": {
+                                        "code": "anyone"
+                                    }
+                                },
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['linkedin']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "path": "/v1/people/~/shares"
+                            }
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "linkedin": {
+                                "connectionId": "[resourceId('Microsoft.Web/connections', variables('connectionNameLinkedin'))]",
+                                "connectionName": "linkedin"
+                            },
+                            "rss": {
+                                "connectionId": "[resourceId('Microsoft.Web/connections', variables('connectionNameRss'))]",
+                                "connectionName": "rss"
+                            }
+                        }
+                    }
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/connections', variables('connectionNameLinkedin'))]",
+                "[resourceId('Microsoft.Web/connections', variables('connectionNameRss'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/connections",
+            "name": "[variables('connectionNameLinkedin')]",
+            "apiVersion": "2016-06-01",
+            "location": "westeurope",
+            "scale": null,
+            "properties": {
+                "displayName": "[concat(variables('connectionNameLinkedin'),'LinkedIn', variables('connectionNameLinkedin'))]",
+                "customParameterValues": {},
+                "api": {
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Web/connections",
+            "name": "[variables('connectionNameRss')]",
+            "apiVersion": "2016-06-01",
+            "location": "westeurope",
+            "scale": null,
+            "properties": {
+                "displayName": "[concat(variables('connectionNameRss'),'RSS', variables('connectionNameRss'))]",
+                "customParameterValues": {},
+                "api": {
+                }
+            },
+            "dependsOn": []
+        }
+    ]
+}
