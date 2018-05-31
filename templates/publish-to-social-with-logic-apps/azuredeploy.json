@@ -148,6 +148,7 @@
                 "displayName": "[concat(variables('connectionNameLinkedin'),'LinkedIn', variables('connectionNameLinkedin'))]",
                 "customParameterValues": {},
                 "api": {
+                    "id": "[concat('/subscriptions/', deployment().subscriptionId, '/providers/Microsoft.Web/locations/westeurope/managedApis/', variables('connectionNameLinkedin'))]"
                 }
             },
             "dependsOn": []
@@ -162,6 +163,7 @@
                 "displayName": "[concat(variables('connectionNameRss'),'RSS', variables('connectionNameRss'))]",
                 "customParameterValues": {},
                 "api": {
+                    "id": "[concat('/subscriptions/', deployment().subscriptionId, '/providers/Microsoft.Web/locations/westeurope/managedApis/', variables('connectionNameRss'))]"
                 }
             },
             "dependsOn": []
