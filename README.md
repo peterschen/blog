@@ -1,1 +1,1 @@
-# blog
+This repository contains resources related to [my blog](https://blog.peterschen.de)
