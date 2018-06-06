@@ -197,7 +197,7 @@
         }
     ],
     "outputs": {
-        "FqdnMastgr": {
+        "FqdnMaster": {
             "type": "string",
             "value": "[reference(concat('Microsoft.ContainerService/containerServices/', parameters('Name'))).masterProfile.fqdn]"
         },
