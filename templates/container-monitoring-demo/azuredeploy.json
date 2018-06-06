@@ -106,7 +106,7 @@
         }
     ],
     "outputs": {
-        "AcsFqdnMaser": {
+        "AcsFqdnMaster": {
             "type": "string",
             "value": "[reference('acs').outputs.FqdnMaster.value]"
         },
