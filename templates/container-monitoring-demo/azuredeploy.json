@@ -54,7 +54,7 @@
                         "value": 1
                     },
                     "AgentVmSize": {
-                        "value": "Standard_D2s_v3"
+                        "value": "Standard_DS2_v2"
                     }
                 }
             }
