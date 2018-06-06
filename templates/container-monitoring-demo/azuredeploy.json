@@ -25,7 +25,8 @@
     "variables": {
         "urlAssets": "https://raw.githubusercontent.com/peterschen/blog/master/templates/container-monitoring-demo",
         "nameAcs": "[concat(parameters('EnvironmentName'), '-acs')]",
-        "nameAks": "[concat(parameters('EnvironmentName'), '-aks')]"
+        "nameAks": "[concat(parameters('EnvironmentName'), '-aks')]",
+        "nameLogAnalytics": "[parameters('EnvironmentName')]"
     },
     "resources": [
         {
@@ -36,6 +37,17 @@
                 "mode": "Incremental",
                 "templateLink": {
                     "uri": "[concat(variables('urlAssets'), '/loganalytics.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameLogAnalytics')]"
+                    },
+                    "Region": {
+                        "value": "westeurope"
+                    },
+                    "Tier": {
+                        "value": "Standalone"
+                    }
                 }
             }
         },
