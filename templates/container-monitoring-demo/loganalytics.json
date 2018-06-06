@@ -10,16 +10,16 @@
         },
         "Region": {
             "type": "string",
-            "defaultValue": "WestEurope",
+            "defaultValue": "westeurope",
             "allowedValues": [
-                "AustraliaSoutheast",
-                "CanadaCentral",
-                "CentralIndia",
-                "EastUS",
-                "JapanEast",
-                "SoutheastAsia",
-                "UKSouth",
-                "WestEurope"
+                "australiasoutheast",
+                "canadacentral",
+                "centralindia",
+                "eastus",
+                "japaneast",
+                "southeastasia",
+                "uksouth",
+                "westeurope"
             ]
         },
         "Tier": {
