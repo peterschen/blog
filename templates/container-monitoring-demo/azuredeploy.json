@@ -34,14 +34,28 @@
             "name": "ACS",
             "properties": {
                 "mode": "Incremental",
-                "templateLink": "[concat(variables('urlAssets'), '/acs.json')]",
+                "templateLink": {
+                    "uri": "[concat(variables('urlAssets'), '/acs.json')]"
+                },
                 "parameters": {
-                    "Name": "[variables('nameAcs')]",
-                    "AdminUsername": "[parameters('AdminUsername')]",
-                    "AdminSshKey": "[parameters('AdminSshKey')]",
-                    "MasterCount": 1,
-                    "AgentCount": 1,
-                    "AgentVmSize": "Standard_D2s_v3"
+                    "Name": {
+                        "value": "[variables('nameAcs')]"
+                    },
+                    "AdminUsername": {
+                        "value": "[parameters('AdminUsername')]"
+                    },
+                    "AdminSshKey": {
+                        "value": "[parameters('AdminSshKey')]"
+                    },
+                    "MasterCount": {
+                        "value": 1
+                    },
+                    "AgentCount": {
+                        "value": 1
+                    },
+                    "AgentVmSize": {
+                        "value": "Standard_D2s_v3"
+                    }
                 }
             }
         },
@@ -51,11 +65,19 @@
             "name": "AKS",
             "properties": {
                 "mode": "Incremental",
-                "templateLink": "[concat(variables('urlAssets'), '/aks.json')]",
+                "templateLink": {
+                    "uri": "[concat(variables('urlAssets'), '/aks.json')]"
+                },
                 "parameters": {
-                    "Name": "[variables('nameAks')]",
-                    "AdminUsername": "[parameters('AdminUsername')]",
-                    "AdminSshKey": "[parameters('AdminSshKey')]"
+                    "Name": {
+                        "value": "[variables('nameAks')]"
+                    },
+                    "AdminUsername": {
+                        "value": "[parameters('AdminUsername')]"
+                    },
+                    "AdminSshKey": {
+                        "value": "[parameters('AdminSshKey')]"
+                    }
                 }
             }
         }
