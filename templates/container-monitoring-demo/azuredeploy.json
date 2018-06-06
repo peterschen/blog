@@ -29,6 +29,17 @@
     },
     "resources": [
         {
+            "type": "Microsoft.Resources/deployments",
+            "name": "WorkspaceDeployment",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlAssets'), '/loganalytics.json')]"
+                }
+            }
+        },
+        {
             "apiVersion": "2017-05-10",
             "type": "Microsoft.Resources/deployments",
             "name": "ACS",
