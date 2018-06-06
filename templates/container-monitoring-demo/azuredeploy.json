@@ -96,11 +96,11 @@
     "outputs": {
         "AcsFqdnMaser": {
             "type": "string",
-            "value": "[reference('acs').FqdnMaster]"
+            "value": "[reference('acs').outputs.FqdnMaster.value]"
         },
         "AcsFqdnAgent": {
             "type": "string",
-            "value": "[reference('acs').FqdnAgent]"
+            "value": "[reference('acs').outputs.FqdnAgent.value]"
         }
     }
 }
