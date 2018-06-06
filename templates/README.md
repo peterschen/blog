@@ -6,3 +6,5 @@ See [https://blog.peterschen.de/publish-to-social-with-logic-apps/](https://blog
 
 [![Deploy to Azure](https://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fgithub.com%2Fpeterschen%2Fblog%2Fblob%2Fmaster%2Ftemplates%2Fpublish-to-social-with-logic-apps%2Fazuredeploy.json)
 
+## [Container monitoring demo](container-monitoring-demo/azuredeploy.json) ##
+[![Deploy to Azure](https://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fgithub.com%2Fpeterschen%2Fblog%2Fblob%2Fmaster%2Ftemplates%2Fcontainer-monitoring-demo%2Fazuredeploy.json)
