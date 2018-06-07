@@ -8,7 +8,6 @@ usage() {
     echo "\t-g --resourceGroup=$RESOURCEGROUP"
     echo "\t-e --environmentName=$ENVIRONMENTNAME"
 	echo "\t-u --adminUsername=$ADMINUSERNAME"
-	echo "\t-k --adminSshKey=$ADMINSSHKEY"
 	echo "\t-i --servicePrincipalId=$SERVICEPRINCIPALID"
 	echo "\t-s --servicePrincipalSecret=$SERVICEPRINCIPALSECRET"
     echo ""
@@ -147,20 +146,21 @@ if [ "$RESOURCEGROUP" = "" ] || [ "$ENVIRONMENTNAME" = "" ] || [ "$ADMINUSERNAME
 	exit 1
 fi
 
-if [ "$ADMINSSHKEY" = "" ] || [ "$SERVICEPRINCIPALID" = "" ] || [ "$SERVICEPRINCIPALSECRET" = "" ]; then
+if [ "$SERVICEPRINCIPALID" = "" ] || [ "$SERVICEPRINCIPALSECRET" = "" ]; then
 	echo "ERROR: missing parameters"
 	usage
 	exit 1
 fi
 
 deploymentName=`date +'%Y%m%d-%H%M%S'`
+adminSshKey=$(cat ~/.ssh/id_rsa.pub)
 
 deployInfrastructure \
     $deploymentName \
     $RESOURCEGROUP \
     $ENVIRONMENTNAME \
     $ADMINUSERNAME \
-    $ADMINSSHKEY \
+    $adminSshKey \
     $SERVICEPRINCIPALID \
     $SERVICEPRINCIPALSECRET
 
