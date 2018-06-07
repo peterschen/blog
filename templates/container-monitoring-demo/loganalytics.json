@@ -51,5 +51,9 @@
         }
     ],
     "outputs": {
+        "Portal": {
+            "type": "string",
+            "value": "[reference(concat('Microsoft.OperationalInsights/workspaces/', parameters('Name'))).portalUrl]"
+        }
     }
 }
