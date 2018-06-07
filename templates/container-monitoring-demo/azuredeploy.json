@@ -31,7 +31,7 @@
     "resources": [
         {
             "type": "Microsoft.Resources/deployments",
-            "name": "WorkspaceDeployment",
+            "name": "Log Analytics",
             "apiVersion": "2017-05-10",
             "properties": {
                 "mode": "Incremental",
@@ -50,6 +50,28 @@
                     }
                 }
             }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "Container Health",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlAssets'), '/containerhealth.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameLogAnalytics')]"
+                    },
+                    "Region": {
+                        "value": "westeurope"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', 'Log Analytics')]"
+            ]
         },
         {
             "apiVersion": "2017-05-10",
