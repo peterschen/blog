@@ -194,17 +194,18 @@
     },
     "resources": [
         {
-            "apiVersion": "2017-01-31",
+            "apiVersion": "2017-07-01",
             "type": "Microsoft.ContainerService/containerServices",
             "location": "[parameters('Region')]",
             "name": "[parameters('Name')]",
             "properties": {
                 "orchestratorProfile": {
-                    "orchestratorType": "Swarm"
+                    "orchestratorType": "DockerCE"
                 },
                 "masterProfile": {
                     "count": "[parameters('MasterCount')]",
-                    "dnsPrefix": "[variables('dnsPrefixMaster')]"
+                    "dnsPrefix": "[variables('dnsPrefixMaster')]",
+                    "storageProfile": "ManagedDisks"
                 },
                 "agentPoolProfiles": [
                     {
@@ -212,7 +213,8 @@
                         "count": "[parameters('AgentCount')]",
                         "vmSize": "[parameters('AgentVmSize')]",
                         "dnsPrefix": "[variables('dnsPrefixAgent')]",
-                        "osType": "Linux"
+                        "osType": "Linux",
+                        "storageProfile": "ManagedDisks"
                     }
                 ],
                 "linuxProfile": {
