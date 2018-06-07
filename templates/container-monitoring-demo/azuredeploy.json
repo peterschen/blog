@@ -31,7 +31,7 @@
     "resources": [
         {
             "type": "Microsoft.Resources/deployments",
-            "name": "Log Analytics",
+            "name": "LogAnalytics",
             "apiVersion": "2017-05-10",
             "properties": {
                 "mode": "Incremental",
@@ -53,7 +53,7 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "name": "Container Health",
+            "name": "ContainerHealth",
             "apiVersion": "2017-05-10",
             "properties": {
                 "mode": "Incremental",
@@ -70,7 +70,7 @@
                 }
             },
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', 'Log Analytics')]"
+                "[concat('Microsoft.Resources/deployments/', 'LogAnalytics')]"
             ]
         },
         {
