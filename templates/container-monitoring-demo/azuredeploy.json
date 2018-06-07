@@ -44,7 +44,7 @@
         "nameAks": "[concat(parameters('EnvironmentName'), '-aks')]",
         "nameLogAnalytics": "[parameters('EnvironmentName')]",
         "regionLogAnalytics": "westeurope",
-        "regionAcs": "northeurope",
+        "regionAcs": "westeurope",
         "regionAks": "westeurope",
         "solutions": [
             "ContainerInsights",
@@ -179,6 +179,10 @@
         }
     ],
     "outputs": {
+        "ResourceGroup": {
+            "type": "string",
+            "value": "[resourceGroup().name]"
+        },
         "LogAnalyticsPortal": {
             "type": "string",
             "value": "[reference(variables('nameDeploymentLogAnalytics')).outputs.Portal.value]"
@@ -194,6 +198,10 @@
         "AksFqdn": {
             "type": "string",
             "value": "[reference(variables('nameDeploymentAks')).outputs.Fqdn.value]"
+        },
+        "AksName": {
+            "type": "string",
+            "value": "[variables('nameAks')]"
         }
     }
 }
