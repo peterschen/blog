@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
+set -e
 
 usage() {
     echo "Helper to deploy the environment."
@@ -8,6 +9,7 @@ usage() {
     echo "\t-g --resourceGroup=$RESOURCEGROUP"
     echo "\t-e --environmentName=$ENVIRONMENTNAME"
 	echo "\t-u --adminUsername=$ADMINUSERNAME"
+	echo "\t-k --adminSshKey=$ADMINSSHKEY"
 	echo "\t-i --servicePrincipalId=$SERVICEPRINCIPALID"
 	echo "\t-s --servicePrincipalSecret=$SERVICEPRINCIPALSECRET"
     echo ""
@@ -42,6 +44,11 @@ deployInfrastructure() {
 }
 EOM
 )
+
+    echo "Creating resource group"
+    az group create \
+        --name $resourceGroup \
+        --location westeurope 1> /dev/null
 
 	echo "Running resource group deployment"
     az group deployment create \
@@ -152,15 +159,18 @@ if [ "$SERVICEPRINCIPALID" = "" ] || [ "$SERVICEPRINCIPALSECRET" = "" ]; then
 	exit 1
 fi
 
+if [ "$ADMINSSHKEY" = "" ]; then
+    ADMINSSHKEY=$(cat ~/.ssh/id_rsa.pub | cut -d' ' -f 2)
+fi
+
 deploymentName=`date +'%Y%m%d-%H%M%S'`
-adminSshKey=$(cat ~/.ssh/id_rsa.pub)
 
 deployInfrastructure \
     $deploymentName \
     $RESOURCEGROUP \
     $ENVIRONMENTNAME \
     $ADMINUSERNAME \
-    $adminSshKey \
+    $ADMINSSHKEY \
     $SERVICEPRINCIPALID \
     $SERVICEPRINCIPALSECRET
 
