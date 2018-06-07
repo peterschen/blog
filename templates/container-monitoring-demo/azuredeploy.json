@@ -138,11 +138,11 @@
                     "Name": {
                         "value": "[variables('nameAks')]"
                     },
-                    "AdminUsername": {
-                        "value": "[parameters('AdminUsername')]"
+                    "Region": {
+                        "value": "[variables('regionAks')]"
                     },
-                    "AdminSshKey": {
-                        "value": "[parameters('AdminSshKey')]"
+                    "Version": {
+                        "value": "1.9.6"
                     }
                 }
             }
@@ -156,6 +156,10 @@
         "AcsFqdnAgent": {
             "type": "string",
             "value": "[reference(variables('nameDeploymentAcs')).outputs.FqdnAgent.value]"
+        },
+        "AksFqdn": {
+            "type": "string",
+            "value": "[reference(variables('nameDeploymentAks')).outputs.Fqdn.value]"
         }
     }
 }
