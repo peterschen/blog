@@ -56,29 +56,36 @@ deployMonitoringAcs() {
     resourceGroup=$1
     name="$2"
     nameAcs="$name-acs"
-
-	fqdn=$(az acs show -g $resourceGroup -n $nameAcs --query masterProfile.fqdn -o tsv)
-    resourceId=$(az resource list -g $resourceGroup -n $name --resource-type "Microsoft.OperationalInsights/workspaces" --query [].id -o tsv)
-    workspaceId=$(az resource show --ids $resourceId --query properties.customerId -o tsv)
-    workspaceKey=$(az resource invoke-action --action sharedKeys --ids $resourceId | sed 's/\\r\\n//g' | sed 's/\\\"/"/g' | sed 's/"{/{/' | sed 's/}"/}/' | jq -r .primarySharedKey)
+    
+    fqdn=$(az acs show -g $resourceGroup -n $nameAcs --query masterProfile.fqdn -o tsv)
     SSH="ssh -v -A labadmin@${fqdn} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+    
+    serviceId=$($SSH docker service ls --filter "name=omsagent" -q)
 
-    echo "Creating secrets"
-    $SSH "echo $workspaceId | docker secret create workspaceId -"
-    $SSH "echo $workspaceKey | docker secret create workspaceKey -"
+    if [ "$serviceId" = "" ]; then
+        resourceId=$(az resource list -g $resourceGroup -n $name --resource-type "Microsoft.OperationalInsights/workspaces" --query [].id -o tsv)
+        workspaceId=$(az resource show --ids $resourceId --query properties.customerId -o tsv)
+        workspaceKey=$(az resource invoke-action --action sharedKeys --ids $resourceId | sed 's/\\r\\n//g' | sed 's/\\\"/"/g' | sed 's/"{/{/' | sed 's/}"/}/' | jq -r .primarySharedKey)
 
-    echo "Starting OMS agent service"
-    $SSH \
-        "docker service create \
-            --name omsagent \
-            --mode global \
-            --mount type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock \
-            --secret source=workspaceId,target=WSID \
-            --secret source=workspaceKey,target=KEY \
-            -p 25225:25225 \
-            -p 25224:25224/udp \
-            --restart-condition=on-failure \
-            microsoft/oms"
+        echo "Creating secrets"
+        $SSH "echo $workspaceId | docker secret create workspaceId -"
+        $SSH "echo $workspaceKey | docker secret create workspaceKey -"
+
+        echo "Creating OMS agent service"
+        $SSH \
+            "docker service create \
+                --name omsagent \
+                --mode global \
+                --mount type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock \
+                --secret source=workspaceId,target=WSID \
+                --secret source=workspaceKey,target=KEY \
+                -p 25225:25225 \
+                -p 25224:25224/udp \
+                --restart-condition=on-failure \
+                microsoft/oms"
+    else
+        echo "OMS agent service is already created"
+    fi
 }
 
 deployApplicationAcs() {
@@ -157,9 +164,9 @@ deployInfrastructure \
     $SERVICEPRINCIPALID \
     $SERVICEPRINCIPALSECRET
 
-# deployMonitoringAcs \
-#	$RESOURCEGROUP \
-#	$ENVIRONMENTNAME
+deployMonitoringAcs \
+	$RESOURCEGROUP \
+	$ENVIRONMENTNAME
 
 # deployApplicationAcs \
 #	$RESOURCEGROUP \
