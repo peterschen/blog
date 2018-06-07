@@ -184,7 +184,6 @@
                         "osDiskSizeGB": 0,
                         "count": "[parameters('AgentCount')]",
                         "vmSize": "[parameters('AgentVmSize')]",
-                        "osType": "Linux",
                         "storageProfile": "ManagedDisks"
                     }
                 ],
