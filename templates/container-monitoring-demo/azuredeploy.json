@@ -44,7 +44,7 @@
         "nameAks": "[concat(parameters('EnvironmentName'), '-aks')]",
         "nameLogAnalytics": "[parameters('EnvironmentName')]",
         "regionLogAnalytics": "westeurope",
-        "regionAcs": "westeurope",
+        "regionAcs": "ukwest",
         "regionAks": "westeurope",
         "solutions": [
             "ContainerInsights",

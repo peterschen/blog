@@ -200,7 +200,7 @@
             "name": "[parameters('Name')]",
             "properties": {
                 "orchestratorProfile": {
-                    "orchestratorType": "SwarmMode"
+                    "orchestratorType": "DockerCE"
                 },
                 "masterProfile": {
                     "count": "[parameters('MasterCount')]",
