@@ -6,8 +6,14 @@
         "Name": {
             "type": "string",
             "metadata": {
-               "description": "Name of the Log Analytics workspace."
+               "description": "Name of the solution."
             }
+        },
+        "WorkspaceName": {
+            "type": "string",
+            "metadata": {
+               "description": "Name of the Log Analytics workspace."
+            }  
         },
         "Region": {
             "type": "string",
@@ -25,8 +31,7 @@
         }
     },
     "variables": {
-        "nameSolution": "ContainerInsights",
-        "NameInstance": "[concat(variables('nameSolution'), '(', parameters('Name'),')')]"
+        "NameInstance": "[concat(parameters('Name'), '(', parameters('WorkspaceName'),')')]"
     },
     "resources": [
         {
@@ -35,11 +40,11 @@
             "location": "[parameters('Region')]",
             "name": "[variables('NameInstance')]",
             "properties": {
-                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('Name'))]"
+                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('WorkspaceName'))]"
             },
             "plan": {
                 "name": "[variables('NameInstance')]",
-                "product": "[concat('OMSGallery/', variables('nameSolution'))]",
+                "product": "[concat('OMSGallery/', parameters('Name'))]",
                 "promotionCode": "",
                 "publisher": "Microsoft"
             }
