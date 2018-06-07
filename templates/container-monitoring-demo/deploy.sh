@@ -64,7 +64,7 @@ deployMonitoringAcs() {
     nameAcs="$name-acs"
     
     fqdn=$(az acs show -g $resourceGroup -n $nameAcs --query masterProfile.fqdn -o tsv)
-    SSH="ssh -v -A labadmin@${fqdn} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+    SSH="ssh -A labadmin@${fqdn} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
     
     serviceId=$($SSH docker service ls --filter "name=omsagent" -q)
 
