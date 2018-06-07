@@ -75,7 +75,7 @@
                 }
             },
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', 'LogAnalytics')]"
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentLogAnalytics'))]"
             ]
         },
         {
@@ -135,11 +135,11 @@
     "outputs": {
         "AcsFqdnMaster": {
             "type": "string",
-            "value": "[reference('acs').outputs.FqdnMaster.value]"
+            "value": "[reference(variables('nameDeploymentAcs')).outputs.FqdnMaster.value]"
         },
         "AcsFqdnAgent": {
             "type": "string",
-            "value": "[reference('acs').outputs.FqdnAgent.value]"
+            "value": "[reference(variables('nameDeploymentAcs')).outputs.FqdnAgent.value]"
         }
     }
 }
