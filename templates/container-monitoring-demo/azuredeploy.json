@@ -150,6 +150,9 @@
                     "Name": {
                         "value": "[variables('nameAks')]"
                     },
+                    "WorkspaceName": {
+                        "value": "[variables('nameLogAnalytics')]"
+                    },
                     "Region": {
                         "value": "[variables('regionAks')]"
                     },

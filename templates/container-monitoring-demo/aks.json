@@ -8,6 +8,12 @@
                 "description": "Name of the AKS cluster to deploy"
             }
         },
+        "WorkspaceName": {
+            "type": "string",
+            "metadata": {
+               "description": "Name of the Log Analytics workspace."
+            }  
+        },
         "Region": {
             "type": "string",
             "defaultValue": "westeurope",
@@ -155,7 +161,7 @@
         }
     },
     "variables": {
-        "idLogAnalytics": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('Name'))]"
+        "idLogAnalytics": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('WorkspaceName'))]"
     },
     "resources": [
         {
