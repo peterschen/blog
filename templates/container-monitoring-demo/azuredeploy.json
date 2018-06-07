@@ -20,6 +20,18 @@
             "metadata": {
                 "description": "RSA key to be configured on all nodes for direct access through ssh."
             }
+        },
+        "ServicePrincipalClientId": {
+            "type": "string",
+            "metadata": {
+                "description": "The ID for the service principal."
+            }
+        },
+        "ServicePrincipalClientSecret": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The secret password associated with the service principal."
+            }
         }
     },
     "variables": {
@@ -143,12 +155,28 @@
                     },
                     "Version": {
                         "value": "1.9.6"
+                    },
+                    "AgentCount": {
+                        "value": 1
+                    },
+                    "AgentVmSize": {
+                        "value": "Standard_D2s_v3"
+                    },
+                    "ServicePrincipalClientId": {
+                        "value": "[parameters('ServicePrincipalClientId')]"
+                    },
+                    "ServicePrincipalClientSecret": {
+                        "value": "[parameters('ServicePrincipalClientSecret')]"
                     }
                 }
             }
         }
     ],
     "outputs": {
+        "LogAnalyticsPortal": {
+            "type": "string",
+            "value": "[reference(variables('nameDeploymentLogAnalytics')).outputs.Portal.value]"
+        },
         "AcsFqdnMaster": {
             "type": "string",
             "value": "[reference(variables('nameDeploymentAcs')).outputs.FqdnMaster.value]"
