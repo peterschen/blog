@@ -169,10 +169,10 @@
                 "dnsPrefix": "[parameters('Name')]",
                 "addonProfiles": {
                     "httpApplicationRouting": {
-                        "enabled": "true"
+                        "enabled": true
                     },
                     "omsagent": {
-                        "enabled": "true",
+                        "enabled": true,
                         "config": {
                             "logAnalyticsWorkspaceResourceID": "[variables('idLogAnalytics')]"
                         }
@@ -181,7 +181,7 @@
                 "agentPoolProfiles": [
                     {
                         "name": "agentpool",
-                        "osDiskSizeGB": "0",
+                        "osDiskSizeGB": 0,
                         "count": "[parameters('AgentCount')]",
                         "vmSize": "[parameters('AgentVmSize')]",
                         "osType": "linux",
