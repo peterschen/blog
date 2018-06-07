@@ -169,7 +169,10 @@
                         "value": "[parameters('ServicePrincipalClientSecret')]"
                     }
                 }
-            }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentLogAnalytics'))]"
+            ]
         }
     ],
     "outputs": {
