@@ -189,6 +189,7 @@
         }
     },
     "variables": {
+        "vmSizeMaster": "[parameters('AgentVmSize')]",
         "dnsPrefixMaster": "[concat(parameters('Name'), '-master')]",
         "dnsPrefixAgent": "[concat(parameters('Name'), '-agent')]"
     },
@@ -204,6 +205,7 @@
                 },
                 "masterProfile": {
                     "count": "[parameters('MasterCount')]",
+                    "vmSize": "[variables('vmSizeMaster')]",
                     "dnsPrefix": "[variables('dnsPrefixMaster')]",
                     "storageProfile": "ManagedDisks"
                 },
