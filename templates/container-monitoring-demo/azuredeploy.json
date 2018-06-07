@@ -24,6 +24,11 @@
     },
     "variables": {
         "urlAssets": "https://raw.githubusercontent.com/peterschen/blog/master/templates/container-monitoring-demo",
+        "nameDeployment": "[deployment().name]",
+        "nameDeploymentLogAnalytics": "[concat(variables('nameDeployment'), '-LogAnalytics')]",
+        "nameDeploymentContainerHealth": "[concat(variables('nameDeployment'), '-ContainerHealth')]",
+        "nameDeploymentAcs": "[concat(variables('nameDeployment'), '-AzureContainerService')]",
+        "nameDeploymentAks": "[concat(variables('nameDeployment'), '-AzureKubernetesService')]",
         "nameAcs": "[concat(parameters('EnvironmentName'), '-acs')]",
         "nameAks": "[concat(parameters('EnvironmentName'), '-aks')]",
         "nameLogAnalytics": "[parameters('EnvironmentName')]"
@@ -31,7 +36,7 @@
     "resources": [
         {
             "type": "Microsoft.Resources/deployments",
-            "name": "LogAnalytics",
+            "name": "[variables('nameDeploymentLogAnalytics')]",
             "apiVersion": "2017-05-10",
             "properties": {
                 "mode": "Incremental",
@@ -53,7 +58,7 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "name": "ContainerHealth",
+            "name": "[variables('nameDeploymentContainerHealth')]",
             "apiVersion": "2017-05-10",
             "properties": {
                 "mode": "Incremental",
@@ -76,7 +81,7 @@
         {
             "apiVersion": "2017-05-10",
             "type": "Microsoft.Resources/deployments",
-            "name": "ACS",
+            "name": "[variables('nameDeploymentAcs')]",
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
@@ -107,7 +112,7 @@
         {
             "apiVersion": "2017-05-10",
             "type": "Microsoft.Resources/deployments",
-            "name": "AKS",
+            "name": "[variables('nameDeploymentAks')]",
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
