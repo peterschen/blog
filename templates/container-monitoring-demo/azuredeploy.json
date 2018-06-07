@@ -32,6 +32,8 @@
         "nameAks": "[concat(parameters('EnvironmentName'), '-aks')]",
         "nameLogAnalytics": "[parameters('EnvironmentName')]",
         "regionLogAnalytics": "westeurope",
+        "regionAcs": "northeurope",
+        "regionAks": "westeurope",
         "solutions": [
             "ContainerInsights",
             "Containers"
@@ -101,6 +103,9 @@
                 "parameters": {
                     "Name": {
                         "value": "[variables('nameAcs')]"
+                    },
+                    "Region": {
+                        "value": "[variables('regionAcs')]"
                     },
                     "AdminUsername": {
                         "value": "[parameters('AdminUsername')]"

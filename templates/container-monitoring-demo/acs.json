@@ -8,6 +8,38 @@
                 "description": "Name of the ACS cluster to deploy"
             }
         },
+        "Region": {
+            "type": "string",
+            "defaultValue": "westeurope",
+            "allowedValues": [
+                "japaneast",
+                "centralus",
+                "eastus2",
+                "japanwest",
+                "eastasia",
+                "southcentralus",
+                "australiaeast",
+                "australiasoutheast",
+                "brazilsouth",
+                "southeastasia",
+                "westus",
+                "northcentralus",
+                "westeurope",
+                "northeurope",
+                "eastus",
+                "ukwest",
+                "uksouth",
+                "westcentralus",
+                "westus2",
+                "southindia",
+                "centralindia",
+                "westindia",
+                "canadaeast",
+                "canadacentral",
+                "koreasouth",
+                "koreacentral"
+            ]
+        },
         "AdminUsername": {
             "type": "string",
             "metadata": {
@@ -164,7 +196,7 @@
         {
             "apiVersion": "2017-01-31",
             "type": "Microsoft.ContainerService/containerServices",
-            "location": "[resourceGroup().location]",
+            "location": "[parameters('Region')]",
             "name": "[parameters('Name')]",
             "properties": {
                 "orchestratorProfile": {
