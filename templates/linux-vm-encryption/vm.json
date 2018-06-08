@@ -1,6 +1,6 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
+    "contentVersion": "1.0.0.1",
     "parameters": {
         "Name": {
             "type": "string",
@@ -149,6 +149,7 @@
         "regionVm": "[parameters('Region')]",
         "idSubnet": "[concat(subscription().id, '/providers/Microsoft.Network/virtualNetworks/', variables('nameVnet'), '/subnets/subnet-0')]",
         "idNsg": "[concat(subscription().id, '/providers/Microsoft.Network/networkSecurityGroups/', variables('nameNsg'))]",
+        "idIp": "[concat(subscription().id, '/providers/Microsoft.Network/publicIPAddresses/', variables('nameIp'))]",
         "idNic": "[concat(subscription().id, '/providers/Microsoft.Network/networkInterfaces/', variables('nameNic'))]"
     },
     "resources": [
@@ -227,7 +228,7 @@
                                 "id": "[variables('idSubnet')]"
                             },
                             "publicIPAddress": {
-                                "id": "[variables('idNic')]"
+                                "id": "[variables('idI')]"
                             }
                         }
                     }
