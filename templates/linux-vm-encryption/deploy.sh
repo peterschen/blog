@@ -13,6 +13,7 @@ usage() {
     echo "\t-e --environmentName=$ENVIRONMENTNAME"
 	echo "\t-u --adminUsername=$ADMINUSERNAME"
 	echo "\t-k --adminSshKey=$ADMINSSHKEY"
+    echo "\t-t --tenantId=$TENANTID"
 	echo "\t-i --servicePrincipalId=$SERVICEPRINCIPALID"
 	echo "\t-s --servicePrincipalSecret=$SERVICEPRINCIPALSECRET"
     echo ""
@@ -39,8 +40,11 @@ deployInfrastructure() {
     local environmentName=$3
     local adminUsername=$4
     local adminSshKey=$5
-    local servicePrincipalId=$6
-    local servicePrincipalSecret=$7
+    local tenantId=$6
+    local servicePrincipalId=$7
+    local servicePrincipalSecret=$8
+
+    local servicePrincipalObjectId=$(az ad sp show --id $servicePrincipalId --query objectId -o tsv)
 
     parameters=$(cat << EOM
 {
@@ -52,6 +56,12 @@ deployInfrastructure() {
     },
     "AdminSshKey": {
         "value": "ssh-rsa ${adminSshKey}"
+    },
+    "TenantId": {
+        "value": "${tenantId}"
+    },
+    "ServicePrincipalObjectId": {
+        "value": "${servicePrincipalObjectId}"
     },
     "ServicePrincipalClientId": {
         "value": "${servicePrincipalId}"
@@ -73,15 +83,6 @@ EOM
         --name $deploymentName \
         --template-file azuredeploy.json \
         --parameters "$parameters" 1> /dev/null
-}
-
-getSsh()
-{
-    local resourceGroup=$1
-    local name="$2"
-
-    export FQDNACS=$(az acs show -g $resourceGroup -n $name --query masterProfile.fqdn -o tsv)
-    export SSH="ssh -Aq labadmin@${FQDNACS} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 }
 
 checkPrereq
@@ -106,7 +107,10 @@ while [ "$1" != "" ]; do
 		-k | --adminSshKey)
             ADMINSSHKEY=$VALUE
             ;;
-		-i | --servicePrincipalId)
+		-t | --tenantId)
+            TENANTID=$VALUE
+            ;;
+        -i | --servicePrincipalId)
             SERVICEPRINCIPALID=$VALUE
             ;;
 		-s | --servicePrincipalSecret)
@@ -127,7 +131,7 @@ if [ "$RESOURCEGROUP" = "" ] || [ "$ENVIRONMENTNAME" = "" ] || [ "$ADMINUSERNAME
 	exit 1
 fi
 
-if [ "$SERVICEPRINCIPALID" = "" ] || [ "$SERVICEPRINCIPALSECRET" = "" ]; then
+if [ "$TENANTID" = "" ] || [ "$SERVICEPRINCIPALID" = "" ] || [ "$SERVICEPRINCIPALSECRET" = "" ]; then
 	echo "ERROR: missing parameters"
 	usage
 	exit 1
@@ -145,6 +149,7 @@ deployInfrastructure \
     $ENVIRONMENTNAME \
     $ADMINUSERNAME \
     $ADMINSSHKEY \
+    $TENANTID \
     $SERVICEPRINCIPALID \
     $SERVICEPRINCIPALSECRET
     

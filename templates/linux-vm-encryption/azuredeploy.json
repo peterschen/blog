@@ -27,10 +27,16 @@
                 "description": "Azure Active Directory tenant id for the subscription against which the Key Vault should authenticate requests against."
             }
         },
+        "ServicePrincipalObjectId": {
+            "type": "string",
+            "metadata": {
+                "description": "The object id for the service principal."
+            }
+        },
         "ServicePrincipalClientId": {
             "type": "string",
             "metadata": {
-                "description": "The ID for the service principal."
+                "description": "The client id for the service principal."
             }
         },
         "ServicePrincipalClientSecret": {
@@ -68,7 +74,7 @@
                         "value": "[parameters('TenantId')]"
                     },
                     "ServicePrincipalClientId": {
-                        "value": "[parameters('ServicePrincipalClientId')]"
+                        "value": "[parameters('ServicePrincipalObjectId')]"
                     }
                 }
             },
