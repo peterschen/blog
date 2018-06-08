@@ -50,6 +50,7 @@
         "urlAssets": "https://raw.githubusercontent.com/peterschen/blog/linux-stuff/templates/linux-vm-encryption",
         "nameDeployment": "[deployment().name]",
         "nameDeploymentKeyVault": "[concat(variables('nameDeployment'), '-KeyVault')]",
+        "nameDeploymentVm": "[concat(variables('nameDeployment'), '-VM')]",
         "nameKeyVault": "[concat(parameters('EnvironmentName'), '-kv')]",
         "regionKeyVault": "westeurope"
     },
@@ -79,6 +80,37 @@
                 }
             },
             "dependsOn": [
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentVm')]",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlAssets'), '/vm.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameKeyVault')]"
+                    },
+                    "Region": {
+                        "value": "[variables('regionKeyVault')]"
+                    },
+                    "AdminUsername": {
+                        "value": "[parameters('AdminUsername')]"
+                    },
+                    "AdminSshKey": {
+                        "value": "[parameters('AdminSshKey')]"
+                    },
+                    "VmSize": {
+                        "value": "Standard_D2s_v3"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentKeyVault'))]"
             ]
         }
     ],

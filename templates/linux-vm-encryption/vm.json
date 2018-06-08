@@ -2,10 +2,17 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "EnvironmentName": {
+        "Name": {
             "type": "string",
             "metadata": {
-                "description": "Prefix of the environment"
+                "description": "Prefix for the resources."
+            }
+        },
+        "Region": {
+            "type": "string",
+            "defaultValue": "westeurope",
+            "metadata": {
+                "description": "Region in which the resources should be deployed."
             }
         },
         "AdminUsername": {
@@ -130,16 +137,16 @@
         }
     },
     "variables": {
-        "nameVnet": "[parameters('EnvironmentName')]",
-        "nameNsg": "[parameters('EnvironmentName')]",
-        "nameIp": "[parameters('EnvironmentName')]",
-        "nameNic": "[parameters('EnvironmentName')]",
-        "nameVm": "[parameters('EnvironmentName')]",
-        "regionVnet": "westeurope",
-        "regionNsg": "westeurope",
-        "regionIp": "westeurope",
-        "regionNic": "westeurope",
-        "regionVm": "westeurope",
+        "nameVnet": "[concat(parameters('Name'), '-vnet')]",
+        "nameNsg": "[concat(parameters('Name'), '-nsg')]",
+        "nameIp": "[concat(parameters('Name'), '-ip')]",
+        "nameNic": "[concat(parameters('Name'), '-nic')]",
+        "nameVm": "[concat(parameters('Name'), '-vm')]",
+        "regionVnet": "[parameters('Region')]",
+        "regionNsg": "[parameters('Region')]",
+        "regionIp": "[parameters('Region')]",
+        "regionNic": "[parameters('Region')]",
+        "regionVm": "[parameters('Region')]",
         "idSubnet": "[concat('Microsoft.Network/virtualNetworks/', variables('nameVnet'), '/subnets/subnet-0')]",
         "idNsg": "[concat('Microsoft.Network/networkSecurityGroups/', variables('nameNsg'))]",
         "idNic": "[concat('Microsoft.Network/networkInterfaces/', variables('nameNic'))]"
