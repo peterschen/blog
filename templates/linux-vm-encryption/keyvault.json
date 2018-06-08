@@ -12,7 +12,7 @@
             "type": "string",
             "defaultValue": "westeurope",
             "metadata": {
-                "description": "User name for the Linux Virtual Machines."
+                "description": "Region in which the resources should be deployed."
             }
         },
         "TenantId": {
@@ -62,7 +62,7 @@
                 "enabledForDiskEncryption": true
             },
             "dependsOn": []
-        },
+        }
     ],
     "outputs": {
         "ResourceGroup": {
