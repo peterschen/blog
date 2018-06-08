@@ -52,7 +52,8 @@
         "nameDeploymentKeyVault": "[concat(variables('nameDeployment'), '-KeyVault')]",
         "nameDeploymentVm": "[concat(variables('nameDeployment'), '-VM')]",
         "nameKeyVault": "[concat(parameters('EnvironmentName'), '-kv')]",
-        "regionKeyVault": "westeurope"
+        "regionKeyVault": "westeurope",
+        "regionVm": "westeurope"
     },
     "resources": [
         {
@@ -93,10 +94,10 @@
                 },
                 "parameters": {
                     "Name": {
-                        "value": "[variables('nameKeyVault')]"
+                        "value": "[parameters('EnvironmentName')]"
                     },
                     "Region": {
-                        "value": "[variables('regionKeyVault')]"
+                        "value": "[variables('regionVm')]"
                     },
                     "AdminUsername": {
                         "value": "[parameters('AdminUsername')]"
