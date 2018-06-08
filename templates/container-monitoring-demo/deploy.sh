@@ -108,7 +108,7 @@ deployApplicationAcs() {
 
     getSsh $resourceGroup $name
 
-    echo "Deploying Minecraft stack"
+    echo "Deploying to ACS (Minecraft)"
     scp minecraft-swarm.yml labadmin@$FQDNACS:/tmp/minecraft.yml
     $SSH "docker stack deploy -c /tmp/minecraft.yml minecraft"  1> /dev/null
 }
@@ -122,7 +122,7 @@ deployApplicationAks() {
 		--resource-group $resourceGroup \
 		--name $name 1> /dev/null
 
-	echo "Deploy application to AKS"
+	echo "Deploy to AKS (Minecraft)"
 	kubectl apply -f minecraft-kubernetes.yml 1> /dev/null
 }
 
