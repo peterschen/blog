@@ -147,9 +147,9 @@
         "regionIp": "[parameters('Region')]",
         "regionNic": "[parameters('Region')]",
         "regionVm": "[parameters('Region')]",
-        "idSubnet": "[concat('/providers/Microsoft.Network/virtualNetworks/', variables('nameVnet'), '/subnets/subnet-0')]",
-        "idNsg": "[concat('/providers/Microsoft.Network/networkSecurityGroups/', variables('nameNsg'))]",
-        "idNic": "[concat('/providers/Microsoft.Network/networkInterfaces/', variables('nameNic'))]"
+        "idSubnet": "[concat(subscription().id, '/providers/Microsoft.Network/virtualNetworks/', variables('nameVnet'), '/subnets/subnet-0')]",
+        "idNsg": "[concat(subscription().id, '/providers/Microsoft.Network/networkSecurityGroups/', variables('nameNsg'))]",
+        "idNic": "[concat(subscription().id, '/providers/Microsoft.Network/networkInterfaces/', variables('nameNic'))]"
     },
     "resources": [
         {
