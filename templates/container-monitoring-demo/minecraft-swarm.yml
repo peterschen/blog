@@ -10,18 +10,8 @@ services:
     environment:
       EULA: "TRUE"
       CONSOLE: "false"
-      ENABLE_RCON: "true"
-      RCON_PASSWORD: "testing"
-      RCON_PORT: 28016
+      ENABLE_RCON: "falses"
 #    restart: always
-  rcon:
-    image: itzg/rcon
-    ports:
-      - "8080:4326"
-      - "443:4327"
-    volumes:
-      - "mc-rcon:/opt/rcon-web-admin/db"
 
 volumes:
   mc-data:
-  mc-rcon:
