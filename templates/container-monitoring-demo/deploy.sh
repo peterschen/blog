@@ -16,13 +16,13 @@ usage() {
 }
 
 deployInfrastructure() {
-    deploymentName=$1
-    resourceGroup=$2
-    environmentName=$3
-    adminUsername=$4
-    adminSshKey=$5
-    servicePrincipalId=$6
-    servicePrincipalSecret=$7
+    local deploymentName=$1
+    local resourceGroup=$2
+    local environmentName=$3
+    local adminUsername=$4
+    local adminSshKey=$5
+    local servicePrincipalId=$6
+    local servicePrincipalSecret=$7
 
     parameters=$(cat << EOM
 {
@@ -58,13 +58,21 @@ EOM
         --parameters "$parameters" 1> /dev/null
 }
 
+getSsh()
+{
+    local resourceGroup=$1
+    local name="$2"
+
+    export FQDNACS=$(az acs show -g $resourceGroup -n $name --query masterProfile.fqdn -o tsv)
+    export SSH="ssh -A labadmin@${FQDNACS} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+}
+
 deployMonitoringAcs() {
-    resourceGroup=$1
-    name="$2"
-    nameAcs="$name-acs"
+    local resourceGroup=$1
+    local name="$2"
+    local nameAcs="$name-acs"
     
-    fqdn=$(az acs show -g $resourceGroup -n $nameAcs --query masterProfile.fqdn -o tsv)
-    SSH="ssh -A labadmin@${fqdn} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+    getSsh $resourceGroup $nameAcs
     
     serviceId=$($SSH docker service ls --filter "name=omsagent" -q)
 
@@ -97,6 +105,12 @@ deployMonitoringAcs() {
 deployApplicationAcs() {
     resourceGroup=$1
     name="$2-acs"
+
+    getSsh $resourceGroup $name
+
+    echo "Deploying Minecraft stack"
+    scp minecraft-swarm.yaml labadmin@$FQDNACS:/tmp/minecraft.yaml
+    $SSH "docker stack deploy -c /tmp/minecraft.yaml minecraft"
 }
 
 deployApplicationAks() {
@@ -178,9 +192,9 @@ deployMonitoringAcs \
 	$RESOURCEGROUP \
 	$ENVIRONMENTNAME
 
-# deployApplicationAcs \
-#	$RESOURCEGROUP \
-#	$ENVIRONMENTNAME
+deployApplicationAcs \
+	$RESOURCEGROUP \
+	$ENVIRONMENTNAME
 
 # deployApplicationAks \
 #	$RESOURCEGROUP \
