@@ -228,7 +228,7 @@
                                 "id": "[variables('idSubnet')]"
                             },
                             "publicIPAddress": {
-                                "id": "[variables('idI')]"
+                                "id": "[variables('idIp')]"
                             }
                         }
                     }
