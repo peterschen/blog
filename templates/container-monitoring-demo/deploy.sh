@@ -64,7 +64,7 @@ getSsh()
     local name="$2"
 
     export FQDNACS=$(az acs show -g $resourceGroup -n $name --query masterProfile.fqdn -o tsv)
-    export SSH="ssh -A labadmin@${FQDNACS} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+    export SSH="ssh -Aq labadmin@${FQDNACS} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 }
 
 deployMonitoringAcs() {
@@ -96,7 +96,7 @@ deployMonitoringAcs() {
                 -p 25225:25225 \
                 -p 25224:25224/udp \
                 --restart-condition=on-failure \
-                microsoft/oms"
+                microsoft/oms" 1> /dev/null
     else
         echo "OMS agent service is already created"
     fi
@@ -110,7 +110,7 @@ deployApplicationAcs() {
 
     echo "Deploying Minecraft stack"
     scp minecraft-swarm.yml labadmin@$FQDNACS:/tmp/minecraft.yml
-    $SSH "docker stack deploy -c /tmp/minecraft.yml minecraft"
+    $SSH "docker stack deploy -c /tmp/minecraft.yml minecraft"  1> /dev/null
 }
 
 deployApplicationAks() {
@@ -120,10 +120,10 @@ deployApplicationAks() {
 	echo "Configuring Kubernetes credentials for CLI use"
 	az aks get-credentials \
 		--resource-group $resourceGroup \
-		--name $name
+		--name $name 1> /dev/null
 
 	echo "Deploy application to AKS"
-	kubectl apply -f minecraft-kubernetes.yml
+	kubectl apply -f minecraft-kubernetes.yml 1> /dev/null
 }
 
 while [ "$1" != "" ]; do
