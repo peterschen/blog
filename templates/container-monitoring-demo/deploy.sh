@@ -81,13 +81,12 @@ deployMonitoringAcs() {
         workspaceId=$(az resource show --ids $resourceId --query properties.customerId -o tsv)
         workspaceKey=$(az resource invoke-action --action sharedKeys --ids $resourceId | sed 's/\\r\\n//g' | sed 's/\\\"/"/g' | sed 's/"{/{/' | sed 's/}"/}/' | jq -r .primarySharedKey)
 
-        echo "Creating secrets"
+        echo "Deploying to ACS (omsagent)"
         $SSH "echo $workspaceId | docker secret create workspaceId -"
         $SSH "echo $workspaceKey | docker secret create workspaceKey -"
-
-        echo "Creating OMS agent service"
         $SSH \
             "docker service create \
+                -q \
                 --name omsagent \
                 --mode global \
                 --mount type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock \
@@ -96,33 +95,32 @@ deployMonitoringAcs() {
                 -p 25225:25225 \
                 -p 25224:25224/udp \
                 --restart-condition=on-failure \
-                microsoft/oms" 1> /dev/null
+                microsoft/oms"
     else
-        echo "OMS agent service is already created"
+        echo "Deploying to ACS (omsagent) - skipped, already deployed"
     fi
 }
 
 deployApplicationAcs() {
-    resourceGroup=$1
-    name="$2-acs"
+    local resourceGroup=$1
+    local name="$2-acs"
 
     getSsh $resourceGroup $name
 
     echo "Deploying to ACS (Minecraft)"
-    scp minecraft-swarm.yml labadmin@$FQDNACS:/tmp/minecraft.yml
+    scp -q minecraft-swarm.yml labadmin@$FQDNACS:/tmp/minecraft.yml
     $SSH "docker stack deploy -c /tmp/minecraft.yml minecraft"  1> /dev/null
 }
 
 deployApplicationAks() {
-    resourceGroup=$1
-    name="$2-aks"
+    local resourceGroup=$1
+    local name="$2-aks"
 
-	echo "Configuring Kubernetes credentials for CLI use"
 	az aks get-credentials \
 		--resource-group $resourceGroup \
 		--name $name 1> /dev/null
 
-	echo "Deploy to AKS (Minecraft)"
+	echo "Deploying to AKS (Minecraft)"
 	kubectl apply -f minecraft-kubernetes.yml 1> /dev/null
 }
 
@@ -179,14 +177,14 @@ fi
 
 deploymentName=`date +'%Y%m%d-%H%M%S'`
 
-deployInfrastructure \
-    $deploymentName \
-    $RESOURCEGROUP \
-    $ENVIRONMENTNAME \
-    $ADMINUSERNAME \
-    $ADMINSSHKEY \
-    $SERVICEPRINCIPALID \
-    $SERVICEPRINCIPALSECRET
+#deployInfrastructure \
+#    $deploymentName \
+#    $RESOURCEGROUP \
+#    $ENVIRONMENTNAME \
+#    $ADMINUSERNAME \
+#    $ADMINSSHKEY \
+#    $SERVICEPRINCIPALID \
+#    $SERVICEPRINCIPALSECRET
 
 deployMonitoringAcs \
 	$RESOURCEGROUP \
