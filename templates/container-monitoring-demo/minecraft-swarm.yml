@@ -13,7 +13,7 @@ services:
       ENABLE_RCON: "true"
       RCON_PASSWORD: "testing"
       RCON_PORT: 28016
-    restart: always
+#    restart: always
   rcon:
     image: itzg/rcon
     ports:
