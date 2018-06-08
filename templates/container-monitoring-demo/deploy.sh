@@ -45,12 +45,11 @@ deployInfrastructure() {
 EOM
 )
 
-    echo "Creating resource group"
     az group create \
         --name $resourceGroup \
         --location westeurope 1> /dev/null
 
-	echo "Running resource group deployment"
+	echo "Deploying infrastructure"
     az group deployment create \
         --resource-group $resourceGroup \
         --name $deploymentName \
@@ -177,14 +176,14 @@ fi
 
 deploymentName=`date +'%Y%m%d-%H%M%S'`
 
-#deployInfrastructure \
-#    $deploymentName \
-#    $RESOURCEGROUP \
-#    $ENVIRONMENTNAME \
-#    $ADMINUSERNAME \
-#    $ADMINSSHKEY \
-#    $SERVICEPRINCIPALID \
-#    $SERVICEPRINCIPALSECRET
+deployInfrastructure \
+    $deploymentName \
+    $RESOURCEGROUP \
+    $ENVIRONMENTNAME \
+    $ADMINUSERNAME \
+    $ADMINSSHKEY \
+    $SERVICEPRINCIPALID \
+    $SERVICEPRINCIPALSECRET
 
 deployMonitoringAcs \
 	$RESOURCEGROUP \
