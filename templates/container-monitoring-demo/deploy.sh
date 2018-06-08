@@ -109,8 +109,8 @@ deployApplicationAcs() {
     getSsh $resourceGroup $name
 
     echo "Deploying Minecraft stack"
-    scp minecraft-swarm.yaml labadmin@$FQDNACS:/tmp/minecraft.yaml
-    $SSH "docker stack deploy -c /tmp/minecraft.yaml minecraft"
+    scp minecraft-swarm.yml labadmin@$FQDNACS:/tmp/minecraft.yml
+    $SSH "docker stack deploy -c /tmp/minecraft.yml minecraft"
 }
 
 deployApplicationAks() {
@@ -123,7 +123,7 @@ deployApplicationAks() {
 		--name $name
 
 	echo "Deploy application to AKS"
-	kubectl apply -f minecraft.yaml
+	kubectl apply -f minecraft.yml
 }
 
 while [ "$1" != "" ]; do
