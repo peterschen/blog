@@ -10,7 +10,7 @@
         },
         "Region": {
             "type": "string",
-            "defaultValue": "labadmin",
+            "defaultValue": "westeurope",
             "metadata": {
                 "description": "User name for the Linux Virtual Machines."
             }
