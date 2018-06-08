@@ -1,8 +1,11 @@
 #!/usr/bin/env sh
 set -e
 
+APPS="az kubectl ssh"
+
 usage() {
     echo "Helper to deploy the environment."
+    echo "This script requires the following programs to be present: az, kubectl, ssh"
     echo ""
     echo "$0"
     echo "\t-h --help"
@@ -13,6 +16,21 @@ usage() {
 	echo "\t-i --servicePrincipalId=$SERVICEPRINCIPALID"
 	echo "\t-s --servicePrincipalSecret=$SERVICEPRINCIPALSECRET"
     echo ""
+}
+
+checkPrereq() {
+    for app in ${APPS}; do
+        set +e
+        path=$(which $app)
+        set -e
+
+        if [ -z $path ]; then
+            echo "Could not find: $app"
+            echo ""
+            usage
+            exit
+        fi
+    done
 }
 
 deployInfrastructure() {
@@ -123,6 +141,8 @@ deployApplicationAks() {
 	kubectl apply -f minecraft-kubernetes.yml 1> /dev/null
 }
 
+checkPrereq
+
 while [ "$1" != "" ]; do
     PARAM=`echo $1 | awk -F= '{print $1}'`
     VALUE=`echo $1 | sed 's/^[^=]*=//g'`
@@ -196,3 +216,4 @@ deployApplicationAcs \
 deployApplicationAks \
 	$RESOURCEGROUP \
 	$ENVIRONMENTNAME
+    
