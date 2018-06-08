@@ -1,0 +1,85 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "EnvironmentName": {
+            "type": "string",
+            "metadata": {
+                "description": "Prefix of the environment"
+            }
+        },
+        "AdminUsername": {
+            "type": "string",
+            "defaultValue": "labadmin",
+            "metadata": {
+                "description": "User name for the Linux Virtual Machines."
+            }
+        },
+        "AdminSshKey": {
+            "type": "string",
+            "metadata": {
+                "description": "RSA key to be configured on all nodes for direct access through ssh."
+            }
+        },
+        "TenantId": {
+            "type": "string",
+            "metadata": {
+                "description": "Azure Active Directory tenant id for the subscription against which the Key Vault should authenticate requests against."
+            }
+        },
+        "ServicePrincipalClientId": {
+            "type": "string",
+            "metadata": {
+                "description": "The ID for the service principal."
+            }
+        },
+        "ServicePrincipalClientSecret": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The secret password associated with the service principal."
+            }
+        }
+    },
+    "variables": {
+        "urlAssets": "https://raw.githubusercontent.com/peterschen/blog/master/templates/linux-vm-encryption",
+        "nameDeployment": "[deployment().name]",
+        "nameDeploymentKeyVault": "[concat(variables('nameDeployment'), '-KeyVault')]",
+        "nameKeyVault": "[concat(parameters('EnvironmentName'), '-kv')]",
+        "regionKeyVault": "westeurope"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentKeyVault')]",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlAssets'), '/keyvault.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameKeyVault')]"
+                    },
+                    "Region": {
+                        "value": "[variables('regionKeyVault')]"
+                    },
+                    "TenantId": {
+                        "value": "[parameters('TenantId')]"
+                    },
+                    "ServicePrincipalClientId": {
+                        "value": "[parameters('ServicePrincipalClientId')]"
+                    }
+                }
+            },
+            "dependsOn": [
+            ]
+        }
+    ],
+    "outputs": {
+        "ResourceGroup": {
+            "type": "string",
+            "value": "[resourceGroup().name]"
+        }
+    }
+}
