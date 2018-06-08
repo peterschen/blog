@@ -1,0 +1,63 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: minecraft-datadir
+  labels:
+    app: minecraft
+  annotations:
+    volume.alpha.kubernetes.io/storage-class: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "1Gi"
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: minecraft
+  labels:
+    app: minecraft
+spec:
+  template:
+    metadata:
+      labels:
+        app: minecraft
+    spec:
+      containers:
+      - name: minecraft
+        image: "itzg/minecraft-server:latest"
+        imagePullPolicy: Always
+        resources:
+        env:
+        - name: EULA
+          value: "TRUE"
+        ports:
+        - name: minecraft
+          containerPort: 25565
+          protocol: TCP
+        volumeMounts:
+        - name: datadir
+          mountPath: /data
+      volumes:
+      - name: datadir
+        persistentVolumeClaim:
+          claimName: minecraft-datadir
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: minecraft
+    labels:
+        app: minecraft
+spec:
+    type: LoadBalancer
+    ports:
+    - name: minecraft
+      port: 80
+      targetPort: 25565
+      protocol: TCP
+    selector:
+        app: minecraft
+        

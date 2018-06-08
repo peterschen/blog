@@ -123,7 +123,7 @@ deployApplicationAks() {
 		--name $name
 
 	echo "Deploy application to AKS"
-	kubectl apply -f minecraft.yml
+	kubectl apply -f minecraft-kubernetes.yml
 }
 
 while [ "$1" != "" ]; do
@@ -196,6 +196,6 @@ deployApplicationAcs \
 	$RESOURCEGROUP \
 	$ENVIRONMENTNAME
 
-# deployApplicationAks \
-#	$RESOURCEGROUP \
-#	$ENVIRONMENTNAME
+deployApplicationAks \
+	$RESOURCEGROUP \
+	$ENVIRONMENTNAME
