@@ -94,7 +94,7 @@
                     "contentVersion": "1.0.0.1"
                 },
                 "parameters": {
-                    "Name": {
+                    "EnvironmentName": {
                         "value": "[parameters('EnvironmentName')]"
                     },
                     "Region": {
