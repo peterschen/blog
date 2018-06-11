@@ -1,0 +1,17 @@
+---
+- name : Install nginx
+  hosts: all
+  user: labadmin
+  become: true
+
+  tasks:
+  - name: Install utilities
+    apt: pkg={{item}} state=present install_recommends=no update_cache=yes
+    with_items:
+      - git
+      - dnsutils
+      - curl
+      - nginx
+
+  - name: Insert home page
+    shell: echo "Automation with Ansible // https://www.github.com/peterschen/blog/" > /var/www/index.html
