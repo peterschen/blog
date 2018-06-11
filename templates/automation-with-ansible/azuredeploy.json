@@ -1,0 +1,69 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "EnvironmentName": {
+            "type": "string",
+            "metadata": {
+                "description": "Prefix of the environment"
+            }
+        },
+        "AdminUsername": {
+            "type": "string",
+            "defaultValue": "labadmin",
+            "metadata": {
+                "description": "User name for the Linux Virtual Machines."
+            }
+        },
+        "AdminSshKey": {
+            "type": "string",
+            "metadata": {
+                "description": "RSA key to be configured on all nodes for direct access through ssh."
+            }
+        }
+    },
+    "variables": {
+        "urlAssets": "https://raw.githubusercontent.com/peterschen/blog/linux-stuff/templates/linux-vm-encryption",
+        "nameDeployment": "[deployment().name]",
+        "nameDeploymentKeyVault": "[concat(variables('nameDeployment'), '-KeyVault')]",
+        "nameDeploymentVm": "[concat(variables('nameDeployment'), '-VM')]",
+        "regionVm": "westeurope"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentVm')]",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlAssets'), '/vm.json')]",
+                    "contentVersion": "1.0.0.1"
+                },
+                "parameters": {
+                    "EnvironmentName": {
+                        "value": "[parameters('EnvironmentName')]"
+                    },
+                    "Region": {
+                        "value": "[variables('regionVm')]"
+                    },
+                    "AdminUsername": {
+                        "value": "[parameters('AdminUsername')]"
+                    },
+                    "AdminSshKey": {
+                        "value": "[parameters('AdminSshKey')]"
+                    },
+                    "VmSize": {
+                        "value": "Standard_D2s_v3"
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "ResourceGroup": {
+            "type": "string",
+            "value": "[resourceGroup().name]"
+        }
+    }
+}

@@ -49,3 +49,6 @@ The output is similiar to the following. Take note of the `appId` and `password`
   "tenant": "72f988bf-0000-0000-0000-2d7cd011db47"
 }
 ```
+
+## [Automation with Ansible](automation-with-ansible/azuredeploy.json) ##
+[![Deploy to Azure](https://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fgithub.com%2Fpeterschen%2Fblog%2Fblob%2Fmaster%2Ftemplates%2Fautomation-with-ansible%2Fazuredeploy.json)
