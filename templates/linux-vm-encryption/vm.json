@@ -2,7 +2,7 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.1",
     "parameters": {
-        "Name": {
+        "EnvironmentName": {
             "type": "string",
             "metadata": {
                 "description": "Prefix for the resources."
@@ -137,20 +137,20 @@
         }
     },
     "variables": {
-        "nameVnet": "[concat(parameters('Name'), '-vnet')]",
-        "nameNsg": "[concat(parameters('Name'), '-nsg')]",
-        "nameIp": "[concat(parameters('Name'), '-ip')]",
-        "nameNic": "[concat(parameters('Name'), '-nic')]",
-        "nameVm": "[concat(parameters('Name'), '-vm')]",
+        "nameVnet": "[concat(parameters('EnvironmentName'), '-vnet')]",
+        "nameNsg": "[concat(parameters('EnvironmentName'), '-nsg')]",
+        "nameIp": "[concat(parameters('EnvironmentName'), '-ip')]",
+        "nameNic": "[concat(parameters('EnvironmentName'), '-nic')]",
+        "nameVm": "[concat(parameters('EnvironmentName'), '-vm')]",
         "regionVnet": "[parameters('Region')]",
         "regionNsg": "[parameters('Region')]",
         "regionIp": "[parameters('Region')]",
         "regionNic": "[parameters('Region')]",
         "regionVm": "[parameters('Region')]",
-        "idSubnet": "[concat(subscription().id, '/providers/Microsoft.Network/virtualNetworks/', variables('nameVnet'), '/subnets/subnet-0')]",
-        "idNsg": "[concat(subscription().id, '/providers/Microsoft.Network/networkSecurityGroups/', variables('nameNsg'))]",
-        "idIp": "[concat(subscription().id, '/providers/Microsoft.Network/publicIPAddresses/', variables('nameIp'))]",
-        "idNic": "[concat(subscription().id, '/providers/Microsoft.Network/networkInterfaces/', variables('nameNic'))]"
+        "idSubnet": "[concat(resourceGroup().id, '/providers/Microsoft.Network/virtualNetworks/', variables('nameVnet'), '/subnets/subnet-0')]",
+        "idNsg": "[concat(resourceGroup().id, '/providers/Microsoft.Network/networkSecurityGroups/', variables('nameNsg'))]",
+        "idIp": "[concat(resourceGroup().id, '/providers/Microsoft.Network/publicIPAddresses/', variables('nameIp'))]",
+        "idNic": "[concat(resourceGroup().id, '/providers/Microsoft.Network/networkInterfaces/', variables('nameNic'))]"
     },
     "resources": [
         {
@@ -215,14 +215,14 @@
         {
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[variables('nameNic')]",
-            "apiVersion": "2015-06-15",
+            "apiVersion": "2018-04-01",
             "location": "[variables('regionNic')]",
-            "tags": {},
             "properties": {
                 "ipConfigurations": [
                     {
-                        "name": "ipconfigvmenc",
+                        "name": "ipconfig",
                         "properties": {
+                            "privateIpAddressVersion": "IPv4",
                             "privateIPAllocationMethod": "Dynamic",
                             "subnet": {
                                 "id": "[variables('idSubnet')]"
