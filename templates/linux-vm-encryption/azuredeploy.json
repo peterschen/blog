@@ -90,7 +90,8 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[concat(variables('urlAssets'), '/vm.json')]"
+                    "uri": "[concat(variables('urlAssets'), '/vm.json')]",
+                    "contentVersion": "1.0.0.1"
                 },
                 "parameters": {
                     "Name": {
