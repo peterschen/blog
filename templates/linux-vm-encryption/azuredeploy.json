@@ -51,7 +51,9 @@
         "nameDeployment": "[deployment().name]",
         "nameDeploymentKeyVault": "[concat(variables('nameDeployment'), '-KeyVault')]",
         "nameDeploymentVm": "[concat(variables('nameDeployment'), '-VM')]",
+        "nameDeploymentVmEncryption": "[concat(variables('nameDeployment'), '-Encryption')]",
         "nameKeyVault": "[concat(parameters('EnvironmentName'), '-kv')]",
+        "nameVm": "[concat(parameters('EnvironmentName'), '-vm')]",
         "regionKeyVault": "westeurope",
         "regionVm": "westeurope"
     },
@@ -113,6 +115,39 @@
             },
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentKeyVault'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentVmEncryption')]",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlAssets'), '/vm-encryption.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameVm')]"
+                    },
+                    "Region": {
+                        "value": "[variables('regionVm')]"
+                    },
+                    "KeyVaultName": {
+                        "value": "[variables('nameKeyVault')]"
+                    },
+                    "ServicePrincipalClientId": {
+                        "value": "[parameters('ServicePrincipalClientId')]"
+                    },
+                    "ServicePrincipalClientSecret": {
+                        "value": "[parameters('ServicePrincipalClientSecret')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentKeyVault'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVm'))]"
             ]
         }
     ],
