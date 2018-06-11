@@ -1,0 +1,73 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "Name": {
+            "type": "string",
+            "metadata": {
+                "description": "Prefix of the environment"
+            }
+        },
+        "Region": {
+            "type": "string",
+            "defaultValue": "westeurope",
+            "metadata": {
+                "description": "Region in which the resources should be deployed."
+            }
+        },
+        "TenantId": {
+            "type": "string",
+            "metadata": {
+                "description": "Azure Active Directory tenant id for the subscription against which the Key Vault should authenticate requests against."
+            }
+        },
+        "ServicePrincipalObjectId": {
+            "type": "string",
+            "metadata": {
+                "description": "The object id for the service principal."
+            }
+        }
+    },
+    "variables": {
+    },
+    "resources": [
+        {
+            "type": "Microsoft.KeyVault/vaults",
+            "name": "[parameters('Name')]",
+            "apiVersion": "2016-10-01",
+            "location": "[parameters('Region')]",
+            "tags": {},
+            "scale": null,
+            "properties": {
+                "sku": {
+                    "family": "A",
+                    "name": "standard"
+                },
+                "tenantId": "[parameters('TenantId')]",
+                "accessPolicies": [
+                    {
+                        "tenantId": "[parameters('TenantId')]",
+                        "objectId": "[parameters('ServicePrincipalObjectId')]",
+                        "permissions": {
+                            "keys": [
+                                "wrapKey"
+                            ],
+                            "secrets": [
+                                "set"
+                            ]
+                        }
+                    }
+                ],
+                "enabledForDeployment": false,
+                "enabledForDiskEncryption": true
+            },
+            "dependsOn": []
+        }
+    ],
+    "outputs": {
+        "ResourceGroup": {
+            "type": "string",
+            "value": "[resourceGroup().name]"
+        }
+    }
+}

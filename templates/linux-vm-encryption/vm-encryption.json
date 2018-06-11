@@ -1,0 +1,97 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "Name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the VM for which to enable encryption."
+            }
+        },
+        "Region": {
+            "type": "string",
+            "metadata": {
+                "description": "Region where the VM is located."
+            }
+        },
+        "KeyVaultName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Key Vault that holds the encryption key."
+            }
+        },
+        "ServicePrincipalClientId": {
+            "type": "string",
+            "metadata": {
+                "description": "The ID for the service principal."
+            }
+        },
+        "ServicePrincipalClientSecret": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The secret password associated with the service principal."
+            }
+        }
+    },
+    "variables": {
+        "urlKeyVault": "[concat('https://', parameters('keyVaultName'), '.vault.azure.net/')]",
+        "typeExtension": "AzureDiskEncryptionForLinux",
+        "nameExtension": "[concat(parameters('Name'),'/', variables('typeExtension'))]",
+        "idKeyVault": "[concat(resourceGroup().id, '/providers/Microsoft.KeyVault/vaults/', parameters('KeyVaultName'))]",
+        "algoKeyEncryption": "RSA-OAEP",
+        "versionExtension": "0.1"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[variables('nameExtension')]",
+            "apiVersion": "2015-06-15",
+            "location": "[parameters('Region')]",
+            "properties": {
+                "protectedSettings": {
+                    "AADClientSecret": "[parameters('ServicePrincipalClientSecret')]",
+                    "Passphrase": ""
+                },
+                "publisher": "Microsoft.Azure.Security",
+                "settings": {
+                    "AADClientID": "[parameters('ServicePrincipalClientId')]",
+                    "DiskFormatQuery": "",
+                    "EncryptionOperation": "EnableEncryption",
+                    "KeyEncryptionAlgorithm": "[variables('algoKeyEncryption')]",
+                    "KeyEncryptionKeyURL": "",
+                    "KeyVaultURL": "[variables('urlKeyVault')]",
+                    "SequenceVersion": "1",
+                    "VolumeType": "All"
+                },
+                "type": "[variables('typeExtension')]",
+                "typeHandlerVersion": "[variables('versionExtension')]"
+            }
+        },
+        {
+            "apiVersion": "2016-04-30-preview",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('Name')]",
+            "location": "[parameters('Region')]",
+            "properties": {
+                "storageProfile": {
+                    "osDisk": {
+                        "encryptionSettings": {
+                            "diskEncryptionKey": {
+                                "sourceVault": {
+                                    "id": "[variables('idKeyVault')]"
+                                },
+                                "secretUrl": "[reference(resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('Name'), variables('typeExtension'))).instanceView.statuses[0].message]"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "ResourceGroup": {
+            "type": "string",
+            "value": "[resourceGroup().name]"
+        }
+    }
+}

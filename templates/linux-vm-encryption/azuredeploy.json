@@ -1,0 +1,160 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "EnvironmentName": {
+            "type": "string",
+            "metadata": {
+                "description": "Prefix of the environment"
+            }
+        },
+        "AdminUsername": {
+            "type": "string",
+            "defaultValue": "labadmin",
+            "metadata": {
+                "description": "User name for the Linux Virtual Machines."
+            }
+        },
+        "AdminSshKey": {
+            "type": "string",
+            "metadata": {
+                "description": "RSA key to be configured on all nodes for direct access through ssh."
+            }
+        },
+        "TenantId": {
+            "type": "string",
+            "metadata": {
+                "description": "Azure Active Directory tenant id for the subscription against which the Key Vault should authenticate requests against."
+            }
+        },
+        "ServicePrincipalObjectId": {
+            "type": "string",
+            "metadata": {
+                "description": "The object id for the service principal."
+            }
+        },
+        "ServicePrincipalClientId": {
+            "type": "string",
+            "metadata": {
+                "description": "The client id for the service principal."
+            }
+        },
+        "ServicePrincipalClientSecret": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The secret password associated with the service principal."
+            }
+        }
+    },
+    "variables": {
+        "urlAssets": "https://raw.githubusercontent.com/peterschen/blog/linux-stuff/templates/linux-vm-encryption",
+        "nameDeployment": "[deployment().name]",
+        "nameDeploymentKeyVault": "[concat(variables('nameDeployment'), '-KeyVault')]",
+        "nameDeploymentVm": "[concat(variables('nameDeployment'), '-VM')]",
+        "nameDeploymentVmEncryption": "[concat(variables('nameDeployment'), '-Encryption')]",
+        "nameKeyVault": "[concat(parameters('EnvironmentName'), '-kv')]",
+        "nameVm": "[concat(parameters('EnvironmentName'), '-vm')]",
+        "regionKeyVault": "westeurope",
+        "regionVm": "westeurope"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentKeyVault')]",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlAssets'), '/keyvault.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameKeyVault')]"
+                    },
+                    "Region": {
+                        "value": "[variables('regionKeyVault')]"
+                    },
+                    "TenantId": {
+                        "value": "[parameters('TenantId')]"
+                    },
+                    "ServicePrincipalObjectId": {
+                        "value": "[parameters('ServicePrincipalObjectId')]"
+                    }
+                }
+            },
+            "dependsOn": [
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentVm')]",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlAssets'), '/vm.json')]",
+                    "contentVersion": "1.0.0.1"
+                },
+                "parameters": {
+                    "EnvironmentName": {
+                        "value": "[parameters('EnvironmentName')]"
+                    },
+                    "Region": {
+                        "value": "[variables('regionVm')]"
+                    },
+                    "AdminUsername": {
+                        "value": "[parameters('AdminUsername')]"
+                    },
+                    "AdminSshKey": {
+                        "value": "[parameters('AdminSshKey')]"
+                    },
+                    "VmSize": {
+                        "value": "Standard_D2s_v3"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentKeyVault'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentVmEncryption')]",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlAssets'), '/vm-encryption.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameVm')]"
+                    },
+                    "Region": {
+                        "value": "[variables('regionVm')]"
+                    },
+                    "KeyVaultName": {
+                        "value": "[variables('nameKeyVault')]"
+                    },
+                    "ServicePrincipalClientId": {
+                        "value": "[parameters('ServicePrincipalClientId')]"
+                    },
+                    "ServicePrincipalClientSecret": {
+                        "value": "[parameters('ServicePrincipalClientSecret')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentKeyVault'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVm'))]"
+            ]
+        }
+    ],
+    "outputs": {
+        "ResourceGroup": {
+            "type": "string",
+            "value": "[resourceGroup().name]"
+        }
+    }
+}
