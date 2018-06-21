@@ -99,11 +99,10 @@ deployMonitoringAcs() {
         workspaceKey=$(az resource invoke-action --action sharedKeys --ids $resourceId | sed 's/\\r\\n//g' | sed 's/\\\"/"/g' | sed 's/"{/{/' | sed 's/}"/}/' | jq -r .primarySharedKey)
 
         echo "Deploying to ACS (omsagent)"
-        $SSH "echo $workspaceId | docker secret create workspaceId -"
-        $SSH "echo $workspaceKey | docker secret create workspaceKey -"
+        $SSH "echo $workspaceId | docker secret create workspaceId -" || true
+        $SSH "echo $workspaceKey | docker secret create workspaceKey -" || true
         $SSH \
             "docker service create \
-                -q \
                 --name omsagent \
                 --mode global \
                 --mount type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock \
