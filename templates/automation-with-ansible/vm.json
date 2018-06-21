@@ -196,6 +196,19 @@
                             "priority": 1000,
                             "direction": "Inbound"
                         }
+                    },
+                    {
+                        "name": "default-allow-http",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 500,
+                            "direction": "Inbound"
+                        }
                     }
                 ]
             },

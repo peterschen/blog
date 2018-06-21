@@ -75,6 +75,15 @@ runAnsible() {
     ansible-playbook -i $fqdn, playbook.yml --ssh-extra-args "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 }
 
+showInfo() {
+    local resourceGroup=$1
+    local environmentName=$2
+
+    fqdn=$(az network public-ip show -g $resourceGroup -n $environmentName-ip --query ipAddress -o tsv)
+
+    echo "Point your browser to $fqdn to see the nginx welcome page."
+}
+
 checkPrereq
 
 while [ "$1" != "" ]; do
@@ -126,5 +135,9 @@ deployInfrastructure \
     $ADMINSSHKEY
 
 runAnsible \
+    $RESOURCEGROUP \
+    $ENVIRONMENTNAME
+
+showInfo \
     $RESOURCEGROUP \
     $ENVIRONMENTNAME
