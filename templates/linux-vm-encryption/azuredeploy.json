@@ -47,7 +47,7 @@
         }
     },
     "variables": {
-        "urlAssets": "https://raw.githubusercontent.com/peterschen/blog/linux-stuff/templates/linux-vm-encryption",
+        "urlAssets": "https://raw.githubusercontent.com/peterschen/blog/master/templates/linux-vm-encryption",
         "nameDeployment": "[deployment().name]",
         "nameDeploymentKeyVault": "[concat(variables('nameDeployment'), '-KeyVault')]",
         "nameDeploymentVm": "[concat(variables('nameDeployment'), '-VM')]",
