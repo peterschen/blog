@@ -156,6 +156,12 @@
                     "Region": {
                         "value": "[variables('regionAks')]"
                     },
+                    "AdminUsername": {
+                        "value": "[parameters('AdminUsername')]"
+                    },
+                    "AdminSshKey": {
+                        "value": "[parameters('AdminSshKey')]"
+                    },
                     "Version": {
                         "value": "1.9.6"
                     },
