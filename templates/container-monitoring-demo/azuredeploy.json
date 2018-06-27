@@ -157,7 +157,7 @@
                         "value": "[variables('regionAks')]"
                     },
                     "Version": {
-                        "value": "1.9.6"
+                        "value": "1.10.3"
                     },
                     "AgentCount": {
                         "value": 1
