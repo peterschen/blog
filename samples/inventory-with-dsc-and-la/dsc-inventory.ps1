@@ -10,9 +10,15 @@ configuration DscInventory
                 return @{ Result = $true }
             }
             SetScript = {
-                New-EventLog -LogName Application -Source "DSC/LA Inventory" -ErrorAction SilentlyContinue;
+                $source = "DSC/LA Inventory";
+
+                if(-not [System.Diagnostics.EventLog]::SourceExists($source))
+                {
+                    New-EventLog -LogName Application -Source "DSC/LA Inventory";
+                }
+
                 $data = Get-Content -Path "C:\inventory.json" -Raw;
-                Write-EventLog -LogName Application -Source "DSC/LA Inventory" -EntryType Information -EventId 12345 -Category 0 -Message $data;
+                Write-EventLog -LogName Application -Source $source -EntryType Information -EventId 12345 -Category 0 -Message $data;
             }
             TestScript = {
                 return $false;
