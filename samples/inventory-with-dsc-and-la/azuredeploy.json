@@ -1,0 +1,44 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "VmName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the VM"
+            }
+        },
+        "Region": {
+            "type": "string",
+            "metadata": {
+                "description": "Region in which the resources should be deployed."
+            }
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('VmName'),'/Microsoft.Powershell.DSC')]",
+            "apiVersion": "2015-06-15",
+            "location": "[parameters('Region')]",
+            "properties": {
+                "publisher": "Microsoft.Powershell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.76",
+                "autoUpgradeMinorVersion": "true",
+                "settings": {
+                    "ModulesUrl": "https://github.com/peterschen/blog/raw/inventory-with-dsc-and-la/samples/inventory-with-dsc-and-la/inventory-with-dsc-and-la.zip",
+                    "ConfigurationFunction": "dsc-inventory.ps1\\DscInventory",
+                    "Properties": "",
+                    "WmfVersion": "latest",
+                    "Privacy": {
+                        "DataCollection": "Enable"
+                    }
+                },
+                "protectedSettings": {
+                    "DataBlobUri": ""
+                }
+            }
+        }
+    ]
+}
