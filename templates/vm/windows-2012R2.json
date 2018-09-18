@@ -191,7 +191,7 @@
             "properties": {
                 "securityRules": [
                     {
-                        "name": "default-allow-rdp",
+                        "name": "allow-rdp",
                         "properties": {
                             "protocol": "Tcp",
                             "sourcePortRange": "*",
