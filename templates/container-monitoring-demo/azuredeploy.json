@@ -35,7 +35,8 @@
         }
     },
     "variables": {
-        "urlAssets": "https://raw.githubusercontent.com/peterschen/blog/master/templates/container-monitoring-demo",
+        "urlBase": "https://raw.githubusercontent.com/peterschen/blog/master/templates",
+        "urlAssets": "[concat(variables('urlBase'), '/container-monitoring-demo')]",
         "nameDeployment": "[deployment().name]",
         "nameDeploymentLogAnalytics": "[concat(variables('nameDeployment'), '-LogAnalytics')]",
         "nameDeploymentAcs": "[concat(variables('nameDeployment'), '-AzureContainerService')]",
@@ -59,7 +60,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[concat(variables('urlAssets'), '/loganalytics.json')]"
+                    "uri": "[concat(variables('urlBase'), '/loganalytics/workspace.json')]"
                 },
                 "parameters": {
                     "Name": {

@@ -1,0 +1,54 @@
+
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "Name": {
+            "type": "string",
+            "metadata": {
+               "description": "Name of the solution."
+            }
+        },
+        "WorkspaceName": {
+            "type": "string",
+            "metadata": {
+               "description": "Name of the Log Analytics workspace."
+            }  
+        },
+        "Region": {
+            "type": "string",
+            "defaultValue": "westeurope",
+            "allowedValues": [
+                "australiasoutheast",
+                "canadacentral",
+                "centralindia",
+                "eastus",
+                "japaneast",
+                "southeastasia",
+                "uksouth",
+                "westeurope"
+            ]
+        }
+    },
+    "variables": {
+        "NameInstance": "[concat(parameters('Name'), '(', parameters('WorkspaceName'),')')]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2015-11-01-preview",
+            "type": "Microsoft.OperationsManagement/solutions",
+            "location": "[parameters('Region')]",
+            "name": "[variables('NameInstance')]",
+            "properties": {
+                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('WorkspaceName'))]"
+            },
+            "plan": {
+                "name": "[variables('NameInstance')]",
+                "product": "[concat('OMSGallery/', parameters('Name'))]",
+                "promotionCode": "",
+                "publisher": "Microsoft"
+            }
+        }
+    ],
+    "outputs": {}
+}
