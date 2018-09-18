@@ -15,6 +15,9 @@
             }
         }
     },
+    "variables": {
+        "urlAssets": "https://raw.githubusercontent.com/peterschen/blog/master/samples/inventory-with-dsc-and-la"
+    },
     "resources": [
         {
             "type": "Microsoft.Compute/virtualMachines/extensions",
@@ -27,7 +30,7 @@
                 "typeHandlerVersion": "2.76",
                 "autoUpgradeMinorVersion": "true",
                 "settings": {
-                    "ModulesUrl": "https://github.com/peterschen/blog/raw/inventory-with-dsc-and-la/samples/inventory-with-dsc-and-la/inventory-with-dsc-and-la.zip",
+                    "ModulesUrl": "[concat(variables('urlAssets'), '/inventory-with-dsc-and-la.zip')]",
                     "ConfigurationFunction": "dsc-inventory.ps1\\DscInventory",
                     "Properties": "",
                     "WmfVersion": "latest",
