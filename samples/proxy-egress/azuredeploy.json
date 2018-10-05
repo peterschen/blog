@@ -1,0 +1,218 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "EnvironmentName": {
+            "type": "string",
+            "metadata": {
+                "description": "Prefix of the environment"
+            }
+        }
+    },
+    "variables": {
+        "gitBranch": "proxy-egress",
+        "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'), '/')]",
+        "urlTemplates": "[concat(variables('urlBase'), '/templates')]",
+        "urlSamples": "[concat(variables('urlBase'), '/samples/proxy-egress')]",
+        "nameDeployment": "[deployment().name]",
+        "nameDeploymentVnetIsolated": "[concat(variables('nameDeployment'), '-VnetIsolated')]",
+        "nameDeploymentVnetProxy": "[concat(variables('nameDeployment'), '-VnetProxy')]",
+        "nameDeploymentPeering": "[concat(variables('nameDeployment'), '-Peering')]",
+        "nameVnetIsolated": "[concat(parameters('EnvironmentName'), '-isolated')]",
+        "nameVnetProxy": "[concat(parameters('EnvironmentName'), '-proxy')]",
+        "nameNsgIsolated": "[concat(parameters('EnvironmentName'), '-isolated-nsg')]",
+        "nameNsgProxy": "[concat(parameters('EnvironmentName'), '-proxy-nsg')]",
+        "regionVnet": "westeurope",
+        "regionNsg": "[variables('regionVnet')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentVnetIsolated')]",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/network/vnet.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameVnetIsolated')]"
+                    },
+                    "Region": {
+                        "value": "[variables('regionVnet')]"
+                    }
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentVnetProxy')]",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/network/vnet.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameVnetProxy')]"
+                    },
+                    "Region": {
+                        "value": "[variables('regionVnet')]"
+                    }
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentPeering')]",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/network/peering.json')]"
+                },
+                "parameters": {
+                    "NameVnet1": {
+                        "value": "[variables('nameVnetIsolated')]"
+                    },
+                    "NameVnet2": {
+                        "value": "[variables('nameVnetProxy')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', variables('nameNsgIsolated'))]",
+                "[concat('Microsoft.Network/virtualNetworks/', variables('nameNsgProxy'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('nameNsgIsolated')]",
+            "apiVersion": "2015-06-15",
+            "location": "[variables('regionNsg')]",
+            "tags": {},
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "allow-ssh-inbound",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "allow-rdp-inbound",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1010,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "allow-vnet-outbound",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Outbound"
+                        }
+                    },
+                    {
+                        "name": "deny-internet-outbound",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "Internet",
+                            "access": "Deny",
+                            "priority": 110,
+                            "direction": "Outbound"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', variables('nameNsgIsolated'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('nameNsgProxy')]",
+            "apiVersion": "2015-06-15",
+            "location": "[variables('regionNsg')]",
+            "tags": {},
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "allow-ssh-inbound",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "allow-rdp-inbound",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1010,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "allow-proxy-inbound",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "8888",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1010,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', variables('nameNsgProxy'))]"
+            ]
+        }
+    ],
+    "outputs": {
+        "ResourceGroup": {
+            "type": "string",
+            "value": "[resourceGroup().name]"
+        }
+    }
+}

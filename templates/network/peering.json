@@ -1,0 +1,55 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.1",
+    "parameters": {
+        "NameVnet1": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the first vnet"
+            }
+        },
+        "NameVnet2": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the second vnet."
+            }
+        }
+    },
+    "variables": {
+        "nameVnet12": "[concat(parameters('NameVnet1'), '-', parameters('NameVnet2'))]",
+        "nameVNet21": "[concat(parameters('NameVnet2'), '-', parameters('NameVnet1'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+            "name": "[concat(parameters('NameVnet1'), '/', variables('nameVnet12'))]",
+            "apiVersion": "2018-08-01",
+            "properties": {
+                "allowVirtualNetworkAccess": true,
+                "allowForwardedTraffic": true,
+                "allowGatewayTransit": false,
+                "useRemoteGateways": false,
+                "remoteVirtualNetwork": {
+                    "id": "[concat(resourceGroup().id, '/providers/Microsoft.Network/virtualNetworks/', parameters('NameVnet2'))]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+            "name": "[concat(parameters('NameVnet2'), '/', variables('nameVnet21'))]",
+            "apiVersion": "2018-08-01",
+            "properties": {
+                "allowVirtualNetworkAccess": true,
+                "allowForwardedTraffic": true,
+                "allowGatewayTransit": false,
+                "useRemoteGateways": false,
+                "remoteVirtualNetwork": {
+                    "id": "[concat(resourceGroup().id, '/providers/Microsoft.Network/virtualNetworks/', parameters('NameVnet1'))]"
+                }
+            },
+            "dependsOn": []
+        }
+    ],
+    "outputs": {}
+}
