@@ -1,0 +1,123 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.1",
+    "parameters": {
+        "Name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the vnet."
+            }
+        },
+        "Region": {
+            "type": "string",
+            "defaultValue": "westeurope",
+            "metadata": {
+                "description": "Region in which the resources should be deployed."
+            }
+        },
+        "AddressSpace": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/16",
+            "metadata": {
+                "description": "Total address space for this vnet."
+            }
+        }
+        ,
+        "SubnetAddressSpace": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/24",
+            "metadata": {
+                "description": "First subnet."
+            }
+        }
+    },
+    "variables": {
+        "nameVnet": "[parameters('Name')]",
+        "nameNsg": "[concat(parameters('Name'), '-nsg')]",
+        "regionVnet": "[parameters('Region')]",
+        "regionNsg": "[parameters('Region')]",
+        "idNsg": "[concat(resourceGroup().id, '/providers/Microsoft.Network/networkSecurityGroups/', variables('nameNsg'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[variables('nameVnet')]",
+            "apiVersion": "2015-06-15",
+            "location": "[variables('regionVnet')]",
+            "tags": {},
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('AddressSpace')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "subnet-0",
+                        "properties": {
+                            "addressPrefix": "[parameters('SubnetAddressSpace')]",
+                            "networkSecurityGroup": {
+                                "id": "[variables('idNsg')]"
+                            }
+                        }
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkSecurityGroups/', variables('nameNsg'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('nameNsg')]",
+            "apiVersion": "2015-06-15",
+            "location": "[variables('regionNsg')]",
+            "tags": {},
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "allow-ssh-inbound",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "allow-rdp-inbound",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1010,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": []
+        }
+    ],
+    "outputs": {
+        "NameVnet": {
+            "type": "string",
+            "value": "[variables('nameVnet')]"
+        },
+        "NameNsg": {
+            "type": "string",
+            "value": "[variables('nameNsg')]"
+        },
+        "IdNsg": {
+            "type": "string",
+            "value": "[variables('idNsg')]"
+        }
+    }
+}
