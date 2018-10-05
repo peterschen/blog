@@ -80,7 +80,7 @@ When deploying the template a VM preinstalled with `tinyproxy`will be deployed. 
 
 To make use of the proxy point any machines in the `isolated` network to use the proxy. The address of the proxy is `10.0.0.4` and listens on port `8888`. The following screenshot shows how to set the proxy in Internet Explorer:
 
-![Proxy settings in Internet Explorer](/proxy-egress/proxy-settings.png)
+![Proxy settings in Internet Explorer](proxy-egress/proxy-settings.png?raw=true)
 
 ## [Publish to social with Logic Apps](publish-to-social-with-logic-apps/azuredeploy.json) ##
 See [https://blog.peterschen.de/https://blog.peterschen.de/publish-to-social-with-logic-apps//](https://blog.peterschen.de/https://blog.peterschen.de/publish-to-social-with-logic-apps//)
