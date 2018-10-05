@@ -1,0 +1,60 @@
+#cloud-config
+package_upgrade: true
+packages:
+  - tinyproxy
+write_files:
+  - owner: root:root
+  - path: /etc/tinyproxy/filter
+    content: |
+      c.urs.microsoft.com
+      download.microsoft.com
+      go.microsoft.com
+      .vo.msecnd.net
+      oneget.org
+      www.powershellgallery.com
+      psg-prod-eastus.azureedge.net
+      login.microsoftonline.com
+      .digicert.com
+      ocsp.msocsp.com
+      mscrl.microsoft.com
+      crl.microsoft.com
+      secure.aadcdn.microsoftonline-p.com
+      msft.sts.microsoft.com
+      management.azure.com
+      login.windows.net
+      .core.windows.net
+      .one.microsoft.com
+  - owner: tinyproxy:tinyproxy
+  - path: /etc/tinyproxy/tinyproxy.conf
+    content: |
+      User tinyproxy
+      Group tinyproxy
+
+      Port 8888
+      BindSame yes
+      Timeout 600
+
+      DefaultErrorFile "/usr/share/tinyproxy/default.html"
+      StatFile "/usr/share/tinyproxy/stats.html"
+      Logfile "/var/log/tinyproxy/tinyproxy.log"
+      PidFile "/run/tinyproxy/tinyproxy.pid"
+
+      LogLevel Info
+
+      MaxClients 100
+      MinSpareServers 5
+      MaxSpareServers 20
+      StartServers 10
+      MaxRequestsPerChild 10000
+
+      ViaProxyName "tinyproxy"
+      DisableViaHeader Yes
+      Filter "/etc/tinyproxy/filter"
+      FilterURLs On
+      FilterExtended On
+      FilterDefaultDeny Yes
+
+      ConnectPort 443
+      ConnectPort 563
+runcmd:
+  - service tinyproxy restart
