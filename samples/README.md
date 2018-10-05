@@ -60,7 +60,7 @@ This template uses cloud-init to initialize the proxy VM. To ensure that the clo
 
 [![Deploy to Azure](https://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpeterschen%2Fblog%2Fmaster%2Fsamples%2Fproxy-egress%2Fazuredeploy.json)
 
-### PowerShell ###
+### Deploy with PowerShell ###
 
 ```PowerShell
 Login-AzureRmAccount
@@ -74,6 +74,13 @@ New-AzureRmResourceGroupDeployment `
   -CloudInitData (Get-Content -Raw -Path .\cloud-init.yaml) `
   -Verbose
 ```
+
+### Configure proxy ###
+When deploying the template a VM preinstalled with `tinyproxy`will be deployed. `tinyproxy` is configured with whitelisting so only endpoints that have previously been added to the whitelist can be accessed. The whitelist can be modified by editing `/etc/tinyproxy/filter`. The changes become active once the service has been reloaded or restarted: `service tinyproxy restart`.
+
+To make use of the proxy point any machines in the `isolated` network to use the proxy. The address of the proxy is `10.0.0.4` and listens on port `8888`. The following screenshot shows how to set the proxy in Internet Explorer:
+
+![Proxy settings in Internet Explorer](/proxy-egress/proxy-settings.png)
 
 ## [Publish to social with Logic Apps](publish-to-social-with-logic-apps/azuredeploy.json) ##
 See [https://blog.peterschen.de/https://blog.peterschen.de/publish-to-social-with-logic-apps//](https://blog.peterschen.de/https://blog.peterschen.de/publish-to-social-with-logic-apps//)
