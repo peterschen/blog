@@ -55,6 +55,26 @@ The output is similiar to the following. Take note of the `appId` and `password`
 }
 ```
 
+## [Isolated network with proxy egress](proxy-egress/azuredeploy.json) ##
+This template uses cloud-init to initialize the proxy VM. To ensure that the cloud-init script is running pass the contents of `cloud-init.yaml` to the `CloudInitData` parameter. The PowerShell example futher down shows how to do this from the command line.
+
+[![Deploy to Azure](https://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpeterschen%2Fblog%2Fmaster%2Fsamples%2Fproxy-egress%2Fazuredeploy.json)
+
+### PowerShell ###
+
+```PowerShell
+Login-AzureRmAccount
+New-AzureRmResourceGroup proxy-egress
+New-AzureRmResourceGroupDeployment `
+  -Name "proxy-egress" `
+  -ResourceGroupName "proxy-egress" `
+  -TemplateFile .\azuredeploy.json `
+  -AdminUsername "labadmin" `
+  -AdminSshKey "<your ssh-key>"
+  -CloudInitData (Get-Content -Raw -Path .\cloud-init.yaml) `
+  -Verbose
+```
+
 ## [Publish to social with Logic Apps](publish-to-social-with-logic-apps/azuredeploy.json) ##
 See [https://blog.peterschen.de/https://blog.peterschen.de/publish-to-social-with-logic-apps//](https://blog.peterschen.de/https://blog.peterschen.de/publish-to-social-with-logic-apps//)
 
