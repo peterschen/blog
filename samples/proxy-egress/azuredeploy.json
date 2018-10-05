@@ -10,7 +10,7 @@
         }
     },
     "variables": {
-        "gitBranch": "proxy-egress",
+        "gitBranch": "master",
         "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'), '/')]",
         "urlTemplates": "[concat(variables('urlBase'), '/templates')]",
         "urlSamples": "[concat(variables('urlBase'), '/samples/proxy-egress')]",
@@ -41,6 +41,12 @@
                     },
                     "Region": {
                         "value": "[variables('regionVnet')]"
+                    },
+                    "AddressSpace": {
+                        "value": "10.0.1.0/24"
+                    },
+                    "SubnetAddressSpace": {
+                        "value": "10.0.1.0/24"
                     }
                 }
             },
@@ -61,6 +67,12 @@
                     },
                     "Region": {
                         "value": "[variables('regionVnet')]"
+                    },
+                    "AddressSpace": {
+                        "value": "10.0.0.0/24"
+                    },
+                    "SubnetAddressSpace": {
+                        "value": "10.0.0.0/24"
                     }
                 }
             },
@@ -85,8 +97,8 @@
                 }
             },
             "dependsOn": [
-                "[concat('Microsoft.Network/virtualNetworks/', variables('nameNsgIsolated'))]",
-                "[concat('Microsoft.Network/virtualNetworks/', variables('nameNsgProxy'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVnetIsolated'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVnetProxy'))]"
             ]
         },
         {
@@ -152,7 +164,7 @@
                 ]
             },
             "dependsOn": [
-                "[concat('Microsoft.Network/virtualNetworks/', variables('nameNsgIsolated'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVnetIsolated'))]"
             ]
         },
         {
@@ -198,14 +210,14 @@
                             "sourceAddressPrefix": "VirtualNetwork",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 1010,
+                            "priority": 1020,
                             "direction": "Inbound"
                         }
                     }
                 ]
             },
             "dependsOn": [
-                "[concat('Microsoft.Network/virtualNetworks/', variables('nameNsgProxy'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVnetProxy'))]"
             ]
         }
     ],
