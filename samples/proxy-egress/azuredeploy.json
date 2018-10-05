@@ -23,7 +23,7 @@
         }
     },
     "variables": {
-        "gitBranch": "proxy-egress",
+        "gitBranch": "master",
         "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'), '/')]",
         "urlTemplates": "[concat(variables('urlBase'), '/templates')]",
         "urlSamples": "[concat(variables('urlBase'), '/samples/proxy-egress')]",
