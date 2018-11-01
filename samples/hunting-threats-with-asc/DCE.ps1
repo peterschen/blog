@@ -13,9 +13,17 @@ $firewallRules = @(
 
 configuration Attacker
 {
+    param 
+    ( 
+        [Parameter(Mandatory = $true)]
+        [string] $AdminUsername
+    );
+
     Import-DscResource -ModuleName PSDesiredStateConfiguration,
         @{ModuleName="xNetworking";ModuleVersion="5.5.0.0"},
         @{ModuleName="xPSDesiredStateConfiguration";ModuleVersion="8.0.0.0"};
+
+    $sid = (Get-LocalUser -Name $AdminUsername).SID.value;
 
     node localhost
     {
@@ -48,16 +56,30 @@ configuration Attacker
             DependsOn = "[xRemoteFile]PSTools.zip"
         }
 
-        Registry "DesktopColor"
+        Registry "DesktopColor-AllUsers"
         {
             Key = "HKEY_USERS\.DEFAULT\Control Panel\Colors"
             ValueName = "Background"
-            ValueData = "255 0 0"
+            ValueData = "184 40 50"
+        }
+
+        Registry "DesktopColor-$($AdminUsername)"
+        {
+            Key = "HKEY_USERS\$($sid)\Control Panel\Colors"
+            ValueName = "Background"
+            ValueData = "184 40 50"
         }
 
         Registry "DesktopWallpaper"
         {
             Key = "HKEY_USERS\.DEFAULT\Control Panel\Colors"
+            ValueName = "Wallpaper"
+            ValueData = ""
+        }
+
+        Registry "DesktopWallpaper-$($AdminUsername)"
+        {
+            Key = "HKEY_USERS\$($sid)\Control Panel\Colors"
             ValueName = "Wallpaper"
             ValueData = ""
         }
@@ -76,9 +98,17 @@ configuration Attacker
 
 configuration Victim
 {
+    param 
+    ( 
+        [Parameter(Mandatory = $true)]
+        [string] $AdminUsername
+    );
+
     Import-DscResource -ModuleName PSDesiredStateConfiguration,
         @{ModuleName="xNetworking";ModuleVersion="5.5.0.0"},
         @{ModuleName="xPSDesiredStateConfiguration";ModuleVersion="8.0.0.0"};
+
+    $sid = (Get-LocalUser -Name "labadmin").SID.value;
 
     node localhost
     {
@@ -150,16 +180,30 @@ configuration Victim
             DependsOn = "[xRemoteFile]mimikatz.zip"
         }
 
-        Registry "DesktopColor"
+        Registry "DesktopColor-AllUsers"
         {
             Key = "HKEY_USERS\.DEFAULT\Control Panel\Colors"
             ValueName = "Background"
-            ValueData = "0 204 0"
+            ValueData = "116 164 2"
         }
 
-        Registry "DesktopWallpaper"
+        Registry "DesktopColor-$($AdminUsername)"
+        {
+            Key = "HKEY_USERS\$($sid)\Control Panel\Colors"
+            ValueName = "Background"
+            ValueData = "116 164 2"
+        }
+
+        Registry "DesktopWallpaper-AllUsers"
         {
             Key = "HKEY_USERS\.DEFAULT\Control Panel\Colors"
+            ValueName = "Wallpaper"
+            ValueData = ""
+        }
+
+        Registry "DesktopWallpaper-$($AdminUsername)"
+        {
+            Key = "HKEY_USERS\$($sid)\Control Panel\Colors"
             ValueName = "Wallpaper"
             ValueData = ""
         }

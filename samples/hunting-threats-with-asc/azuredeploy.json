@@ -122,6 +122,13 @@
         "AdminPassword": {
             "type": "securestring"
         },
+        "Workspace": {
+            "type": "string",
+            "defaultValue": "DCE-workspace",
+            "metadata": {
+                "Description": "Name of the Log Analytics workspace."
+            }
+        },
         "DscConfigurationVersion": {
             "type": "string",
             "defaultValue": "1.0"
@@ -155,7 +162,7 @@
         "nameDeploymentVmAttacker": "[concat(variables('nameDeployment'), '-AttackerVm')]",
         "nameDeploymentVmVictim": "[concat(variables('nameDeployment'), '-VictimVm')]",
         "nameDeploymentLogicApp": "[concat(variables('nameDeployment'), '-LogicApp')]",
-        "nameLogAnalytics": "[concat(parameters('ResourcePrefix'), '-workspace')]",
+        "nameLogAnalytics": "[parameters('Workspace')]",
         "nameVmAttacker": "[concat(parameters('ResourcePrefix'), '-attacker')]",
         "nameVmVictim": "[concat(parameters('ResourcePrefix'), '-victim')]",
         "nameVnet": "[concat(parameters('ResourcePrefix'), '-vnet')]"
@@ -311,7 +318,10 @@
                         "url": "[variables('urlDsc')]",
                         "script": "DCE.ps1",
                         "function": "Attacker"
-                      }
+                    },
+                    "configurationArguments": {
+                        "user": "[parameters('AdminUsername')]"
+                    }
                 }
             }
         },
@@ -334,7 +344,10 @@
                         "url": "[variables('urlDsc')]",
                         "script": "DCE.ps1",
                         "function": "Victim"
-                      }
+                    },
+                    "configurationArguments": {
+                        "AdminUsername": "[parameters('AdminUsername')]"
+                    }
                 }
             }
         },
