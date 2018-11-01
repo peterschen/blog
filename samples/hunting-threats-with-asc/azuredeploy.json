@@ -122,6 +122,20 @@
         "AdminPassword": {
             "type": "securestring"
         },
+        "WorkspaceResourceGroup": {
+            "type": "string",
+            "defaultValue": "dce",
+            "metadata": {
+                "Description": "Resource group where the Log Analytics workspace was created."
+            }
+        },
+        "WorkspaceName": {
+            "type": "string",
+            "defaultValue": "DCE-workspace",
+            "metadata": {
+                "Description": "Name of the Log Analytics workspace."
+            }
+        },
         "DscConfigurationVersion": {
             "type": "string",
             "defaultValue": "1.0"
@@ -151,38 +165,15 @@
         "urlAssets": "https://raw.githubusercontent.com/peterschen/blog/master/samples/hunting-threats-with-asc",
         "urlDsc": "[concat(variables('urlAssets'), '/DCE.ps1.zip')]",
         "nameDeployment": "[deployment().name]",
-        "nameDeploymentLogAnalytics": "[concat(variables('nameDeployment'), '-LogAnalytics')]",
         "nameDeploymentVmAttacker": "[concat(variables('nameDeployment'), '-AttackerVm')]",
         "nameDeploymentVmVictim": "[concat(variables('nameDeployment'), '-VictimVm')]",
         "nameDeploymentLogicApp": "[concat(variables('nameDeployment'), '-LogicApp')]",
-        "nameLogAnalytics": "[concat(parameters('ResourcePrefix'), '-workspace')]",
         "nameVmAttacker": "[concat(parameters('ResourcePrefix'), '-attacker')]",
         "nameVmVictim": "[concat(parameters('ResourcePrefix'), '-victim')]",
-        "nameVnet": "[concat(parameters('ResourcePrefix'), '-vnet')]"
+        "nameVnet": "[concat(parameters('ResourcePrefix'), '-vnet')]",
+        "idWorkspace": "[concat(subscription().id, '/resourceGroups/', parameters('WorkspaceResourceGroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('WorkspaceName'))]"
     },
     "resources": [
-        {
-            "type": "Microsoft.Resources/deployments",
-            "name": "[variables('nameDeploymentLogAnalytics')]",
-            "apiVersion": "2017-05-10",
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[concat(variables('urlBase'), '/loganalytics/workspace.json')]"
-                },
-                "parameters": {
-                    "Name": {
-                        "value": "[variables('nameLogAnalytics')]"
-                    },
-                    "Region": {
-                        "value": "westeurope"
-                    },
-                    "Tier": {
-                        "value": "Standalone"
-                    }
-                }
-            }
-        },
         {
             "type": "Microsoft.Resources/deployments",
             "name": "[variables('nameDeploymentVmAttacker')]",
@@ -303,7 +294,7 @@
             "properties": {
                 "publisher": "Microsoft.Powershell",
                 "type": "DSC",
-                "typeHandlerVersion": "2.74",
+                "typeHandlerVersion": "2.77",
                 "autoUpgradeMinorVersion": true,
                 "forceUpdateTag": "[parameters('DscConfigurationVersion')]",
                 "settings": {
@@ -311,7 +302,10 @@
                         "url": "[variables('urlDsc')]",
                         "script": "DCE.ps1",
                         "function": "Attacker"
-                      }
+                    },
+                    "configurationArguments": {
+                        "AdminUsername": "[parameters('AdminUsername')]"
+                    }
                 }
             }
         },
@@ -326,7 +320,7 @@
             "properties": {
                 "publisher": "Microsoft.Powershell",
                 "type": "DSC",
-                "typeHandlerVersion": "2.74",
+                "typeHandlerVersion": "2.77",
                 "autoUpgradeMinorVersion": true,
                 "forceUpdateTag": "[parameters('DscConfigurationVersion')]",
                 "settings": {
@@ -334,7 +328,10 @@
                         "url": "[variables('urlDsc')]",
                         "script": "DCE.ps1",
                         "function": "Victim"
-                      }
+                    },
+                    "configurationArguments": {
+                        "AdminUsername": "[parameters('AdminUsername')]"
+                    }
                 }
             }
         },
@@ -344,7 +341,6 @@
             "apiVersion": "2015-06-15",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentLogAnalytics'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmAttacker'))]"
             ],
             "properties": {
@@ -353,10 +349,10 @@
                 "typeHandlerVersion": "1.0",
                 "autoUpgradeMinorVersion": true,
                 "settings": {
-                    "workspaceId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces/', variables('nameLogAnalytics')), '2015-03-20').customerId]"
+                    "workspaceId": "[reference(variables('idWorkspace'), '2015-03-20').customerId]"
                 },
                 "protectedSettings": {
-                    "workspaceKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces/', variables('nameLogAnalytics')), '2015-03-20').primarySharedKey]"
+                    "workspaceKey": "[listKeys(variables('idWorkspace'), '2015-03-20').primarySharedKey]"
                 }
             }
         },
@@ -366,7 +362,6 @@
             "apiVersion": "2015-06-15",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentLogAnalytics'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmVictim'))]"
             ],
             "properties": {
@@ -375,10 +370,10 @@
                 "typeHandlerVersion": "1.0",
                 "autoUpgradeMinorVersion": true,
                 "settings": {
-                    "workspaceId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces/', variables('nameLogAnalytics')), '2015-03-20').customerId]"
+                    "workspaceId": "[reference(variables('idWorkspace'), '2015-03-20').customerId]"
                 },
                 "protectedSettings": {
-                    "workspaceKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces/', variables('nameLogAnalytics')), '2015-03-20').primarySharedKey]"
+                    "workspaceKey": "[listKeys(variables('idWorkspace'), '2015-03-20').primarySharedKey]"
                 }
             }
         },

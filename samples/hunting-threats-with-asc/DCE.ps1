@@ -13,9 +13,17 @@ $firewallRules = @(
 
 configuration Attacker
 {
+    param 
+    ( 
+        [Parameter(Mandatory = $true)]
+        [string] $AdminUsername
+    );
+
     Import-DscResource -ModuleName PSDesiredStateConfiguration,
         @{ModuleName="xNetworking";ModuleVersion="5.5.0.0"},
         @{ModuleName="xPSDesiredStateConfiguration";ModuleVersion="8.0.0.0"};
+
+    $backgroundColor = "184 40 50";
 
     node localhost
     {
@@ -48,11 +56,11 @@ configuration Attacker
             DependsOn = "[xRemoteFile]PSTools.zip"
         }
 
-        Registry "DesktopColor"
+        Registry "DesktopColor-AllUsers"
         {
             Key = "HKEY_USERS\.DEFAULT\Control Panel\Colors"
             ValueName = "Background"
-            ValueData = "255 0 0"
+            ValueData = $backgroundColor
         }
 
         Registry "DesktopWallpaper"
@@ -60,6 +68,57 @@ configuration Attacker
             Key = "HKEY_USERS\.DEFAULT\Control Panel\Colors"
             ValueName = "Wallpaper"
             ValueData = ""
+        }
+
+        Script "Background"
+        {
+            GetScript = {
+                try
+                {
+                    New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS;
+                }
+                catch
+                {
+                    # swallow exeption
+                }
+
+                $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
+                $background = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Colors" -Name "Background";
+                $wallpaper = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper";
+
+                return @{
+                    "SID" = $sid 
+                    "Background" = $background
+                    "Wallpaper" = $wallpaper
+                    "Result" = "Background: $background; Wallpaper: $wallpaper"
+                };
+            }
+            TestScript = { 
+                $state = [scriptblock]::Create($GetScript).Invoke();
+
+                if($state["Background"] -eq $using:backgroundColor -and $state["Wallpaper"] -eq "")
+                {
+                    return $true;
+                }
+
+                return $false;
+            }
+            SetScript = {
+                try
+                {
+                    New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS;
+                }
+                catch
+                {
+                    # swallow exeption
+                }
+
+                $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
+                Set-ItemProperty "HKU:\$($sid)\Control Panel\Colors" -Name "Background" -Value $using:backgroundColor;
+                Set-ItemProperty "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper" -Value "";
+
+                $global:DSCMachineStatus = 1;
+            }
         }
 
         foreach($rule in $firewallRules)
@@ -76,9 +135,17 @@ configuration Attacker
 
 configuration Victim
 {
+    param 
+    ( 
+        [Parameter(Mandatory = $true)]
+        [string] $AdminUsername
+    );
+
     Import-DscResource -ModuleName PSDesiredStateConfiguration,
         @{ModuleName="xNetworking";ModuleVersion="5.5.0.0"},
         @{ModuleName="xPSDesiredStateConfiguration";ModuleVersion="8.0.0.0"};
+
+    $backgroundColor = "116 164 2";
 
     node localhost
     {
@@ -150,18 +217,69 @@ configuration Victim
             DependsOn = "[xRemoteFile]mimikatz.zip"
         }
 
-        Registry "DesktopColor"
+        Registry "DesktopColor-AllUsers"
         {
             Key = "HKEY_USERS\.DEFAULT\Control Panel\Colors"
             ValueName = "Background"
-            ValueData = "0 204 0"
+            ValueData = $backgroundColor
         }
 
-        Registry "DesktopWallpaper"
+        Registry "DesktopWallpaper-AllUsers"
         {
             Key = "HKEY_USERS\.DEFAULT\Control Panel\Colors"
             ValueName = "Wallpaper"
             ValueData = ""
+        }
+
+        Script "Background"
+        {
+            GetScript = {
+                try
+                {
+                    New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS;
+                }
+                catch
+                {
+                    # swallow exeption
+                }
+
+                $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
+                $background = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Colors" -Name "Background";
+                $wallpaper = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper";
+
+                return @{
+                    "SID" = $sid 
+                    "Background" = $background
+                    "Wallpaper" = $wallpaper
+                    "Result" = "Background: $background; Wallpaper: $wallpaper"
+                };
+            }
+            TestScript = { 
+                $state = [scriptblock]::Create($GetScript).Invoke();
+
+                if($state["Background"] -eq $using:backgroundColor -and $state["Wallpaper"] -eq "")
+                {
+                    return $true;
+                }
+
+                return $false;
+            }
+            SetScript = {
+                try
+                {
+                    New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS;
+                }
+                catch
+                {
+                    # swallow exeption
+                }
+
+                $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
+                Set-ItemProperty "HKU:\$($sid)\Control Panel\Colors" -Name "Background" -Value $using:backgroundColor;
+                Set-ItemProperty "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper" -Value "";
+
+                $global:DSCMachineStatus = 1;
+            }
         }
 
         foreach($rule in $firewallRules)
