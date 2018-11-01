@@ -122,7 +122,14 @@
         "AdminPassword": {
             "type": "securestring"
         },
-        "Workspace": {
+        "WorkspaceResourceGroup": {
+            "type": "string",
+            "defaultValue": "dce",
+            "metadata": {
+                "Description": "Resource group where the Log Analytics workspace was created."
+            }
+        },
+        "WorkspaceName": {
             "type": "string",
             "defaultValue": "DCE-workspace",
             "metadata": {
@@ -162,34 +169,12 @@
         "nameDeploymentVmAttacker": "[concat(variables('nameDeployment'), '-AttackerVm')]",
         "nameDeploymentVmVictim": "[concat(variables('nameDeployment'), '-VictimVm')]",
         "nameDeploymentLogicApp": "[concat(variables('nameDeployment'), '-LogicApp')]",
-        "nameLogAnalytics": "[parameters('Workspace')]",
         "nameVmAttacker": "[concat(parameters('ResourcePrefix'), '-attacker')]",
         "nameVmVictim": "[concat(parameters('ResourcePrefix'), '-victim')]",
-        "nameVnet": "[concat(parameters('ResourcePrefix'), '-vnet')]"
+        "nameVnet": "[concat(parameters('ResourcePrefix'), '-vnet')]",
+        "idWorkspace": "[concat(subscription().id, '/resourceGroups/', parameters('WorkspaceResourceGroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('WorkspaceName'))]"
     },
     "resources": [
-        {
-            "type": "Microsoft.Resources/deployments",
-            "name": "[variables('nameDeploymentLogAnalytics')]",
-            "apiVersion": "2017-05-10",
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[concat(variables('urlBase'), '/loganalytics/workspace.json')]"
-                },
-                "parameters": {
-                    "Name": {
-                        "value": "[variables('nameLogAnalytics')]"
-                    },
-                    "Region": {
-                        "value": "westeurope"
-                    },
-                    "Tier": {
-                        "value": "Standalone"
-                    }
-                }
-            }
-        },
         {
             "type": "Microsoft.Resources/deployments",
             "name": "[variables('nameDeploymentVmAttacker')]",
@@ -372,10 +357,10 @@
                 "typeHandlerVersion": "1.0",
                 "autoUpgradeMinorVersion": true,
                 "settings": {
-                    "workspaceId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces/', variables('nameLogAnalytics')), '2015-03-20').customerId]"
+                    "workspaceId": "[reference(variables('idWorkspace'), 2015-03-20').customerId]"
                 },
                 "protectedSettings": {
-                    "workspaceKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces/', variables('nameLogAnalytics')), '2015-03-20').primarySharedKey]"
+                    "workspaceKey": "[listKeys(variables('idWorkspace'), '2015-03-20').primarySharedKey]"
                 }
             }
         },
@@ -394,10 +379,10 @@
                 "typeHandlerVersion": "1.0",
                 "autoUpgradeMinorVersion": true,
                 "settings": {
-                    "workspaceId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces/', variables('nameLogAnalytics')), '2015-03-20').customerId]"
+                    "workspaceId": "[reference(variables('idWorkspace'), 2015-03-20').customerId]"
                 },
                 "protectedSettings": {
-                    "workspaceKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces/', variables('nameLogAnalytics')), '2015-03-20').primarySharedKey]"
+                    "workspaceKey": "[listKeys(variables('idWorkspace'), '2015-03-20').primarySharedKey]"
                 }
             }
         },
