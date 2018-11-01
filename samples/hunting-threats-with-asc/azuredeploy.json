@@ -320,7 +320,10 @@
                         "function": "Attacker"
                     },
                     "configurationArguments": {
-                        "user": "[parameters('AdminUsername')]"
+                        "ConfigurationMode": "ApplyandAutoCorrect",
+                        "RefreshFrequencyMins": 15,
+                        "RebootNodeIfNeeded": true,
+                        "AdminUsername": "[parameters('AdminUsername')]"
                     }
                 }
             }
@@ -346,6 +349,9 @@
                         "function": "Victim"
                     },
                     "configurationArguments": {
+                        "ConfigurationMode": "ApplyandAutoCorrect",
+                        "RefreshFrequencyMins": 15,
+                        "RebootNodeIfNeeded": true,
                         "AdminUsername": "[parameters('AdminUsername')]"
                     }
                 }
