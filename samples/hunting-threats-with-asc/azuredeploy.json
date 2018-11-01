@@ -165,7 +165,6 @@
         "urlAssets": "https://raw.githubusercontent.com/peterschen/blog/fixes-for-dce-templates/samples/hunting-threats-with-asc",
         "urlDsc": "[concat(variables('urlAssets'), '/DCE.ps1.zip')]",
         "nameDeployment": "[deployment().name]",
-        "nameDeploymentLogAnalytics": "[concat(variables('nameDeployment'), '-LogAnalytics')]",
         "nameDeploymentVmAttacker": "[concat(variables('nameDeployment'), '-AttackerVm')]",
         "nameDeploymentVmVictim": "[concat(variables('nameDeployment'), '-VictimVm')]",
         "nameDeploymentLogicApp": "[concat(variables('nameDeployment'), '-LogicApp')]",
@@ -348,7 +347,6 @@
             "apiVersion": "2015-06-15",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentLogAnalytics'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmAttacker'))]"
             ],
             "properties": {
@@ -370,7 +368,6 @@
             "apiVersion": "2015-06-15",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentLogAnalytics'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmVictim'))]"
             ],
             "properties": {
