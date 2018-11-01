@@ -161,8 +161,8 @@
         }
     },
     "variables": {
-        "urlBase": "https://raw.githubusercontent.com/peterschen/blog/fixes-for-dce-templates/templates",
-        "urlAssets": "https://raw.githubusercontent.com/peterschen/blog/fixes-for-dce-templates/samples/hunting-threats-with-asc",
+        "urlBase": "https://raw.githubusercontent.com/peterschen/blog/master/templates",
+        "urlAssets": "https://raw.githubusercontent.com/peterschen/blog/master/samples/hunting-threats-with-asc",
         "urlDsc": "[concat(variables('urlAssets'), '/DCE.ps1.zip')]",
         "nameDeployment": "[deployment().name]",
         "nameDeploymentVmAttacker": "[concat(variables('nameDeployment'), '-AttackerVm')]",
