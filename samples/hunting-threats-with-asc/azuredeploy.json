@@ -357,7 +357,7 @@
                 "typeHandlerVersion": "1.0",
                 "autoUpgradeMinorVersion": true,
                 "settings": {
-                    "workspaceId": "[reference(variables('idWorkspace'), 2015-03-20').customerId]"
+                    "workspaceId": "[reference(variables('idWorkspace'), '2015-03-20').customerId]"
                 },
                 "protectedSettings": {
                     "workspaceKey": "[listKeys(variables('idWorkspace'), '2015-03-20').primarySharedKey]"
@@ -379,7 +379,7 @@
                 "typeHandlerVersion": "1.0",
                 "autoUpgradeMinorVersion": true,
                 "settings": {
-                    "workspaceId": "[reference(variables('idWorkspace'), 2015-03-20').customerId]"
+                    "workspaceId": "[reference(variables('idWorkspace'), '2015-03-20').customerId]"
                 },
                 "protectedSettings": {
                     "workspaceKey": "[listKeys(variables('idWorkspace'), '2015-03-20').primarySharedKey]"
