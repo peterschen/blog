@@ -2,10 +2,10 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.1",
     "parameters": {
-        "EnvironmentName": {
+        "Name": {
             "type": "string",
             "metadata": {
-                "description": "Prefix for the resources."
+                "description": "Name of the virtual machine."
             }
         },
         "Region": {
@@ -22,7 +22,7 @@
                 "description": "User name for the Linux Virtual Machines."
             }
         },
-        "AdminSshKey": {
+        "AdminPassword": {
             "type": "string",
             "metadata": {
                 "description": "RSA key to be configured on all nodes for direct access through ssh."
@@ -134,14 +134,20 @@
             "metadata": {
                 "description": "The size of the Virtual Machine."
             }
+        },
+        "VnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the virtual network."
+            }
         }
     },
     "variables": {
-        "nameVnet": "[concat(parameters('EnvironmentName'), '-vnet')]",
-        "nameNsg": "[concat(parameters('EnvironmentName'), '-nsg')]",
-        "nameIp": "[concat(parameters('EnvironmentName'), '-ip')]",
-        "nameNic": "[concat(parameters('EnvironmentName'), '-nic')]",
-        "nameVm": "[concat(parameters('EnvironmentName'), '-vm')]",
+        "nameVnet": "[parameters('VnetName')]",
+        "nameNsg": "[concat(parameters('Name'), '-nsg')]",
+        "nameIp": "[concat(parameters('Name'), '-ip')]",
+        "nameNic": "[concat(parameters('Name'), '-nic')]",
+        "nameVm": "[concat(parameters('Name'), '-vm')]",
         "regionVnet": "[parameters('Region')]",
         "regionNsg": "[parameters('Region')]",
         "regionIp": "[parameters('Region')]",
@@ -185,11 +191,11 @@
             "properties": {
                 "securityRules": [
                     {
-                        "name": "default-allow-ssh",
+                        "name": "allow-rdp",
                         "properties": {
                             "protocol": "Tcp",
                             "sourcePortRange": "*",
-                            "destinationPortRange": "22",
+                            "destinationPortRange": "3389",
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
@@ -263,30 +269,26 @@
                 "storageProfile": {
                     "osDisk": {
                         "createOption": "FromImage",
-                        "caching": "ReadWrite"
+                        "managedDisk": {
+                            "storageAccountType": "Premium_LRS"
+                        }
                     },
                     "imageReference": {
-                        "publisher": "Canonical",
-                        "offer": "UbuntuServer",
-                        "sku": "18.04-LTS",
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2012-R2-Datacenter",
                         "version": "latest"
                     }
                 },
                 "osProfile": {
                     "computerName": "[variables('nameVm')]",
                     "adminUsername": "[parameters('AdminUsername')]",
-                    "linuxConfiguration": {
-                        "disablePasswordAuthentication": true,
-                        "ssh": {
-                            "publicKeys": [
-                                {
-                                    "keyData": "[concat(parameters('AdminSshKey'), '\n')]",
-                                    "path": "/home/labadmin/.ssh/authorized_keys"
-                                }
-                            ]
-                        }
+                    "adminPassword": "[parameters('AdminPassword')]",
+                    "windowsConfiguration": {
+                        "provisionVmAgent": "true"
                     }
-                }
+                },
+                "licenseType": "Windows_Client"
             },
             "dependsOn": [
                 "[variables('idNic')]"

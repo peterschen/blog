@@ -47,7 +47,8 @@
         }
     },
     "variables": {
-        "urlAssets": "https://raw.githubusercontent.com/peterschen/blog/master/templates/linux-vm-encryption",
+        "urlBase": "https://raw.githubusercontent.com/peterschen/blog/master/templates",
+        "urlAssets": "https://raw.githubusercontent.com/peterschen/blog/master/samples/linux-vm-encryption",
         "nameDeployment": "[deployment().name]",
         "nameDeploymentKeyVault": "[concat(variables('nameDeployment'), '-KeyVault')]",
         "nameDeploymentVm": "[concat(variables('nameDeployment'), '-VM')]",
@@ -92,11 +93,11 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[concat(variables('urlAssets'), '/vm.json')]",
+                    "uri": "[concat(variables('urlBase'), '/vm/ubuntu-18.04.json')]",
                     "contentVersion": "1.0.0.1"
                 },
                 "parameters": {
-                    "EnvironmentName": {
+                    "Name": {
                         "value": "[parameters('EnvironmentName')]"
                     },
                     "Region": {
@@ -110,6 +111,9 @@
                     },
                     "VmSize": {
                         "value": "Standard_D2s_v3"
+                    },
+                    "VnetName": {
+                        "value": "[concat(parameters('EnvironmentName'), '-vnet')]"
                     }
                 }
             },

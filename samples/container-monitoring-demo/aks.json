@@ -25,6 +25,18 @@
                 "canadaeast"
             ]
         },
+        "AdminUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "User name for the Linux Virtual Machines."
+            }
+        },
+        "AdminSshKey": {
+            "type": "string",
+            "metadata": {
+                "description": "RSA key to be configured on all nodes for direct access through ssh."
+            }
+        },
         "Version": {
             "type": "string",
             "metadata": {
@@ -193,6 +205,16 @@
                         "storageProfile": "ManagedDisks"
                     }
                 ],
+                "linuxProfile": {
+                    "adminUsername": "[parameters('AdminUsername')]",
+                    "ssh": {
+                      "publicKeys": [
+                        {
+                          "keyData": "[parameters('AdminSshKey')]"
+                        }
+                      ]
+                    }
+                  },
                 "servicePrincipalProfile": {
                     "ClientId": "[parameters('ServicePrincipalClientId')]",
                     "Secret": "[parameters('ServicePrincipalClientSecret')]"

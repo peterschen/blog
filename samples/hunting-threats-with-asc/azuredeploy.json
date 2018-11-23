@@ -1,0 +1,406 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "ResourcePrefix": {
+            "type": "string",
+            "defaultValue": "DCE",
+            "metadata": {
+                "Description": "Prefix that is added to top-level resources"
+            }
+        },
+        "VmSize": {
+            "type": "string",
+            "defaultValue": "Standard_D2s_v3",
+            "allowedValues": [
+                "Standard_A1_v2",
+                "Standard_A2m_v2",
+                "Standard_A2_v2",
+                "Standard_A4m_v2",
+                "Standard_A4_v2",
+                "Standard_A8m_v2",
+                "Standard_A8_v2",
+                "Standard_B1ms",
+                "Standard_B1s",
+                "Standard_B2ms",
+                "Standard_B2s",
+                "Standard_B4ms",
+                "Standard_B8ms",
+                "Standard_D1_v2",
+                "Standard_D2_v2",
+                "Standard_D3_v2",
+                "Standard_D4_v2",
+                "Standard_D5_v2",
+                "Standard_D11_v2",
+                "Standard_D12_v2",
+                "Standard_D13_v2",
+                "Standard_D14_v2",
+                "Standard_D15_v2",
+                "Standard_DS1_v2",
+                "Standard_DS2_v2",
+                "Standard_DS3_v2",
+                "Standard_DS4_v2",
+                "Standard_DS5_v2",
+                "Standard_DS11_v2",
+                "Standard_DS12_v2",
+                "Standard_DS13_v2",
+                "Standard_DS14_v2",
+                "Standard_DS15_v2",
+                "Standard_D2_v3",
+                "Standard_D4_v3",
+                "Standard_D8_v3",
+                "Standard_D16_v3",
+                "Standard_D32_v3",
+                "Standard_D64_v3",
+                "Standard_D2s_v3",
+                "Standard_D4s_v3",
+                "Standard_D8s_v3",
+                "Standard_D16s_v3",
+                "Standard_D32s_v3",
+                "Standard_D64s_v3",
+                "Standard_E2_v3",
+                "Standard_E4_v3",
+                "Standard_E8_v3",
+                "Standard_E16_v3",
+                "Standard_E32_v3",
+                "Standard_E64_v3",
+                "Standard_E2s_v3",
+                "Standard_E4s_v3",
+                "Standard_E8s_v3",
+                "Standard_E16s_v3",
+                "Standard_E32s_v3",
+                "Standard_E64s_v3",
+                "Standard_F1",
+                "Standard_F2",
+                "Standard_F4",
+                "Standard_F8",
+                "Standard_F16",
+                "Standard_F1s",
+                "Standard_F2s",
+                "Standard_F4s",
+                "Standard_F8s",
+                "Standard_F16s",
+                "Standard_H8",
+                "Standard_H16",
+                "Standard_H8m",
+                "Standard_H16m",
+                "Standard_H16r",
+                "Standard_H16mr",
+                "Standard_G1",
+                "Standard_G2",
+                "Standard_G3",
+                "Standard_G4",
+                "Standard_G5",
+                "Standard_GS1",
+                "Standard_GS2",
+                "Standard_GS3",
+                "Standard_GS4",
+                "Standard_GS5",
+                "Standard_L4s",
+                "Standard_L8s",
+                "Standard_L16s",
+                "Standard_L32s",
+                "Standard_M64s",
+                "Standard_M64ms",
+                "Standard_M128s",
+                "Standard_M128ms",
+                "Standard_NC6",
+                "Standard_NC12",
+                "Standard_NC24",
+                "Standard_NC24r",
+                "Standard_NV6",
+                "Standard_NV12",
+                "Standard_NV24"
+            ],
+            "metadata": {
+                "description": "The size of the Virtual Machine."
+            }
+        },
+        "AdminUsername": {
+            "type": "string"
+        },
+        "AdminPassword": {
+            "type": "securestring"
+        },
+        "WorkspaceResourceGroup": {
+            "type": "string",
+            "defaultValue": "dce",
+            "metadata": {
+                "Description": "Resource group where the Log Analytics workspace was created."
+            }
+        },
+        "WorkspaceName": {
+            "type": "string",
+            "defaultValue": "DCE-workspace",
+            "metadata": {
+                "Description": "Name of the Log Analytics workspace."
+            }
+        },
+        "DscConfigurationVersion": {
+            "type": "string",
+            "defaultValue": "1.0"
+        },
+        "Office365Account": {
+            "type": "string",
+            "metadata": {
+                "Description": "Office 365 account used in Playbooks for Azure Security Center"
+            }
+        },
+        "MailAddress": {
+            "type": "string",
+            "metadata": {
+                "Description": "Address where mails generated by the Playbooks for Azure Security should be sent to"
+            }
+        },
+        "VmAutoShutdown": {
+            "type": "bool",
+            "defaultValue": "true",
+            "metadata": {
+                "Description": "Indicates whether the VMs should be automatically turned off at night."
+            }
+        }
+    },
+    "variables": {
+        "urlBase": "https://raw.githubusercontent.com/peterschen/blog/master/templates",
+        "urlAssets": "https://raw.githubusercontent.com/peterschen/blog/master/samples/hunting-threats-with-asc",
+        "urlDsc": "[concat(variables('urlAssets'), '/DCE.ps1.zip')]",
+        "nameDeployment": "[deployment().name]",
+        "nameDeploymentVmAttacker": "[concat(variables('nameDeployment'), '-AttackerVm')]",
+        "nameDeploymentVmVictim": "[concat(variables('nameDeployment'), '-VictimVm')]",
+        "nameDeploymentLogicApp": "[concat(variables('nameDeployment'), '-LogicApp')]",
+        "nameVmAttacker": "[concat(parameters('ResourcePrefix'), '-attacker')]",
+        "nameVmVictim": "[concat(parameters('ResourcePrefix'), '-victim')]",
+        "nameVnet": "[concat(parameters('ResourcePrefix'), '-vnet')]",
+        "idWorkspace": "[concat(subscription().id, '/resourceGroups/', parameters('WorkspaceResourceGroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('WorkspaceName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentVmAttacker')]",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlBase'), '/vm/windows-2012R2.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameVmAttacker')]"
+                    },
+                    "Region": {
+                        "value": "[resourceGroup().location]"
+                    },
+                    "AdminUsername": {
+                        "value": "[parameters('AdminUsername')]"
+                    },
+                    "AdminPassword": {
+                        "value": "[parameters('AdminPassword')]"
+                    },
+                    "VmSize": {
+                        "value": "[parameters('VmSize')]"
+                    },
+                    "VnetName": {
+                        "value": "[variables('nameVnet')]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentVmVictim')]",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlBase'), '/vm/windows-2012R2.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameVmVictim')]"
+                    },
+                    "Region": {
+                        "value": "[resourceGroup().location]"
+                    },
+                    "AdminUsername": {
+                        "value": "[parameters('AdminUsername')]"
+                    },
+                    "AdminPassword": {
+                        "value": "[parameters('AdminPassword')]"
+                    },
+                    "VmSize": {
+                        "value": "[parameters('VmSize')]"
+                    },
+                    "VnetName": {
+                        "value": "[variables('nameVnet')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmAttacker'))]"
+            ]
+        },
+        {
+            "name": "[concat('shutdown-computevm-', variables('nameVmAttacker'), '-vm')]",
+            "type": "Microsoft.DevTestLab/schedules",
+            "apiVersion": "2017-04-26-preview",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "status": "[if(equals(parameters('VmAutoShutdown'), 'true'), 'Enabled', 'Disabled')]",
+                "taskType": "ComputeVmShutdownTask",
+                "dailyRecurrence": {
+                    "time": "19:00"
+                },
+                "timeZoneId": "Central European Standard Time",
+                "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines', concat(variables('nameVmAttacker'), '-vm'))]",
+                "notificationSettings": {
+                    "status": "Disabled",
+                    "timeInMinutes": "30"
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmAttacker'))]"
+            ]
+        },
+        {
+            "name": "[concat('shutdown-computevm-', variables('nameVmVictim'), '-vm')]",
+            "type": "Microsoft.DevTestLab/schedules",
+            "apiVersion": "2017-04-26-preview",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "status": "[if(equals(parameters('VmAutoShutdown'), 'true'), 'Enabled', 'Disabled')]",
+                "taskType": "ComputeVmShutdownTask",
+                "dailyRecurrence": {
+                    "time": "19:00"
+                },
+                "timeZoneId": "Central European Standard Time",
+                "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines', concat(variables('nameVmVictim'), '-vm'))]",
+                "notificationSettings": {
+                    "status": "Disabled",
+                    "timeInMinutes": "30"
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmVictim'))]"
+            ]
+        },
+        {
+            "name": "[concat(variables('nameVmAttacker'), '-vm/dsc')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmAttacker'))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Powershell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.77",
+                "autoUpgradeMinorVersion": true,
+                "forceUpdateTag": "[parameters('DscConfigurationVersion')]",
+                "settings": {
+                    "configuration": {
+                        "url": "[variables('urlDsc')]",
+                        "script": "DCE.ps1",
+                        "function": "Attacker"
+                    },
+                    "configurationArguments": {
+                        "AdminUsername": "[parameters('AdminUsername')]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "[concat(variables('nameVmVictim'), '-vm/dsc')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmVictim'))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Powershell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.77",
+                "autoUpgradeMinorVersion": true,
+                "forceUpdateTag": "[parameters('DscConfigurationVersion')]",
+                "settings": {
+                    "configuration": {
+                        "url": "[variables('urlDsc')]",
+                        "script": "DCE.ps1",
+                        "function": "Victim"
+                    },
+                    "configurationArguments": {
+                        "AdminUsername": "[parameters('AdminUsername')]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "[concat(variables('nameVmAttacker'), '-vm/MMA')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "2015-06-15",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmAttacker'))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+                "type": "MicrosoftMonitoringAgent",
+                "typeHandlerVersion": "1.0",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "workspaceId": "[reference(variables('idWorkspace'), '2015-03-20').customerId]"
+                },
+                "protectedSettings": {
+                    "workspaceKey": "[listKeys(variables('idWorkspace'), '2015-03-20').primarySharedKey]"
+                }
+            }
+        },
+        {
+            "name": "[concat(variables('nameVmVictim'), '-vm/MMA')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "2015-06-15",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmVictim'))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+                "type": "MicrosoftMonitoringAgent",
+                "typeHandlerVersion": "1.0",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "workspaceId": "[reference(variables('idWorkspace'), '2015-03-20').customerId]"
+                },
+                "protectedSettings": {
+                    "workspaceKey": "[listKeys(variables('idWorkspace'), '2015-03-20').primarySharedKey]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentLogicApp')]",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlAssets'), '/logicapp.json')]"
+                },
+                "parameters": {
+                    "Office365Account": {
+                        "value": "[parameters('Office365Account')]"
+                    },
+                    "MailAddress": {
+                        "value": "[parameters('MailAddress')]"
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "adminUsername": {
+            "type": "string",
+            "value": "[parameters('AdminUsername')]"
+        }
+    }
+}

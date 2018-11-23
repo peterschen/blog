@@ -1,0 +1,342 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "AdminUsername": {
+            "type": "string",
+            "defaultValue": "labadmin",
+            "metadata": {
+                "description": "User name for the Linux Virtual Machines."
+            }
+        },
+        "AdminSshKey": {
+            "type": "string",
+            "metadata": {
+                "description": "RSA key to be configured on all nodes for direct access through ssh."
+            }
+        },
+        "CloudInitData" : {
+            "type": "string",
+            "metadata": {
+                "description": "cloud-init data to be executed when the VM is first started"
+            }
+        }
+    },
+    "variables": {
+        "gitBranch": "master",
+        "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'), '/')]",
+        "urlTemplates": "[concat(variables('urlBase'), '/templates')]",
+        "urlSamples": "[concat(variables('urlBase'), '/samples/proxy-egress')]",
+        "nameDeployment": "[deployment().name]",
+        "nameDeploymentVnetIsolated": "[concat(variables('nameDeployment'), '-VnetIsolated')]",
+        "nameDeploymentVnetProxy": "[concat(variables('nameDeployment'), '-VnetProxy')]",
+        "nameDeploymentPeering": "[concat(variables('nameDeployment'), '-Peering')]",
+        "nameVnetIsolated": "isolated",
+        "nameVnetProxy": "proxy",
+        "nameNsgIsolated": "isolated-nsg",
+        "nameNsgProxy": "proxy-nsg",
+        "nameIp": "[concat(variables('nameVm'), '-ip')]",
+        "nameNic": "[concat(variables('nameVm'), '-nic')]",
+        "nameVm": "proxy",
+        "idSubnetProxy": "[concat(resourceGroup().id, '/providers/Microsoft.Network/virtualNetworks/', variables('nameVnetProxy'), '/subnets/subnet-0')]",
+        "idIp": "[concat(resourceGroup().id, '/providers/Microsoft.Network/publicIPAddresses/', variables('nameIp'))]",
+        "idNic": "[concat(resourceGroup().id, '/providers/Microsoft.Network/networkInterfaces/', variables('nameNic'))]",
+        "regionVnet": "westeurope",
+        "regionNsg": "[variables('regionVnet')]",
+        "regionIp": "[variables('regionVnet')]",
+        "regionNic": "[variables('regionVnet')]",
+        "regionVm": "[variables('regionVnet')]",
+        "sizeVm": "Standard_F1s"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentVnetIsolated')]",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/network/vnet.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameVnetIsolated')]"
+                    },
+                    "Region": {
+                        "value": "[variables('regionVnet')]"
+                    },
+                    "AddressSpace": {
+                        "value": "10.0.1.0/24"
+                    },
+                    "SubnetAddressSpace": {
+                        "value": "10.0.1.0/24"
+                    }
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentVnetProxy')]",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/network/vnet.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameVnetProxy')]"
+                    },
+                    "Region": {
+                        "value": "[variables('regionVnet')]"
+                    },
+                    "AddressSpace": {
+                        "value": "10.0.0.0/24"
+                    },
+                    "SubnetAddressSpace": {
+                        "value": "10.0.0.0/24"
+                    }
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentPeering')]",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/network/peering.json')]"
+                },
+                "parameters": {
+                    "NameVnet1": {
+                        "value": "[variables('nameVnetIsolated')]"
+                    },
+                    "NameVnet2": {
+                        "value": "[variables('nameVnetProxy')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVnetIsolated'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVnetProxy'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('nameNsgIsolated')]",
+            "apiVersion": "2015-06-15",
+            "location": "[variables('regionNsg')]",
+            "tags": {},
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "allow-ssh-inbound",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "allow-rdp-inbound",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1010,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "allow-vnet-outbound",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Outbound"
+                        }
+                    },
+                    {
+                        "name": "deny-internet-outbound",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "Internet",
+                            "access": "Deny",
+                            "priority": 110,
+                            "direction": "Outbound"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVnetIsolated'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('nameNsgProxy')]",
+            "apiVersion": "2015-06-15",
+            "location": "[variables('regionNsg')]",
+            "tags": {},
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "allow-ssh-inbound",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "allow-rdp-inbound",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1010,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "allow-proxy-inbound",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "8888",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1020,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVnetProxy'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[variables('nameIp')]",
+            "apiVersion": "2018-01-01",
+            "location": "[variables('regionIp')]",
+            "tags": {},
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic"
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[variables('nameNic')]",
+            "apiVersion": "2018-08-01",
+            "location": "[variables('regionNic')]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig",
+                        "properties": {
+                            "privateIpAddressVersion": "IPv4",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('idSubnetProxy')]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[variables('idIp')]"
+                            }
+                        }
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVnetProxy'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[variables('nameVm')]",
+            "apiVersion": "2017-12-01",
+            "location": "[variables('regionVm')]",
+            "tags": {},
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[variables('sizeVm')]"
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[variables('idNic')]"
+                        }
+                    ]
+                },
+                "storageProfile": {
+                    "osDisk": {
+                        "createOption": "FromImage",
+                        "managedDisk": {
+                            "storageAccountType": "Premium_LRS"
+                        }
+                    },
+                    "imageReference": {
+                        "publisher": "Canonical",
+                        "offer": "UbuntuServer",
+                        "sku": "18.04-LTS",
+                        "version": "latest"
+                    }
+                },
+                "osProfile": {
+                    "computerName": "[variables('nameVm')]",
+                    "adminUsername": "[parameters('AdminUsername')]",
+                    "customData": "[base64(parameters('CloudInitData'))]",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": true,
+                        "ssh": {
+                            "publicKeys": [
+                                {
+                                    "keyData": "[concat(parameters('AdminSshKey'), '\n')]",
+                                    "path": "/home/labadmin/.ssh/authorized_keys"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "dependsOn": [
+                "[variables('idNic')]"
+            ]
+        }
+    ],
+    "outputs": {
+        "ResourceGroup": {
+            "type": "string",
+            "value": "[resourceGroup().name]"
+        }
+    }
+}
