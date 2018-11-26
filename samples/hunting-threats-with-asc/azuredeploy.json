@@ -168,8 +168,8 @@
         "nameDeploymentVmAttacker": "[concat(variables('nameDeployment'), '-AttackerVm')]",
         "nameDeploymentVmVictim": "[concat(variables('nameDeployment'), '-VictimVm')]",
         "nameDeploymentLogicApp": "[concat(variables('nameDeployment'), '-LogicApp')]",
-        "nameVmAttacker": "[concat(parameters('ResourcePrefix'), '-attacker')]",
-        "nameVmVictim": "[concat(parameters('ResourcePrefix'), '-victim')]",
+        "nameVmAttacker": "attacker",
+        "nameVmVictim": "victim",
         "nameVnet": "[concat(parameters('ResourcePrefix'), '-vnet')]",
         "idWorkspace": "[concat(subscription().id, '/resourceGroups/', parameters('WorkspaceResourceGroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('WorkspaceName'))]"
     },
