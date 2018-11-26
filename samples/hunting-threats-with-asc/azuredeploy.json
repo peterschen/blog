@@ -161,9 +161,11 @@
         }
     },
     "variables": {
-        "urlBase": "https://raw.githubusercontent.com/peterschen/blog/master/templates",
-        "urlAssets": "https://raw.githubusercontent.com/peterschen/blog/master/samples/hunting-threats-with-asc",
-        "urlDsc": "[concat(variables('urlAssets'), '/DCE.ps1.zip')]",
+        "gitBranch": "monitoring-pipeline",
+        "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'), '/')]",
+        "urlTemplates": "[concat(variables('urlBase'), '/templates')]",
+        "urlSamples": "[concat(variables('urlBase'), '/samples/monitoring-pipeline')]",
+        "urlDsc": "[concat(variables('urlSamples'), '/DCE.ps1.zip')]",
         "nameDeployment": "[deployment().name]",
         "nameDeploymentVmAttacker": "[concat(variables('nameDeployment'), '-AttackerVm')]",
         "nameDeploymentVmVictim": "[concat(variables('nameDeployment'), '-VictimVm')]",
@@ -181,7 +183,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[concat(variables('urlBase'), '/vm/windows-2012R2.json')]"
+                    "uri": "[concat(variables('urlTemplates'), '/vm/windows-2012R2.json')]"
                 },
                 "parameters": {
                     "Name": {
@@ -212,7 +214,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[concat(variables('urlBase'), '/vm/windows-2012R2.json')]"
+                    "uri": "[concat(variables('urlTemplates'), '/vm/windows-2012R2.json')]"
                 },
                 "parameters": {
                     "Name": {
@@ -384,7 +386,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[concat(variables('urlAssets'), '/logicapp.json')]"
+                    "uri": "[concat(variables('urlSamples'), '/logicapp.json')]"
                 },
                 "parameters": {
                     "Office365Account": {
