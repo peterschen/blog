@@ -24,13 +24,13 @@
             "type": "Microsoft.Web/connections",
             "name": "[variables('nameConnectionOffice365')]",
             "apiVersion": "2016-06-01",
-            "location": "northeurope",
+            "location": "[resourceGroup().location]",
             "scale": null,
             "properties": {
                 "displayName": "[parameters('Office365Account')]",
                 "customParameterValues": {},
                 "api": {
-                    "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/northeurope/managedApis/', variables('nameConnectionOffice365'))]"
+                    "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/', variables('nameConnectionOffice365'))]"
                 }
             },
             "dependsOn": []
@@ -39,13 +39,13 @@
             "type": "Microsoft.Web/connections",
             "name": "[variables('nameConnectionTeams')]",
             "apiVersion": "2016-06-01",
-            "location": "northeurope",
+            "location": "[resourceGroup().location]",
             "scale": null,
             "properties": {
                 "displayName": "[parameters('Office365Account')]",
                 "customParameterValues": {},
                 "api": {
-                    "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/northeurope/managedApis/', variables('nameConnectionTeams'))]"
+                    "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/', variables('nameConnectionTeams'))]"
                 }
             },
             "dependsOn": []
@@ -538,12 +538,12 @@
                             "office365": {
                                 "connectionId": "[resourceId('Microsoft.Web/connections', variables('nameConnectionOffice365'))]",
                                 "connectionName": "[variables('nameConnectionOffice365')]",
-                                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/northeurope/managedApis/', variables('nameConnectionOffice365'))]"
+                                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/', variables('nameConnectionOffice365'))]"
                             },
                             "teams": {
                                 "connectionId": "[resourceId('Microsoft.Web/connections', variables('nameConnectionTeams'))]",
                                 "connectionName": "[variables('nameConnectionTeams')]",
-                                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/northeurope/managedApis/', variables('nameConnectionTeams'))]"
+                                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/', variables('nameConnectionTeams'))]"
                             }
                         }
                     }
