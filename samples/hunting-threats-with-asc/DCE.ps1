@@ -76,24 +76,15 @@ configuration Attacker
                 try
                 {
                     New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS;
+
+                    $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
+                    $background = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Colors" -Name "Background";
+                    $wallpaper = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper";
                 }
                 catch
                 {
                     # swallow exeption
                 }
-
-                $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
-                
-                if(-not (Test-Path "HKU:\$($sid)"))
-                {
-                    New-Item -Path "HKU:\" -Name $sid;
-                    New-Item -Path "HKU:\$($sid)" -name "Control Panel";
-                    New-Item -Path "HKU:\$($sid)\Control Panel" -name "Colors";
-                    New-Item -Path "HKU:\$($sid)\Control Panel" -name "Desktop";
-                }
-                
-                $background = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Colors" -Name "Background";
-                $wallpaper = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper";
 
                 return @{
                     "SID" = $sid 
@@ -116,15 +107,14 @@ configuration Attacker
                 try
                 {
                     New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS;
+                    $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
+                    Set-ItemProperty "HKU:\$($sid)\Control Panel\Colors" -Name "Background" -Value $using:backgroundColor;
+                    Set-ItemProperty "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper" -Value "";
                 }
                 catch
                 {
                     # swallow exeption
                 }
-
-                $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
-                Set-ItemProperty "HKU:\$($sid)\Control Panel\Colors" -Name "Background" -Value $using:backgroundColor;
-                Set-ItemProperty "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper" -Value "";
 
                 $global:DSCMachineStatus = 1;
             }
@@ -246,24 +236,15 @@ configuration Victim
                 try
                 {
                     New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS;
+
+                    $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
+                    $background = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Colors" -Name "Background";
+                    $wallpaper = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper";
                 }
                 catch
                 {
                     # swallow exeption
                 }
-
-                $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
-
-                if(-not (Test-Path "HKU:\$($sid)"))
-                {
-                    New-Item -Path "HKU:\" -Name $sid;
-                    New-Item -Path "HKU:\$($sid)" -name "Control Panel";
-                    New-Item -Path "HKU:\$($sid)\Control Panel" -name "Colors";
-                    New-Item -Path "HKU:\$($sid)\Control Panel" -name "Desktop";
-                }
-
-                $background = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Colors" -Name "Background";
-                $wallpaper = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper";
 
                 return @{
                     "SID" = $sid 
@@ -286,15 +267,14 @@ configuration Victim
                 try
                 {
                     New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS;
+                    $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
+                    Set-ItemProperty "HKU:\$($sid)\Control Panel\Colors" -Name "Background" -Value $using:backgroundColor;
+                    Set-ItemProperty "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper" -Value "";
                 }
                 catch
                 {
                     # swallow exeption
                 }
-
-                $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
-                Set-ItemProperty "HKU:\$($sid)\Control Panel\Colors" -Name "Background" -Value $using:backgroundColor;
-                Set-ItemProperty "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper" -Value "";
 
                 $global:DSCMachineStatus = 1;
             }
