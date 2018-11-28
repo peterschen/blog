@@ -161,7 +161,7 @@
         }
     },
     "variables": {
-        "gitBranch": "master",
+        "gitBranch": "fix-hunting-demo",
         "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'), '/')]",
         "urlTemplates": "[concat(variables('urlBase'), '/templates')]",
         "urlSamples": "[concat(variables('urlBase'), '/samples/hunting-threats-with-asc')]",

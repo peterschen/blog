@@ -83,6 +83,15 @@ configuration Attacker
                 }
 
                 $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
+                
+                if(-not (Test-Path "HKU:\$($sid)"))
+                {
+                    New-Item -Path "HKU:\" -Name $sid;
+                    New-Item -Path "HKU:\$($sid)" -name "Control Panel";
+                    New-Item -Path "HKU:\$($sid)\Control Panel" -name "Colors";
+                    New-Item -Path "HKU:\$($sid)\Control Panel" -name "Desktop";
+                }
+                
                 $background = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Colors" -Name "Background";
                 $wallpaper = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper";
 
@@ -244,6 +253,15 @@ configuration Victim
                 }
 
                 $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
+
+                if(-not (Test-Path "HKU:\$($sid)"))
+                {
+                    New-Item -Path "HKU:\" -Name $sid;
+                    New-Item -Path "HKU:\$($sid)" -name "Control Panel";
+                    New-Item -Path "HKU:\$($sid)\Control Panel" -name "Colors";
+                    New-Item -Path "HKU:\$($sid)\Control Panel" -name "Desktop";
+                }
+
                 $background = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Colors" -Name "Background";
                 $wallpaper = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper";
 
