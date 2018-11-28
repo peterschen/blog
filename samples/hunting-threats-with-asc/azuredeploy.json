@@ -164,7 +164,7 @@
         "gitBranch": "master",
         "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'), '/')]",
         "urlTemplates": "[concat(variables('urlBase'), '/templates')]",
-        "urlSamples": "[concat(variables('urlBase'), '/samples/monitoring-pipeline')]",
+        "urlSamples": "[concat(variables('urlBase'), '/samples/hunting-threats-with-asc')]",
         "urlDsc": "[concat(variables('urlSamples'), '/DCE.ps1.zip')]",
         "nameDeployment": "[deployment().name]",
         "nameDeploymentVmAttacker": "[concat(variables('nameDeployment'), '-AttackerVm')]",
