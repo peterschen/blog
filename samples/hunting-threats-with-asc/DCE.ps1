@@ -65,7 +65,7 @@ configuration Attacker
 
         Registry "DesktopWallpaper"
         {
-            Key = "HKEY_USERS\.DEFAULT\Control Panel\Colors"
+            Key = "HKEY_USERS\.DEFAULT\Control Panel\Desktop"
             ValueName = "Wallpaper"
             ValueData = ""
         }
@@ -234,7 +234,7 @@ configuration Victim
 
         Registry "DesktopWallpaper-AllUsers"
         {
-            Key = "HKEY_USERS\.DEFAULT\Control Panel\Colors"
+            Key = "HKEY_USERS\.DEFAULT\Control Panel\Desktop"
             ValueName = "Wallpaper"
             ValueData = ""
         }
