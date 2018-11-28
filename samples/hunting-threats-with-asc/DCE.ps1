@@ -76,14 +76,18 @@ configuration Attacker
                 try
                 {
                     New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS;
-
-                    $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
-                    $background = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Colors" -Name "Background";
-                    $wallpaper = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper";
                 }
                 catch
                 {
                     # swallow exeption
+                }
+
+                $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
+
+                if(Test-Path "HKU:\$($sid)")
+                {
+                    $background = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Colors" -Name "Background";
+                    $wallpaper = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper";
                 }
 
                 return @{
@@ -107,13 +111,18 @@ configuration Attacker
                 try
                 {
                     New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS;
-                    $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
-                    Set-ItemProperty "HKU:\$($sid)\Control Panel\Colors" -Name "Background" -Value $using:backgroundColor;
-                    Set-ItemProperty "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper" -Value "";
                 }
                 catch
                 {
                     # swallow exeption
+                }
+
+                $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
+                
+                if(Test-Path "HKU:\$($sid)")
+                {
+                    Set-ItemProperty "HKU:\$($sid)\Control Panel\Colors" -Name "Background" -Value $using:backgroundColor;
+                    Set-ItemProperty "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper" -Value "";
                 }
 
                 $global:DSCMachineStatus = 1;
@@ -236,14 +245,18 @@ configuration Victim
                 try
                 {
                     New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS;
-
-                    $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
-                    $background = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Colors" -Name "Background";
-                    $wallpaper = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper";
                 }
                 catch
                 {
                     # swallow exeption
+                }
+
+                $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
+
+                if(Test-Path "HKU:\$($sid)")
+                {
+                    $background = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Colors" -Name "Background";
+                    $wallpaper = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper";
                 }
 
                 return @{
@@ -267,13 +280,18 @@ configuration Victim
                 try
                 {
                     New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS;
-                    $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
-                    Set-ItemProperty "HKU:\$($sid)\Control Panel\Colors" -Name "Background" -Value $using:backgroundColor;
-                    Set-ItemProperty "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper" -Value "";
                 }
                 catch
                 {
                     # swallow exeption
+                }
+
+                $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
+                
+                if(Test-Path "HKU:\$($sid)")
+                {
+                    Set-ItemProperty "HKU:\$($sid)\Control Panel\Colors" -Name "Background" -Value $using:backgroundColor;
+                    Set-ItemProperty "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper" -Value "";
                 }
 
                 $global:DSCMachineStatus = 1;
