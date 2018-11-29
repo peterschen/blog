@@ -304,9 +304,6 @@
                         "url": "[variables('urlDsc')]",
                         "script": "DCE.ps1",
                         "function": "Attacker"
-                    },
-                    "configurationArguments": {
-                        "AdminUsername": "[parameters('AdminUsername')]"
                     }
                 }
             }
@@ -330,9 +327,6 @@
                         "url": "[variables('urlDsc')]",
                         "script": "DCE.ps1",
                         "function": "Victim"
-                    },
-                    "configurationArguments": {
-                        "AdminUsername": "[parameters('AdminUsername')]"
                     }
                 }
             }

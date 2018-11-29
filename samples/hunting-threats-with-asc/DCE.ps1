@@ -13,12 +13,6 @@ $firewallRules = @(
 
 configuration Attacker
 {
-    param 
-    ( 
-        [Parameter(Mandatory = $true)]
-        [string] $AdminUsername
-    );
-
     Import-DscResource -ModuleName PSDesiredStateConfiguration,
         @{ModuleName="xNetworking";ModuleVersion="5.5.0.0"},
         @{ModuleName="xPSDesiredStateConfiguration";ModuleVersion="8.0.0.0"};
@@ -113,12 +107,6 @@ configuration Attacker
 
 configuration Victim
 {
-    param 
-    ( 
-        [Parameter(Mandatory = $true)]
-        [string] $AdminUsername
-    );
-
     Import-DscResource -ModuleName PSDesiredStateConfiguration,
         @{ModuleName="xNetworking";ModuleVersion="5.5.0.0"},
         @{ModuleName="xPSDesiredStateConfiguration";ModuleVersion="8.0.0.0"};
