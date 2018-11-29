@@ -27,6 +27,26 @@ configuration Attacker
 
     node localhost
     {
+        # Fix issues with downloading from GitHub due to deprecation of TLS 1.0 and 1.1
+        # https://github.com/PowerShell/xPSDesiredStateConfiguration/issues/405#issuecomment-379932793
+        Registry SchUseStrongCrypto
+        {
+            Key                         = 'HKLM:\SOFTWARE\Microsoft\.NETFramework\v4.0.30319'
+            ValueName                   = 'SchUseStrongCrypto'
+            ValueType                   = 'Dword'
+            ValueData                   =  '1'
+            Ensure                      = 'Present'
+        }
+
+        Registry SchUseStrongCrypto64
+        {
+            Key                         = 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NETFramework\v4.0.30319'
+            ValueName                   = 'SchUseStrongCrypto'
+            ValueType                   = 'Dword'
+            ValueData                   =  '1'
+            Ensure                      = 'Present'
+        }
+
         File "tools"
         {
             Ensure = "Present"
@@ -60,6 +80,7 @@ configuration Attacker
         {
             Uri = "$UrlAssets/$background"
             DestinationPath = "C:\Windows\web\wallpaper\Windows\img0.jpg"
+            DependsOn = "[Registry]SchUseStrongCrypto","[Registry]SchUseStrongCrypto64"
         }
 
         foreach($rule in $firewallRules)
