@@ -56,77 +56,47 @@ configuration Attacker
             DependsOn = "[xRemoteFile]PSTools.zip"
         }
 
-        Registry "DesktopColor-AllUsers"
+        Registry "DesktopColor"
         {
-            Key = "HKEY_USERS\.DEFAULT\Control Panel\Colors"
+            Key = "HKEY_USERS\DEFAULT\Control Panel\Colors"
             ValueName = "Background"
             ValueData = $backgroundColor
+            DependsOn = "[Script]LoadDefaultUserProfile"
         }
 
         Registry "DesktopWallpaper"
         {
-            Key = "HKEY_USERS\.DEFAULT\Control Panel\Desktop"
+            Key = "HKEY_USERS\DEFAULT\Control Panel\Desktop"
             ValueName = "Wallpaper"
             ValueData = ""
+            DependsOn = "[Script]LoadDefaultUserProfile"
         }
 
-        Script "Background"
+        Script "LoadDefaultUserProfile"
         {
             GetScript = {
-                try
-                {
-                    New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS;
-                }
-                catch
-                {
-                    # swallow exeption
-                }
-
-                $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
-
-                if(Test-Path "HKU:\$($sid)")
-                {
-                    $background = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Colors" -Name "Background";
-                    $wallpaper = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper";
-                }
-
-                return @{
-                    "SID" = $sid 
-                    "Background" = $background
-                    "Wallpaper" = $wallpaper
-                    "Result" = "Background: $background; Wallpaper: $wallpaper"
-                };
+                return @{"Result" = ""};
             }
             TestScript = { 
-                $state = [scriptblock]::Create($GetScript).Invoke();
-
-                if($state["Background"] -eq $using:backgroundColor -and $state["Wallpaper"] -eq "")
-                {
-                    return $true;
-                }
-
                 return $false;
             }
             SetScript = {
-                try
-                {
-                    New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS;
-                }
-                catch
-                {
-                    # swallow exeption
-                }
-
-                $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
-                
-                if(Test-Path "HKU:\$($sid)")
-                {
-                    Set-ItemProperty "HKU:\$($sid)\Control Panel\Colors" -Name "Background" -Value $using:backgroundColor;
-                    Set-ItemProperty "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper" -Value "";
-                }
-
-                $global:DSCMachineStatus = 1;
+                Start-Process -FilePath "cmd.exe" -ArgumentList "/C reg load HKU\DEFAULT C:\Users\Default\ntuser.dat" -Wait -WindowStyle Hidden;
             }
+        }
+
+        Script "UnloadDefaultUserProfile"
+        {
+            GetScript = {
+                return @{"Result" = ""};
+            }
+            TestScript = { 
+                return $false;
+            }
+            SetScript = {
+                Start-Process -FilePath "cmd.exe" -ArgumentList "/C reg unload HKU\DEFAULT" -Wait -WindowStyle Hidden;
+            }
+            DependsOn = "[Registry]DesktopColor", "[Registry]DesktopWallpaper"
         }
 
         foreach($rule in $firewallRules)
@@ -225,77 +195,47 @@ configuration Victim
             DependsOn = "[xRemoteFile]mimikatz.zip"
         }
 
-        Registry "DesktopColor-AllUsers"
+        Registry "DesktopColor"
         {
-            Key = "HKEY_USERS\.DEFAULT\Control Panel\Colors"
+            Key = "HKEY_USERS\DEFAULT\Control Panel\Colors"
             ValueName = "Background"
             ValueData = $backgroundColor
+            DependsOn = "[Script]LoadDefaultUserProfile"
         }
 
-        Registry "DesktopWallpaper-AllUsers"
+        Registry "DesktopWallpaper"
         {
-            Key = "HKEY_USERS\.DEFAULT\Control Panel\Desktop"
+            Key = "HKEY_USERS\DEFAULT\Control Panel\Desktop"
             ValueName = "Wallpaper"
             ValueData = ""
+            DependsOn = "[Script]LoadDefaultUserProfile"
         }
 
-        Script "Background"
+        Script "LoadDefaultUserProfile"
         {
             GetScript = {
-                try
-                {
-                    New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS;
-                }
-                catch
-                {
-                    # swallow exeption
-                }
-
-                $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
-
-                if(Test-Path "HKU:\$($sid)")
-                {
-                    $background = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Colors" -Name "Background";
-                    $wallpaper = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper";
-                }
-
-                return @{
-                    "SID" = $sid 
-                    "Background" = $background
-                    "Wallpaper" = $wallpaper
-                    "Result" = "Background: $background; Wallpaper: $wallpaper"
-                };
+                return @{"Result" = ""};
             }
             TestScript = { 
-                $state = [scriptblock]::Create($GetScript).Invoke();
-
-                if($state["Background"] -eq $using:backgroundColor -and $state["Wallpaper"] -eq "")
-                {
-                    return $true;
-                }
-
                 return $false;
             }
             SetScript = {
-                try
-                {
-                    New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS;
-                }
-                catch
-                {
-                    # swallow exeption
-                }
-
-                $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
-                
-                if(Test-Path "HKU:\$($sid)")
-                {
-                    Set-ItemProperty "HKU:\$($sid)\Control Panel\Colors" -Name "Background" -Value $using:backgroundColor;
-                    Set-ItemProperty "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper" -Value "";
-                }
-
-                $global:DSCMachineStatus = 1;
+                Start-Process -FilePath "cmd.exe" -ArgumentList "/C reg load HKU\DEFAULT C:\Users\Default\ntuser.dat" -Wait -WindowStyle Hidden;
             }
+        }
+
+        Script "UnloadDefaultUserProfile"
+        {
+            GetScript = {
+                return @{"Result" = ""};
+            }
+            TestScript = { 
+                return $false;
+            }
+            SetScript = {
+                Start-Process -FilePath "cmd.exe" -ArgumentList "/C reg unload HKU\DEFAULT" -Wait -WindowStyle Hidden;
+            }
+            DependsOn = "[Registry]DesktopColor", "[Registry]DesktopWallpaper"
         }
 
         foreach($rule in $firewallRules)
