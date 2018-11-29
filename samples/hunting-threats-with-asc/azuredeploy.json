@@ -236,10 +236,7 @@
                         "value": "[variables('nameVnet')]"
                     }
                 }
-            },
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmAttacker'))]"
-            ]
+            }
         },
         {
             "name": "[concat('shutdown-computevm-', variables('nameVmAttacker'), '-vm')]",
