@@ -16,17 +16,38 @@ configuration Attacker
     param 
     ( 
         [Parameter(Mandatory = $true)]
-        [string] $AdminUsername
+        [string] $UrlAssets
     );
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration,
         @{ModuleName="xNetworking";ModuleVersion="5.5.0.0"},
-        @{ModuleName="xPSDesiredStateConfiguration";ModuleVersion="8.0.0.0"};
+        @{ModuleName="xPSDesiredStateConfiguration";ModuleVersion="8.0.0.0"},
+        @{ModuleName="cNtfsAccessControl";ModuleVersion="1.4.0"};
 
-    $backgroundColor = "184 40 50";
+    $background = "red.jpg";
 
     node localhost
     {
+        # Fix issues with downloading from GitHub due to deprecation of TLS 1.0 and 1.1
+        # https://github.com/PowerShell/xPSDesiredStateConfiguration/issues/405#issuecomment-379932793
+        Registry SchUseStrongCrypto
+        {
+            Key                         = 'HKLM:\SOFTWARE\Microsoft\.NETFramework\v4.0.30319'
+            ValueName                   = 'SchUseStrongCrypto'
+            ValueType                   = 'Dword'
+            ValueData                   =  '1'
+            Ensure                      = 'Present'
+        }
+
+        Registry SchUseStrongCrypto64
+        {
+            Key                         = 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NETFramework\v4.0.30319'
+            ValueName                   = 'SchUseStrongCrypto'
+            ValueType                   = 'Dword'
+            ValueData                   =  '1'
+            Ensure                      = 'Present'
+        }
+
         File "tools"
         {
             Ensure = "Present"
@@ -56,69 +77,27 @@ configuration Attacker
             DependsOn = "[xRemoteFile]PSTools.zip"
         }
 
-        Registry "DesktopColor-AllUsers"
+        cNtfsPermissionEntry "BackgroundPermissions"
         {
-            Key = "HKEY_USERS\.DEFAULT\Control Panel\Colors"
-            ValueName = "Background"
-            ValueData = $backgroundColor
+            Ensure = "Present"
+            Path = "C:\Windows\web\wallpaper\Windows\img0.jpg"
+            Principal = "NT AUTHORITY\SYSTEM"
+            AccessControlInformation = @(
+                cNtfsAccessControlInformation
+                {
+                    AccessControlType = "Allow"
+                    FileSystemRights = "FullControl"
+                    Inheritance = "ThisFolderAndFiles"
+                    NoPropagateInherit = $false
+                }
+            )
         }
 
-        Registry "DesktopWallpaper"
+        xRemoteFile "Background"
         {
-            Key = "HKEY_USERS\.DEFAULT\Control Panel\Colors"
-            ValueName = "Wallpaper"
-            ValueData = ""
-        }
-
-        Script "Background"
-        {
-            GetScript = {
-                try
-                {
-                    New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS;
-                }
-                catch
-                {
-                    # swallow exeption
-                }
-
-                $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
-                $background = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Colors" -Name "Background";
-                $wallpaper = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper";
-
-                return @{
-                    "SID" = $sid 
-                    "Background" = $background
-                    "Wallpaper" = $wallpaper
-                    "Result" = "Background: $background; Wallpaper: $wallpaper"
-                };
-            }
-            TestScript = { 
-                $state = [scriptblock]::Create($GetScript).Invoke();
-
-                if($state["Background"] -eq $using:backgroundColor -and $state["Wallpaper"] -eq "")
-                {
-                    return $true;
-                }
-
-                return $false;
-            }
-            SetScript = {
-                try
-                {
-                    New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS;
-                }
-                catch
-                {
-                    # swallow exeption
-                }
-
-                $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
-                Set-ItemProperty "HKU:\$($sid)\Control Panel\Colors" -Name "Background" -Value $using:backgroundColor;
-                Set-ItemProperty "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper" -Value "";
-
-                $global:DSCMachineStatus = 1;
-            }
+            Uri = "$UrlAssets/$background"
+            DestinationPath = "C:\Windows\web\wallpaper\Windows\img0.jpg"
+            DependsOn = "[Registry]SchUseStrongCrypto","[Registry]SchUseStrongCrypto64","[cNtfsPermissionEntry]BackgroundPermissions"
         }
 
         foreach($rule in $firewallRules)
@@ -138,14 +117,15 @@ configuration Victim
     param 
     ( 
         [Parameter(Mandatory = $true)]
-        [string] $AdminUsername
+        [string] $UrlAssets
     );
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration,
         @{ModuleName="xNetworking";ModuleVersion="5.5.0.0"},
-        @{ModuleName="xPSDesiredStateConfiguration";ModuleVersion="8.0.0.0"};
+        @{ModuleName="xPSDesiredStateConfiguration";ModuleVersion="8.0.0.0"},
+        @{ModuleName="cNtfsAccessControl";ModuleVersion="1.4.0"};
 
-    $backgroundColor = "116 164 2";
+    $background = "green.jpg";
 
     node localhost
     {
@@ -217,69 +197,27 @@ configuration Victim
             DependsOn = "[xRemoteFile]mimikatz.zip"
         }
 
-        Registry "DesktopColor-AllUsers"
+        cNtfsPermissionEntry "BackgroundPermissions"
         {
-            Key = "HKEY_USERS\.DEFAULT\Control Panel\Colors"
-            ValueName = "Background"
-            ValueData = $backgroundColor
+            Ensure = "Present"
+            Path = "C:\Windows\web\wallpaper\Windows\img0.jpg"
+            Principal = "NT AUTHORITY\SYSTEM"
+            AccessControlInformation = @(
+                cNtfsAccessControlInformation
+                {
+                    AccessControlType = "Allow"
+                    FileSystemRights = "FullControl"
+                    Inheritance = "ThisFolderAndFiles"
+                    NoPropagateInherit = $false
+                }
+            )
         }
 
-        Registry "DesktopWallpaper-AllUsers"
+        xRemoteFile "Background"
         {
-            Key = "HKEY_USERS\.DEFAULT\Control Panel\Colors"
-            ValueName = "Wallpaper"
-            ValueData = ""
-        }
-
-        Script "Background"
-        {
-            GetScript = {
-                try
-                {
-                    New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS;
-                }
-                catch
-                {
-                    # swallow exeption
-                }
-
-                $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
-                $background = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Colors" -Name "Background";
-                $wallpaper = Get-ItemPropertyValue "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper";
-
-                return @{
-                    "SID" = $sid 
-                    "Background" = $background
-                    "Wallpaper" = $wallpaper
-                    "Result" = "Background: $background; Wallpaper: $wallpaper"
-                };
-            }
-            TestScript = { 
-                $state = [scriptblock]::Create($GetScript).Invoke();
-
-                if($state["Background"] -eq $using:backgroundColor -and $state["Wallpaper"] -eq "")
-                {
-                    return $true;
-                }
-
-                return $false;
-            }
-            SetScript = {
-                try
-                {
-                    New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS;
-                }
-                catch
-                {
-                    # swallow exeption
-                }
-
-                $sid = (Get-LocalUser -Name $using:AdminUsername).SID.value;
-                Set-ItemProperty "HKU:\$($sid)\Control Panel\Colors" -Name "Background" -Value $using:backgroundColor;
-                Set-ItemProperty "HKU:\$($sid)\Control Panel\Desktop" -Name "Wallpaper" -Value "";
-
-                $global:DSCMachineStatus = 1;
-            }
+            Uri = "$UrlAssets/$background"
+            DestinationPath = "C:\Windows\web\wallpaper\Windows\img0.jpg"
+            DependsOn = "[Registry]SchUseStrongCrypto","[Registry]SchUseStrongCrypto64","[cNtfsPermissionEntry]BackgroundPermissions"
         }
 
         foreach($rule in $firewallRules)

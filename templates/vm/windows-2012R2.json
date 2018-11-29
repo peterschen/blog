@@ -23,7 +23,7 @@
             }
         },
         "AdminPassword": {
-            "type": "string",
+            "type": "securestring",
             "metadata": {
                 "description": "RSA key to be configured on all nodes for direct access through ssh."
             }

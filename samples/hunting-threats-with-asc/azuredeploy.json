@@ -1,6 +1,6 @@
 {
     "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
+    "contentVersion": "1.2.0.0",
     "parameters": {
         "ResourcePrefix": {
             "type": "string",
@@ -161,7 +161,7 @@
         }
     },
     "variables": {
-        "gitBranch": "master",
+        "gitBranch": "fix-hunting-demo",
         "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'), '/')]",
         "urlTemplates": "[concat(variables('urlBase'), '/templates')]",
         "urlSamples": "[concat(variables('urlBase'), '/samples/hunting-threats-with-asc')]",
@@ -306,7 +306,7 @@
                         "function": "Attacker"
                     },
                     "configurationArguments": {
-                        "AdminUsername": "[parameters('AdminUsername')]"
+                        "UrlAssets": "[variables('urlSamples')]"
                     }
                 }
             }
@@ -332,7 +332,7 @@
                         "function": "Victim"
                     },
                     "configurationArguments": {
-                        "AdminUsername": "[parameters('AdminUsername')]"
+                        "UrlAssets": "[variables('urlSamples')]"
                     }
                 }
             }
