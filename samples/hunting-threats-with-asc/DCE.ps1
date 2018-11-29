@@ -21,7 +21,8 @@ configuration Attacker
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration,
         @{ModuleName="xNetworking";ModuleVersion="5.5.0.0"},
-        @{ModuleName="xPSDesiredStateConfiguration";ModuleVersion="8.0.0.0"};
+        @{ModuleName="xPSDesiredStateConfiguration";ModuleVersion="8.0.0.0"},
+        @{ModuleName="cNtfsAccessControl";ModuleVersion="1.4.0"};
 
     $background = "red.jpg";
 
@@ -76,11 +77,28 @@ configuration Attacker
             DependsOn = "[xRemoteFile]PSTools.zip"
         }
 
+        cNtfsPermissionEntry "BackgroundPermissions"
+        {
+            Ensure = "Present"
+            Path = "C:\Windows\web\wallpaper\Windows"
+            Principal = "BUILTIN\Administrators"
+            AccessControlInformation = @(
+                cNtfsAccessControlInformation
+                {
+                    AccessControlType = "Allow"
+                    FileSystemRights = "FullControl"
+                    Inheritance = "FilesOnly"
+                    NoPropagateInherit = $false
+                }
+            )
+            DependsOn = '[File]TestDirectory'
+        }
+
         xRemoteFile "Background"
         {
             Uri = "$UrlAssets/$background"
             DestinationPath = "C:\Windows\web\wallpaper\Windows\img0.jpg"
-            DependsOn = "[Registry]SchUseStrongCrypto","[Registry]SchUseStrongCrypto64"
+            DependsOn = "[Registry]SchUseStrongCrypto","[Registry]SchUseStrongCrypto64","[cNtfsPermissionEntry]BackgroundPermission"
         }
 
         foreach($rule in $firewallRules)
@@ -179,10 +197,28 @@ configuration Victim
             DependsOn = "[xRemoteFile]mimikatz.zip"
         }
 
+        cNtfsPermissionEntry "BackgroundPermissions"
+        {
+            Ensure = "Present"
+            Path = "C:\Windows\web\wallpaper\Windows"
+            Principal = "BUILTIN\Administrators"
+            AccessControlInformation = @(
+                cNtfsAccessControlInformation
+                {
+                    AccessControlType = "Allow"
+                    FileSystemRights = "FullControl"
+                    Inheritance = "FilesOnly"
+                    NoPropagateInherit = $false
+                }
+            )
+            DependsOn = '[File]TestDirectory'
+        }
+
         xRemoteFile "Background"
         {
             Uri = "$UrlAssets/$background"
             DestinationPath = "C:\Windows\web\wallpaper\Windows\img0.jpg"
+            DependsOn = "[Registry]SchUseStrongCrypto","[Registry]SchUseStrongCrypto64","[cNtfsPermissionEntry]BackgroundPermission"
         }
 
         foreach($rule in $firewallRules)
