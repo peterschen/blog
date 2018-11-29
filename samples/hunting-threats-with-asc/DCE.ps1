@@ -13,11 +13,17 @@ $firewallRules = @(
 
 configuration Attacker
 {
+    param 
+    ( 
+        [Parameter(Mandatory = $true)]
+        [string] $UrlAssets
+    );
+
     Import-DscResource -ModuleName PSDesiredStateConfiguration,
         @{ModuleName="xNetworking";ModuleVersion="5.5.0.0"},
         @{ModuleName="xPSDesiredStateConfiguration";ModuleVersion="8.0.0.0"};
 
-    $backgroundColor = "184 40 50";
+    $background = "red.jpg";
 
     node localhost
     {
@@ -50,47 +56,10 @@ configuration Attacker
             DependsOn = "[xRemoteFile]PSTools.zip"
         }
 
-        Registry "DesktopColor"
+        xRemoteFile "Background"
         {
-            Key = "HKEY_USERS\DEFAULT\Control Panel\Colors"
-            ValueName = "Background"
-            ValueData = $backgroundColor
-            DependsOn = "[Script]LoadDefaultUserProfile"
-        }
-
-        Registry "DesktopWallpaper"
-        {
-            Key = "HKEY_USERS\DEFAULT\Control Panel\Desktop"
-            ValueName = "Wallpaper"
-            ValueData = ""
-            DependsOn = "[Script]LoadDefaultUserProfile"
-        }
-
-        Script "LoadDefaultUserProfile"
-        {
-            GetScript = {
-                return @{"Result" = ""};
-            }
-            TestScript = { 
-                return $false;
-            }
-            SetScript = {
-                Start-Process -FilePath "cmd.exe" -ArgumentList "/C reg load HKU\DEFAULT C:\Users\Default\ntuser.dat" -Wait -WindowStyle Hidden;
-            }
-        }
-
-        Script "UnloadDefaultUserProfile"
-        {
-            GetScript = {
-                return @{"Result" = ""};
-            }
-            TestScript = { 
-                return $false;
-            }
-            SetScript = {
-                Start-Process -FilePath "cmd.exe" -ArgumentList "/C reg unload HKU\DEFAULT" -Wait -WindowStyle Hidden;
-            }
-            DependsOn = "[Registry]DesktopColor", "[Registry]DesktopWallpaper"
+            Uri = "$UrlAssets/$background"
+            DestinationPath = "C:\Windows\web\wallpaper\Windows\img0.jpg"
         }
 
         foreach($rule in $firewallRules)
@@ -107,11 +76,17 @@ configuration Attacker
 
 configuration Victim
 {
+    param 
+    ( 
+        [Parameter(Mandatory = $true)]
+        [string] $UrlAssets
+    );
+
     Import-DscResource -ModuleName PSDesiredStateConfiguration,
         @{ModuleName="xNetworking";ModuleVersion="5.5.0.0"},
         @{ModuleName="xPSDesiredStateConfiguration";ModuleVersion="8.0.0.0"};
 
-    $backgroundColor = "116 164 2";
+    $background = "green.jpg";
 
     node localhost
     {
@@ -183,47 +158,10 @@ configuration Victim
             DependsOn = "[xRemoteFile]mimikatz.zip"
         }
 
-        Registry "DesktopColor"
+        xRemoteFile "Background"
         {
-            Key = "HKEY_USERS\DEFAULT\Control Panel\Colors"
-            ValueName = "Background"
-            ValueData = $backgroundColor
-            DependsOn = "[Script]LoadDefaultUserProfile"
-        }
-
-        Registry "DesktopWallpaper"
-        {
-            Key = "HKEY_USERS\DEFAULT\Control Panel\Desktop"
-            ValueName = "Wallpaper"
-            ValueData = ""
-            DependsOn = "[Script]LoadDefaultUserProfile"
-        }
-
-        Script "LoadDefaultUserProfile"
-        {
-            GetScript = {
-                return @{"Result" = ""};
-            }
-            TestScript = { 
-                return $false;
-            }
-            SetScript = {
-                Start-Process -FilePath "cmd.exe" -ArgumentList "/C reg load HKU\DEFAULT C:\Users\Default\ntuser.dat" -Wait -WindowStyle Hidden;
-            }
-        }
-
-        Script "UnloadDefaultUserProfile"
-        {
-            GetScript = {
-                return @{"Result" = ""};
-            }
-            TestScript = { 
-                return $false;
-            }
-            SetScript = {
-                Start-Process -FilePath "cmd.exe" -ArgumentList "/C reg unload HKU\DEFAULT" -Wait -WindowStyle Hidden;
-            }
-            DependsOn = "[Registry]DesktopColor", "[Registry]DesktopWallpaper"
+            Uri = "$UrlAssets/$background"
+            DestinationPath = "C:\Windows\web\wallpaper\Windows\img0.jpg"
         }
 
         foreach($rule in $firewallRules)

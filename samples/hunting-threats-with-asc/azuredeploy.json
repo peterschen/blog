@@ -1,6 +1,6 @@
 {
     "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
+    "contentVersion": "1.1.0.0",
     "parameters": {
         "ResourcePrefix": {
             "type": "string",
@@ -301,6 +301,9 @@
                         "url": "[variables('urlDsc')]",
                         "script": "DCE.ps1",
                         "function": "Attacker"
+                    },
+                    "configurationArguments": {
+                        "UrlAssets": "[variables('urlSamples')]"
                     }
                 }
             }
@@ -324,6 +327,9 @@
                         "url": "[variables('urlDsc')]",
                         "script": "DCE.ps1",
                         "function": "Victim"
+                    },
+                    "configurationArguments": {
+                        "UrlAssets": "[variables('urlSamples')]"
                     }
                 }
             }
