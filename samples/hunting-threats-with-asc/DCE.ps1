@@ -80,25 +80,24 @@ configuration Attacker
         cNtfsPermissionEntry "BackgroundPermissions"
         {
             Ensure = "Present"
-            Path = "C:\Windows\web\wallpaper\Windows"
-            Principal = "BUILTIN\Administrators"
+            Path = "C:\Windows\web\wallpaper\Windows\img0.jpg"
+            Principal = "NT AUTHORITY\SYSTEM"
             AccessControlInformation = @(
                 cNtfsAccessControlInformation
                 {
                     AccessControlType = "Allow"
                     FileSystemRights = "FullControl"
-                    Inheritance = "FilesOnly"
+                    Inheritance = "ThisFolderAndFiles"
                     NoPropagateInherit = $false
                 }
             )
-            DependsOn = '[File]TestDirectory'
         }
 
         xRemoteFile "Background"
         {
             Uri = "$UrlAssets/$background"
             DestinationPath = "C:\Windows\web\wallpaper\Windows\img0.jpg"
-            DependsOn = "[Registry]SchUseStrongCrypto","[Registry]SchUseStrongCrypto64","[cNtfsPermissionEntry]BackgroundPermission"
+            DependsOn = "[Registry]SchUseStrongCrypto","[Registry]SchUseStrongCrypto64","[cNtfsPermissionEntry]BackgroundPermissions"
         }
 
         foreach($rule in $firewallRules)
@@ -123,7 +122,8 @@ configuration Victim
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration,
         @{ModuleName="xNetworking";ModuleVersion="5.5.0.0"},
-        @{ModuleName="xPSDesiredStateConfiguration";ModuleVersion="8.0.0.0"};
+        @{ModuleName="xPSDesiredStateConfiguration";ModuleVersion="8.0.0.0"},
+        @{ModuleName="cNtfsAccessControl";ModuleVersion="1.4.0"};
 
     $background = "green.jpg";
 
@@ -200,25 +200,24 @@ configuration Victim
         cNtfsPermissionEntry "BackgroundPermissions"
         {
             Ensure = "Present"
-            Path = "C:\Windows\web\wallpaper\Windows"
-            Principal = "BUILTIN\Administrators"
+            Path = "C:\Windows\web\wallpaper\Windows\img0.jpg"
+            Principal = "NT AUTHORITY\SYSTEM"
             AccessControlInformation = @(
                 cNtfsAccessControlInformation
                 {
                     AccessControlType = "Allow"
                     FileSystemRights = "FullControl"
-                    Inheritance = "FilesOnly"
+                    Inheritance = "ThisFolderAndFiles"
                     NoPropagateInherit = $false
                 }
             )
-            DependsOn = '[File]TestDirectory'
         }
 
         xRemoteFile "Background"
         {
             Uri = "$UrlAssets/$background"
             DestinationPath = "C:\Windows\web\wallpaper\Windows\img0.jpg"
-            DependsOn = "[Registry]SchUseStrongCrypto","[Registry]SchUseStrongCrypto64","[cNtfsPermissionEntry]BackgroundPermission"
+            DependsOn = "[Registry]SchUseStrongCrypto","[Registry]SchUseStrongCrypto64","[cNtfsPermissionEntry]BackgroundPermissions"
         }
 
         foreach($rule in $firewallRules)
