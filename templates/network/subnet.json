@@ -1,0 +1,51 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "Name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the subnet"
+            }
+        },
+        "NameVnet": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the vnet"
+            }
+        },
+        "SubnetAddressSpace": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/24",
+            "metadata": {
+                "description": "Subnet used by Azure Firewall"
+            }
+        },
+        "IdNsg": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "ID for NSG to associate with the subnet"
+            }
+        }
+    },
+    "variables": {
+        "nameVnet": "[parameters('NameVnet')]",
+        "nameSubnet": "[parameters('Name')]",
+        "networkSecurityGroup": {
+            "id": "[parameters('IdNsg')]"
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "name": "[concat(variables('nameVnet'), '/', variables('nameSubnet'))]",
+            "apiVersion": "2018-04-01",
+            "properties": {
+                "addressPrefix": "[parameters('SubnetAddressSpace')]",
+                "networkSecurityGroup": "[if(not(equals(parameters('IdNsg'), '')), variables('networkSecurityGroup'), json('null'))]"
+            }
+        }
+    ],
+    "outputs": {}
+}
