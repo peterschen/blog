@@ -21,8 +21,7 @@
             "metadata": {
                 "description": "Total address space for this vnet."
             }
-        }
-        ,
+        },
         "SubnetAddressSpace": {
             "type": "string",
             "defaultValue": "10.0.0.0/24",
