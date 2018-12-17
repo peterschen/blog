@@ -1,6 +1,6 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.1",
+    "contentVersion": "1.0.0.2",
     "parameters": {
         "Name": {
             "type": "string",
@@ -32,13 +32,13 @@
     "variables": {
         "nameIp": "[concat(parameters('Name'), '-ip')]",
         "nameVnet": "[parameters('NameVnet')]",
-        "nameSubnet": "[concat(variables('nameVnet'), '/AzureFirewallSubnet')]",
+        "nameSubnet": "AzureFirewallSubnet",
         "nameFirewall": "[parameters('Name')]",
         "regionIp": "[parameters('Region')]",
         "regionVnet": "[parameters('Region')]",
         "regionFirewall": "[parameters('Region')]",
         "idIp": "[concat(resourceGroup().id, '/providers/Microsoft.Network/publicIPAddresses/', variables('nameIp'))]",
-        "idSubnet": "[concat(resourceGroup().id, '/providers/Microsoft.Network/virtualNetworks/', variables('nameVnet'), '/subnets/AzureFirewallSubnet')]"
+        "idSubnet": "[concat(resourceGroup().id, '/providers/Microsoft.Network/virtualNetworks/', variables('nameVnet'), '/subnets/', variables('nameSubnet'))]"
     },
     "resources": [
         {
@@ -56,7 +56,7 @@
         },
         {
             "type": "Microsoft.Network/virtualNetworks/subnets",
-            "name": "[variables('nameSubnet')]",
+            "name": "[concat(variables('nameVnet'), '/', variables('nameSubnet'))]",
             "apiVersion": "2018-04-01",
             "location": "[variables('regionVnet')]",
             "properties": {
@@ -85,7 +85,7 @@
             },
             "dependsOn": [
                 "[concat('Microsoft.Network/publicIpAddresses/', variables('nameIp'))]",
-                "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('nameSubnet'))]"
+                "[variables('idSubnet')]"
             ]
         }
     ],
