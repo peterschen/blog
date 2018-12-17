@@ -1,0 +1,39 @@
+
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "Name": {
+            "type": "string",
+            "metadata": {
+               "description": "Name of the Recovery Services Vault"
+            }
+        },
+        "Region": {
+            "type": "string",
+            "defaultValue": "westeurope",
+            "metadata": {
+                "description": "Region in which the resources should be deployed."
+            }
+        }
+    },
+    "variables": {
+        "nameRecoveryvault": "[parameters('Name')]",
+        "regionRecoveryVault": "[parameters('Region')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.RecoveryServices/vaults",
+            "name": "[variables('nameRecoveryvault')]",
+            "apiVersion": "2018-01-10",
+            "sku": {
+                "name": "RS0",
+                "tier": "Standard"
+            },
+            "location": "[variables('regionRecoveryVault')]",
+            "properties": {},
+            "dependsOn": []
+        }
+    ],
+    "outputs": {}
+}
