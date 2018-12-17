@@ -1,6 +1,6 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.2",
+    "contentVersion": "1.0.0.3",
     "parameters": {
         "Name": {
             "type": "string",
@@ -147,7 +147,7 @@
         "nameNsg": "[concat(parameters('Name'), '-nsg')]",
         "nameIp": "[concat(parameters('Name'), '-ip')]",
         "nameNic": "[concat(parameters('Name'), '-nic')]",
-        "nameVm": "[concat(parameters('Name'), '-vm')]",
+        "nameVm": "[concat(parameters('Name'))]",
         "regionNsg": "[parameters('Region')]",
         "regionIp": "[parameters('Region')]",
         "regionNic": "[parameters('Region')]",
