@@ -1,6 +1,6 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.2",
+    "contentVersion": "1.0.0.4",
     "parameters": {
         "Name": {
             "type": "string",
@@ -30,12 +30,16 @@
         }
     },
     "variables": {
+        "gitBranch": "monitoring-hackathon",
+        "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'))]",
+        "urlTemplates": "[concat(variables('urlBase'), '/templates')]",
+        "nameDeployment": "[deployment().name]",
+        "nameDeploymentSubnet": "[concat(variables('nameDeployment'), '-Subnet')]",
         "nameIp": "[concat(parameters('Name'), '-ip')]",
         "nameVnet": "[parameters('NameVnet')]",
         "nameSubnet": "AzureFirewallSubnet",
         "nameFirewall": "[parameters('Name')]",
         "regionIp": "[parameters('Region')]",
-        "regionVnet": "[parameters('Region')]",
         "regionFirewall": "[parameters('Region')]",
         "idIp": "[concat(resourceGroup().id, '/providers/Microsoft.Network/publicIPAddresses/', variables('nameIp'))]",
         "idSubnet": "[concat(resourceGroup().id, '/providers/Microsoft.Network/virtualNetworks/', variables('nameVnet'), '/subnets/', variables('nameSubnet'))]"
@@ -55,12 +59,26 @@
             "tags": {}
         },
         {
-            "type": "Microsoft.Network/virtualNetworks/subnets",
-            "name": "[concat(variables('nameVnet'), '/', variables('nameSubnet'))]",
-            "apiVersion": "2018-04-01",
-            "location": "[variables('regionVnet')]",
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentSubnet')]",
+            "apiVersion": "2017-05-10",
             "properties": {
-                "addressPrefix": "[parameters('SubnetAddressSpace')]"
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/network/subnet.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameSubnet')]"
+                    },
+                    "NameVnet": {
+                        "value": "[variables('nameVnet')]"
+                    },
+                    "SubnetAddressSpace": {
+                        "value": "[parameters('SubnetAddressSpace')]"
+                    }
+                }
             }
         },
         {
@@ -85,7 +103,7 @@
             },
             "dependsOn": [
                 "[concat('Microsoft.Network/publicIpAddresses/', variables('nameIp'))]",
-                "[variables('idSubnet')]"
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentSubnet'))]"
             ]
         }
     ],
