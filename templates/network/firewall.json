@@ -68,10 +68,6 @@
             "name": "[variables('nameFirewall')]",
             "apiVersion": "2018-08-01",
             "location": "[variables('regionFirewall')]",
-            "dependsOn": [
-                "[concat('Microsoft.Network/publicIpAddresses/', variables('nameIp'))]",
-                "[variables('idSubnet')]"
-            ],
             "properties": {
                 "ipConfigurations": [
                     {
@@ -87,7 +83,10 @@
                     }
                 ]
             },
-            "tags": {}
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIpAddresses/', variables('nameIp'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('nameSubnet'))]"
+            ]
         }
     ],
     "outputs": {}
