@@ -1,0 +1,94 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "Name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Azure Firewall"
+            }
+        },
+        "NameVnet": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the vnet"
+            }
+        },
+        "Region": {
+            "type": "string",
+            "defaultValue": "westeurope",
+            "metadata": {
+                "description": "Region in which the resources should be deployed."
+            }
+        },
+        "SubnetAddressSpace": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/24",
+            "metadata": {
+                "description": "Subnet used by Azure Firewall"
+            }
+        }
+    },
+    "variables": {
+        "nameIp": "[concat(parameters('Name'), '-ip')]",
+        "nameVnet": "[parameters('NameVnet')]",
+        "nameSubnet": "[concat(variables('nameVnet'), '/AzureFirewallSubnet')]",
+        "nameFirewall": "[parameters('Name')]",
+        "regionIp": "[parameters('Region')]",
+        "regionVnet": "[parameters('Region')]",
+        "regionFirewall": "[parameters('Region')]",
+        "idIp": "[concat(resourceGroup().id, '/providers/Microsoft.Network/publicIPAddresses/', variables('nameIp'))]",
+        "idSubnet": "[concat(resourceGroup().id, '/providers/Microsoft.Network/virtualNetworks/', variables('nameVnet'), '/subnets/AzureFirewallSubnet')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[variables('nameIp')]",
+            "apiVersion": "2018-08-01",
+            "location": "[variables('regionIp')]",
+            "sku": {
+                "name": "Standard"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Static"
+            },
+            "tags": {}
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "name": "[variables('nameSubnet')]",
+            "apiVersion": "2018-04-01",
+            "location": "[variables('regionVnet')]",
+            "properties": {
+                "addressPrefix": "[parameters('SubnetAddressSpace')]"
+            }
+        },
+        {
+            "type": "Microsoft.Network/azureFirewalls",
+            "name": "[variables('nameFirewall')]",
+            "apiVersion": "2018-08-01",
+            "location": "[variables('regionFirewall')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIpAddresses/', variables('nameIp'))]",
+                "[variables('idSubnet')]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "IpConf",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('idSubnet')]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[variables('idIp')]"
+                            }
+                        }
+                    }
+                ]
+            },
+            "tags": {}
+        }
+    ],
+    "outputs": {}
+}
