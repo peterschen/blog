@@ -31,6 +31,11 @@
         }
     },
     "variables": {
+        "gitBranch": "monitoring-hackathon",
+        "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'))]",
+        "urlTemplates": "[concat(variables('urlBase'), '/templates')]",
+        "nameDeployment": "[deployment().name]",
+        "nameDeploymentSubnet": "[concat(variables('nameDeployment'), '-Subnet')]",
         "nameVnet": "[parameters('Name')]",
         "nameNsg": "[concat(parameters('Name'), '-nsg')]",
         "regionVnet": "[parameters('Region')]",
@@ -41,7 +46,7 @@
         {
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[variables('nameVnet')]",
-            "apiVersion": "2015-06-15",
+            "apiVersion": "2018-08-01",
             "location": "[variables('regionVnet')]",
             "tags": {},
             "properties": {
@@ -54,16 +59,53 @@
                     {
                         "name": "subnet-0",
                         "properties": {
-                            "addressPrefix": "[parameters('SubnetAddressSpace')]",
+                            "provisioningState": "Succeeded",
+                            "addressPrefix": "10.0.1.0/24",
                             "networkSecurityGroup": {
                                 "id": "[variables('idNsg')]"
                             }
+                        }
+                    },
+                    {
+                        "name": "AzureFirewallSubnet",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "addressPrefix": "10.0.0.0/24"
                         }
                     }
                 ]
             },
             "dependsOn": [
                 "[concat('Microsoft.Network/networkSecurityGroups/', variables('nameNsg'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentSubnet')]",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/network/subnet.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "subnet-0"
+                    },
+                    "NameVnet": {
+                        "value": "[variables('nameVnet')]"
+                    },
+                    "SubnetAddressSpace": {
+                        "value": "[parameters('SubnetAddressSpace')]"
+                    },
+                    "IdNsg": {
+                        "value": "[variables('idNsg')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', variables('nameVnet'))]"
             ]
         },
         {
