@@ -1,11 +1,18 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.1",
+    "contentVersion": "1.0.0.3",
     "parameters": {
         "Name": {
             "type": "string",
             "metadata": {
                 "description": "Name of the vnet."
+            }
+        },
+        "NameSubnet": {
+            "type": "string",
+            "defaultValue": "subnet-0",
+            "metadata": {
+                "description": "Name of the subnet"
             }
         },
         "Region": {
@@ -31,16 +38,15 @@
         }
     },
     "variables": {
-        "gitBranch": "monitoring-hackathon",
-        "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'))]",
-        "urlTemplates": "[concat(variables('urlBase'), '/templates')]",
-        "nameDeployment": "[deployment().name]",
-        "nameDeploymentSubnet": "[concat(variables('nameDeployment'), '-Subnet')]",
         "nameVnet": "[parameters('Name')]",
+        "nameSubnet": "[parameters('NameSubnet')]",
         "nameNsg": "[concat(parameters('Name'), '-nsg')]",
         "regionVnet": "[parameters('Region')]",
         "regionNsg": "[parameters('Region')]",
-        "idNsg": "[concat(resourceGroup().id, '/providers/Microsoft.Network/networkSecurityGroups/', variables('nameNsg'))]"
+        "idNsg": "[concat(resourceGroup().id, '/providers/Microsoft.Network/networkSecurityGroups/', variables('nameNsg'))]",
+        "networkSecurityGroup": {
+            "id": "[variables('idNsg')]"
+        }
     },
     "resources": [
         {
@@ -57,20 +63,10 @@
                 },
                 "subnets": [
                     {
-                        "name": "subnet-0",
+                        "name": "[variables('nameSubnet')]",
                         "properties": {
-                            "provisioningState": "Succeeded",
-                            "addressPrefix": "10.0.1.0/24",
-                            "networkSecurityGroup": {
-                                "id": "[variables('idNsg')]"
-                            }
-                        }
-                    },
-                    {
-                        "name": "AzureFirewallSubnet",
-                        "properties": {
-                            "provisioningState": "Succeeded",
-                            "addressPrefix": "10.0.0.0/24"
+                            "addressPrefix": "[parameters('SubnetAddressSpace')]",
+                            "networkSecurityGroup": "[if(not(equals(variables('nameSubnet'), 'AzureFirewallSubnet')), variables('networkSecurityGroup'), json('null'))]"
                         }
                     }
                 ]
@@ -80,35 +76,7 @@
             ]
         },
         {
-            "type": "Microsoft.Resources/deployments",
-            "name": "[variables('nameDeploymentSubnet')]",
-            "apiVersion": "2017-05-10",
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[concat(variables('urlTemplates'), '/network/subnet.json')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "Name": {
-                        "value": "subnet-0"
-                    },
-                    "NameVnet": {
-                        "value": "[variables('nameVnet')]"
-                    },
-                    "SubnetAddressSpace": {
-                        "value": "[parameters('SubnetAddressSpace')]"
-                    },
-                    "IdNsg": {
-                        "value": "[variables('idNsg')]"
-                    }
-                }
-            },
-            "dependsOn": [
-                "[concat('Microsoft.Network/virtualNetworks/', variables('nameVnet'))]"
-            ]
-        },
-        {
+            "condition": "[not(equals(variables('nameSubnet'), 'AzureFirewallSubnet'))]",
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('nameNsg')]",
             "apiVersion": "2015-06-15",
