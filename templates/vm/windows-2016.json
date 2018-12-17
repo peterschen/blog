@@ -220,7 +220,6 @@
                 }
             },
             "dependsOn": [
-                "[concat('Microsoft.Network/virtualNetworks/', variables('nameVnet'))]",
                 "[concat('Microsoft.Network/networkSecurityGroups/', variables('nameNsg'))]",
                 "[concat('Microsoft.Network/publicIpAddresses/', variables('nameIp'))]"
             ]
