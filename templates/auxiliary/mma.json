@@ -1,6 +1,6 @@
 {
     "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
+    "contentVersion": "1.0.0.1",
     "parameters": {
         "NameVm": {
             "type": "string",
@@ -29,7 +29,7 @@
     },
     "resources": [
         {
-            "name": "[concat(variables('nameVm'), '/mma')]",
+            "name": "[concat(variables('nameVm'), '/MicrosoftMonitoringAgent')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "apiVersion": "2015-06-15",
             "location": "[variables('location')]",
