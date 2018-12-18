@@ -1,0 +1,117 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {},
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "nameVm": "vm",
+        "nameStorage": "[uniqueString(subscription().id, resourceGroup().name)]",
+        "idStorage": "[resourceId('Microsoft.Storage/storageAccounts', variables('nameStorage'))]",
+        "countVm": 3
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[concat(variables('nameVm'), copyIndex())]",
+            "apiVersion": "2017-12-01",
+            "location": "[variables('location')]",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {},
+            "copy": {
+                "name": "copyVm",
+                "count": "[variables('countVm')]"
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('nameVm'), copyIndex(), '/Microsoft.ManagedIdentity')]",
+            "apiVersion": "2018-10-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "publisher": "Microsoft.ManagedIdentity",
+                "type": "ManagedIdentityExtensionForWindows",
+                "typeHandlerVersion": "1.0",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "port": 50342
+                }
+            },
+            "copy": {
+                "name": "copyVmExtensionManagedIdentity",
+                "count": "[variables('countVm')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('nameVm'), copyIndex())]"
+            ]
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('nameVm'), copyIndex(), '/Microsoft.Azure.Diagnostics')]",
+            "apiVersion": "2018-10-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "publisher": "Microsoft.Azure.Diagnostics",
+                "type": "IaaSDiagnostics",
+                "typeHandlerVersion": "1.12",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "WadCfg": {
+                        "DiagnosticMonitorConfiguration": {
+                            "overallQuotaInMB": 4096,
+                            "PerformanceCounters": {
+                                "scheduledTransferPeriod": "PT1M",
+                                "sinks": "AzureMonitorSink",
+                                "PerformanceCounterConfiguration": [
+                                    {
+                                        "counterSpecifier": "\\LogicalDisk(C:)\\Avg. Disk Queue Length",
+                                        "sampleRate": "PT15S",
+                                        "unit": "Count"
+                                    },
+                                    {
+                                        "counterSpecifier": "\\LogicalDisk(C:)\\Disk Transfers/sec",
+                                        "sampleRate": "PT15S",
+                                        "unit": "Count"
+                                    },
+                                    {
+                                        "counterSpecifier": "\\Memory\\% Committed Bytes In Use",
+                                        "sampleRate": "PT15S",
+                                        "unit": "%"
+                                    },
+                                    {
+                                        "counterSpecifier": "\\Processor(_Total)\\% Processor Time",
+                                        "sampleRate": "PT15S",
+                                        "unit": "%"
+                                    }
+                                ]
+                            }
+                        },
+                        "SinksConfig": {
+                            "Sink": [
+                                {
+                                    "name": "AzureMonitorSink",
+                                    "AzureMonitor": {}
+                                }
+                            ]
+                        }
+                    },
+                    "StorageAccount": "[variables('nameStorage')]"
+                },
+                "protectedSettings": {
+                    "storageAccountName": "[variables('nameStorage')]",
+                    "storageAccountKey": "[listKeys(variables('idStorage'), '2015-06-15').key1]",
+                    "storageAccountEndPoint": "https://core.windows.net/"
+                }
+            },
+            "copy": {
+                "name": "copyVmExtensionDiagnostics",
+                "count": "[variables('countVm')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('nameVm'), copyIndex(), '/extensions/Microsoft.ManagedIdentity')]"
+            ]
+        }
+    ],
+    "outputs": {}
+}
