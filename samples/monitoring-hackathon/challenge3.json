@@ -1,0 +1,316 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {},
+    "variables": {
+        "gitBranch": "monitoring-hackathon",
+        "nameSample": "monitoring-hackathon",
+        "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'))]",
+        "urlTemplates": "[concat(variables('urlBase'), '/templates')]",
+        "urlSamples": "[concat(variables('urlBase'), '/samples/', variables('nameSample'))]",
+        "location": "[resourceGroup().location]",
+        "nameDeployment": "[deployment().name]",
+        "nameDeploymentWorkspace": "[concat(variables('nameDeployment'), '-Workspace')]",
+        "nameDeploymentMma": "[concat(variables('nameDeployment'), '-Mma-')]",
+        "nameWorkspace": "[concat(resourceGroup().name, '-challenge3')]",
+        "nameVm": "vm",
+        "nameAutomationaccount": "[concat(resourceGroup().name, '-automation')]",
+        "nameRecoveryvault": "[resourceGroup().name]",
+        "idWorkspace": "[concat(resourceGroup().id, '/providers/Microsoft.OperationalInsights/workspaces/', variables('nameWorkspace'))]",
+        "countVm": 3
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentWorkspace')]",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/loganalytics/workspace.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[concat(variables('nameWorkspace'))]"
+                    },
+                    "Region": {
+                        "value": "[variables('location')]"
+                    },
+                    "Tier": {
+                        "value": "Free"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2015-11-01-preview",
+            "type": "Microsoft.OperationalInsights/workspaces/datasources",
+            "name": "[concat(variables('nameWorkspace'), '/LogicalDiskAvgDiskQueueLength')]",
+            "location": "[variables('location')]",
+            "kind": "WindowsPerformanceCounter",
+            "properties": {
+                "objectName": "LogicalDisk",
+                "instanceName": "C:",
+                "intervalSeconds": 15,
+                "counterName": "Avg. Disk Queue Length"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentWorkspace'))]"
+            ]
+        },
+        {
+            "apiVersion": "2015-11-01-preview",
+            "type": "Microsoft.OperationalInsights/workspaces/datasources",
+            "name": "[concat(variables('nameWorkspace'), '/LogicalDiskDiskTransfersSec')]",
+            "location": "[variables('location')]",
+            "kind": "WindowsPerformanceCounter",
+            "properties": {
+                "objectName": "LogicalDisk",
+                "instanceName": "C:",
+                "intervalSeconds": 15,
+                "counterName": "Disk Transfers/sec"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentWorkspace'))]"
+            ]
+        },
+        {
+            "apiVersion": "2015-11-01-preview",
+            "type": "Microsoft.OperationalInsights/workspaces/datasources",
+            "name": "[concat(variables('nameWorkspace'), '/ProcessorPercProcessorTime')]",
+            "location": "[variables('location')]",
+            "kind": "WindowsPerformanceCounter",
+            "properties": {
+                "objectName": "Processor",
+                "instanceName": "_Total",
+                "intervalSeconds": 15,
+                "counterName": "% Processor Time"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentWorkspace'))]"
+            ]
+        },
+        {
+            "apiVersion": "2015-11-01-preview",
+            "type": "Microsoft.OperationalInsights/workspaces/datasources",
+            "name": "[concat(variables('nameWorkspace'), '/MemoryPercCommittedBytesInUse')]",
+            "location": "[variables('location')]",
+            "kind": "WindowsPerformanceCounter",
+            "properties": {
+                "objectName": "Memory",
+                "instanceName": "*",
+                "intervalSeconds": 15,
+                "counterName": "% Committed Bytes In Use"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentWorkspace'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.OperationalInsights/workspaces/savedSearches",
+            "name": "[concat(variables('nameWorkspace'), '/DeadVvms')]",
+            "apiVersion": "2017-04-26-preview",
+            "properties": {
+                "etag": "*",
+                "displayName": "VMs not sending hearbeats for longer than 5 minutes",
+                "category": "Monitoring Hackathon",
+                "query": "Heartbeat\r\n| where Computer in ('vm0', 'vm1', 'vm2')\r\n| summarize HeartbeatsPerMinute = count() by bin_at(TimeGenerated, 1m, ago(1d)), Computer\r\n| extend AvailablePerMinute = iff(HeartbeatsPerMinute > 0, true, false)\r\n| summarize AvailableMinutes = countif(AvailablePerMinute == true) by Computer\r\n| extend Bins = round((now() - ago(1d)) / 1m)\r\n| extend Availability = AvailableMinutes * 100 / Bins\r\n| order by Availability desc",
+                "version": 2
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentWorkspace'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.OperationalInsights/workspaces/savedSearches",
+            "name": "[concat(variables('nameWorkspace'), '/AvgCpuUtilizationVms')]",
+            "apiVersion": "2017-04-26-preview",
+            "properties": {
+                "etag": "*",
+                "displayName": "Avg. CPU utilization across vm0, vm1, and vm2",
+                "category": "Monitoring Hackathon",
+                "query": "Perf\r\n| where Computer in ('vm0', 'vm1', 'vm2')\r\n| where ObjectName == 'Processor'\r\n| where CounterName == '% Processor Time'\r\n| where InstanceName == '_Total'\r\n| summarize UtilizationCpu=avg(CounterValue) by Computer\r\n",
+                "version": 2
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentWorkspace'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.OperationalInsights/workspaces/savedSearches",
+            "name": "[concat(variables('nameWorkspace'), '/AvgMemoryUtilizationVms')]",
+            "apiVersion": "2017-04-26-preview",
+            "properties": {
+                "etag": "*",
+                "displayName": "Avg. memory utilization across vm0, vm1, and vm2",
+                "category": "Monitoring Hackathon",
+                "query": "Perf\r\n| where Computer in ('vm0', 'vm1', 'vm2')\r\n| where ObjectName == 'Memory'\r\n| where CounterName == '% Committed Bytes In Use'\r\n| summarize UtilizationMemory=avg(CounterValue) by Computer",
+                "version": 2
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentWorkspace'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.OperationalInsights/workspaces/savedSearches",
+            "name": "[concat(variables('nameWorkspace'), '/Sla')]",
+            "apiVersion": "2017-04-26-preview",
+            "properties": {
+                "etag": "*",
+                "displayName": "SLA",
+                "category": "Monitoring Hackathon",
+                "query": "// Presets\r\nlet thresholdAvailability = 90;\r\nlet thresholdCpu = 50;\r\nlet thresholdMemory = 90;\r\n// Run SLA calculation\r\nslaAvailability\r\n| join kind = inner (slaUtilizationCpu) on Computer\r\n| join kind = fullouter (slaUtilizationMemory) on Computer\r\n| summarize avg(Availability), statusAvailabilitySla = iif(avg(Availability) < thresholdAvailability, 'Bad', 'Good'),\r\n            avg(UtilizationCpu), cpuSLA = iif(avg(UtilizationCpu) > thresholdCpu, 'Bad', 'Good'),\r\n            avg(UtilizationMemory), memSLA = iif(avg(UtilizationMemory) > thresholdMemory, 'Bad', 'Good'),\r\n            ComputerList = makeset(Computer),\r\n            dcount(Computer)",
+                "version": 2
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentWorkspace'))]"
+            ]
+        },
+        {
+            "name": "[concat(variables('nameVm'), copyIndex(), '/Microsoft.Insights/challenge3')]",
+            "type": "Microsoft.Compute/virtualMachines/providers/diagnosticSettings",
+            "apiVersion": "2017-05-01-preview",
+            "properties": {
+                "name": "challenge3",
+                "workspaceId": "[variables('idWorkspace')]",
+                "metrics": [
+                    {
+                        "category": "AllMetrics",
+                        "enabled": true
+                    }
+                ]
+            },
+            "copy": {
+                "name": "copySchedule",
+                "count": "[variables('countVm')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentWorkspace'))]"
+            ]
+        },
+        {
+            "name": "[concat(variables('nameVm'), copyIndex(), '-nsg/Microsoft.Insights/challenge3')]",
+            "type": "Microsoft.Network/networkSecurityGroups/providers/diagnosticSettings",
+            "apiVersion": "2017-05-01-preview",
+            "properties": {
+                "name": "challenge3",
+                "workspaceId": "[variables('idWorkspace')]",
+                "logs": [
+                    {
+                        "category": "NetworkSecurityGroupEvent",
+                        "enabled": true
+                    }
+                ]
+            },
+            "copy": {
+                "name": "copyNsg",
+                "count": "[variables('countVm')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentWorkspace'))]"
+            ]
+        },
+        {
+            "name": "[concat(variables('nameVm'), copyIndex(), '-ip/Microsoft.Insights/challenge3')]",
+            "type": "Microsoft.Network/publicIPAddresses/providers/diagnosticSettings",
+            "apiVersion": "2017-05-01-preview",
+            "properties": {
+                "name": "challenge3",
+                "workspaceId": "[variables('idWorkspace')]",
+                "logs": [
+                    {
+                        "category": "DDoSProtectionNotifications",
+                        "enabled": true
+                    },
+                    {
+                        "category": "DDoSMitigationFlowLogs",
+                        "enabled": true
+                    },
+                    {
+                        "category": "DDoSMitigationReports",
+                        "enabled": true
+                    }
+                ],
+                "metrics": [
+                    {
+                        "category": "AllMetrics",
+                        "enabled": true
+                    }
+                ]
+            },
+            "copy": {
+                "name": "copyNsg",
+                "count": "[variables('countVm')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentWorkspace'))]"
+            ]
+        },
+        {
+            "name": "[concat(variables('nameAutomationaccount'), '/Microsoft.Insights/challenge3')]",
+            "type": "Microsoft.Automation/automationAccounts/providers/diagnosticSettings",
+            "apiVersion": "2017-05-01-preview",
+            "properties": {
+                "name": "challenge3",
+                "workspaceId": "[variables('idWorkspace')]",
+                "metrics": [
+                    {
+                        "category": "AllMetrics",
+                        "enabled": true
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentWorkspace'))]"
+            ]
+        },
+        {
+            "name": "[concat(variables('nameRecoveryvault'), '/Microsoft.Insights/challenge3')]",
+            "type": "Microsoft.RecoveryServices/vaults/providers/diagnosticSettings",
+            "apiVersion": "2017-05-01-preview",
+            "properties": {
+                "name": "challenge3",
+                "workspaceId": "[variables('idWorkspace')]",
+                "logs": [
+                    {
+                        "category": "AzureBackupReport",
+                        "enabled": true
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentWorkspace'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[concat(variables('nameDeploymentMma'), copyIndex())]",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/auxiliary/mma.json')]"
+                },
+                "parameters": {
+                    "NameVm": {
+                        "value": "[concat(variables('nameVm'), copyIndex())]"
+                    },
+                    "IdWorkspace": {
+                        "value": "[variables('idWorkspace')]"
+                    },
+                    "Region": {
+                        "value": "[variables('location')]"
+                    }
+                }
+            },
+            "copy": {
+                "name": "copyMma",
+                "count": "[variables('countVm')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentWorkspace'))]"
+            ]
+        }
+    ],
+    "outputs": {}
+}
