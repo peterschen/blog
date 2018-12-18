@@ -427,7 +427,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[concat(variables('urlTemplates'), '/management/automationaccount.json')]"
+                    "uri": "[concat(variables('urlTemplates'), '/auxiliary/schedule.json')]"
                 },
                 "parameters": {
                     "NameVm": {
