@@ -135,6 +135,13 @@
             "metadata": {
                 "Description": "Indicates whether the VMs should be automatically turned off at night."
             }
+        },
+        "VersionDscConfiguration": {
+            "type": "string",
+            "defaultValue": "1.0.0.0",
+            "metadata": {
+                "Description": "Version of the DSC configuration"
+            }
         }
     },
     "variables": {
@@ -143,6 +150,7 @@
         "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'))]",
         "urlTemplates": "[concat(variables('urlBase'), '/templates')]",
         "urlSamples": "[concat(variables('urlBase'), '/samples/', variables('nameSample'))]",
+        "urlDsc": "[concat(variables('urlSamples'), '/Config.ps1.zip')]",
         "location": "[parameters('Region')]",
         "nameDeployment": "[deployment().name]",
         "nameDeploymentVnetHub": "[concat(variables('nameDeployment'), '-Vnet-Hub')]",
@@ -154,6 +162,7 @@
         "nameDeploymentRecoveryvault": "[concat(variables('nameDeployment'), '-RecoveryServicesVault')]",
         "nameDeploymentStorage": "[concat(variables('nameDeployment'), '-Storage')]",
         "nameDeploymentAutomationaccount": "[concat(variables('nameDeployment'), '-Automationaccount')]",
+        "nameDeploymentDsc": "[concat(variables('nameDeployment'), '-Dsc')]",
         "nameDeploymentSchedule": "[concat(variables('nameDeployment'), '-Schedule')]",
         "nameResourceGroup": "[parameters('ResourceGroupName')]",
         "nameVnetHub": "[concat(parameters('ResourceGroupName'), '-hub')]",
@@ -164,7 +173,10 @@
         "nameRecoveryvault": "[parameters('ResourceGroupName')]",
         "nameStorage": "[uniqueString(subscription().id, parameters('ResourceGroupName'))]",
         "nameAutomationaccount": "[concat(parameters('ResourceGroupName'), '-automation')]",
-        "countVm": 3
+        "nameDscScript": "Config.ps1",
+        "nameDscFunction": "Config",
+        "countVm": 3,
+        "versionDscConfiguration": "[parameters('VersionDscConfiguration')]"
     },
     "resources": [
         {
@@ -419,9 +431,59 @@
             ]
         },
         {
-            "condition": "[equals(parameters('VmAutoShutdown'), 'Enabled')]",
             "type": "Microsoft.Resources/deployments",
-            "name": "[concat(variables('nameDeploymentSchedule'), copyIndex())]",
+            "name": "[concat(variables('nameDeploymentDsc'), '-', copyIndex())]",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[variables('nameResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/auxiliary/dsc.json')]"
+                },
+                "parameters": {
+                    "NameVm": {
+                        "value": "[concat(variables('nameVm'), copyIndex())]"
+                    },
+                    "NameDscScript": {
+                        "value": "[variables('nameDscScript')]"
+                    },
+                    "NameDscFunction": {
+                        "value": "[variables('nameDscFunction')]"
+                    },
+                    "VersionDscConfiguration": {
+                        "value": "[variables('versionDscConfiguration')]"
+                    },
+                    "UrlDsc": {
+                        "value": "[variables('urlDsc')]"
+                    },
+                    "Settings": {
+                        "value": {}
+                    },
+                    "SettingsProtected": {
+                        "value": {
+                            "AdminCredential": {
+                                "userName": "[parameters('AdminUsername')]",
+                                "password": "[parameters('AdminPassword')]"
+                            }
+                        }
+                    },
+                    "Region": {
+                        "value": "[variables('location')]"
+                    }
+                }
+            },
+            "copy": {
+                "name": "copySchedule",
+                "count": "[variables('countVm')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVm'), copyIndex())]"
+            ]
+        },
+        {
+            "condition": "[parameters('VmAutoShutdown')]",
+            "type": "Microsoft.Resources/deployments",
+            "name": "[concat(variables('nameDeploymentSchedule'), '-', copyIndex())]",
             "apiVersion": "2017-05-10",
             "resourceGroup": "[variables('nameResourceGroup')]",
             "properties": {
