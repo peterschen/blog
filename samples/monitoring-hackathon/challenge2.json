@@ -1,0 +1,91 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "NameEmailreceiver": {
+            "type": "string",
+            "metadata": {
+                "Description": "Name of the email reciever"
+            }
+        },
+        "Email": {
+            "type": "string",
+            "metadata": {
+                "Description": "Email address email reciever"
+            }
+        }
+    },
+    "variables": {
+        "nameActiongroup": "challenge2",
+        "nameActiongroupShort": "c2",
+        "nameEmailreceiver": "[parameters('NameEmailreceiver')]",
+        "nameMetricalert": "challenge2-Publicip-Bytes",
+        "email": "[parameters('Email')]",
+        "idIp": "[concat(resourceGroup().id, '/providers/Microsoft.Network/publicIPAddresses/', concat(resourceGroup().name, '-ip'))]",
+        "idActiongroup": "[concat(resourceGroup().id, '/providers/Microsoft.Insights/actionGroups/', variables('nameActiongroup'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Insights/actionGroups",
+            "name": "[variables('nameActiongroup')]",
+            "apiVersion": "2018-03-01",
+            "location": "Global",
+            "properties": {
+                "groupShortName": "[variables('nameActiongroupShort')]",
+                "enabled": true,
+                "emailReceivers": [
+                    {
+                        "name": "[concat(variables('nameEmailreceiver'), '-EmailAction')]",
+                        "emailAddress": "[variables('email')]"
+                    }
+                ],
+                "smsReceivers": [],
+                "webhookReceivers": [],
+                "itsmReceivers": [],
+                "azureAppPushReceivers": [],
+                "automationRunbookReceivers": [],
+                "voiceReceivers": [],
+                "logicAppReceivers": [],
+                "azureFunctionReceivers": []
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Insights/metricAlerts",
+            "name": "[variables('nameMetricalert')]",
+            "apiVersion": "2018-03-01",
+            "location": "global",
+            "properties": {
+                "description": "[variables('nameMetricalert')]",
+                "severity": 4,
+                "enabled": true,
+                "scopes": [
+                    "[variables('idIp')]"
+                ],
+                "evaluationFrequency": "PT1M",
+                "windowSize": "PT5M",
+                "criteria": {
+                    "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria",
+                    "allOf": [
+                        {
+                            "name" : "1st criterion",
+                            "metricName": "ByteCount",
+                            "dimensions":[],
+                            "operator": "GreaterThan",
+                            "threshold" : 50000,
+                            "timeAggregation": "Average"
+                        }
+                    ]
+                },
+                "actions": [
+                    {
+                        "actionGroupId": "[variables('idActiongroup')]",
+                        "webHookProperties": {}
+                    }
+                ]
+            },
+            "dependsOn": []
+        }
+    ],
+    "outputs": {}
+}
