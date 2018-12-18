@@ -1,5 +1,17 @@
 # Monitoring Hackathon
 
+## Initial deployment
+This hackathon uses subscription level deployment to roll out a set of resources that are used throughout the challenges. Kicking-off the initial deployment can be done with Azure CLI (or PowerShell). If not specified, the default values will be taken and you will be prompted for `AdminUsername` and `AdminPassword`. 
+
+> **Note:** Make sure to select a short prefix for the parameter `NameResourceGroup`. This is the name of the resource group that is created as part of the deployment and also as name or prefix for many of the resources deployed.
+
+```
+az deployment create \
+    --name mh \
+    --location westeurope \
+    --template-file azuredeploy.json
+```
+
 ## Challenge 1
 Focus of the challenge is to understand how telemetry can be collected from VMs running on Azure. Azure monitor and the associated sink are leveraged to collect telemetry directly into Azure monitor for dashboarding and alerting purposes.
 
