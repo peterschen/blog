@@ -1,0 +1,45 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "NameVm": {
+            "type": "string",
+            "metadata": {
+               "description": "Name of the VM"
+            }
+        },
+        "Region": {
+            "type": "string",
+            "defaultValue": "westeurope",
+            "metadata": {
+                "description": "Region in which the resources should be deployed."
+            }
+        }
+    },
+    "variables": {
+        "location": "[parameters('Region')]",
+        "nameVm": "[parameters('NameVm')]"
+    },
+    "resources": [
+        {
+            "name": "[concat('shutdown-computevm-', variables('nameVm'))]",
+            "type": "Microsoft.DevTestLab/schedules",
+            "apiVersion": "2018-09-15",
+            "location": "[variables('location')]",
+            "properties": {
+                "status": "Enabled",
+                "taskType": "ComputeVmShutdownTask",
+                "dailyRecurrence": {
+                    "time": "19:00"
+                },
+                "timeZoneId": "Central European Standard Time",
+                "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines', concat(variables('nameVm')))]",
+                "notificationSettings": {
+                    "status": "Disabled",
+                    "timeInMinutes": "30"
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}
