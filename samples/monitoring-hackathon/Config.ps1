@@ -1,4 +1,4 @@
-configuration Hack
+configuration Config
 {
     param 
     ( 
