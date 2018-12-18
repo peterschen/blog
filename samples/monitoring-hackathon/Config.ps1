@@ -1,11 +1,5 @@
 configuration Config
 {
-    param 
-    ( 
-        [Parameter(Mandatory = $true)]
-        [pscredential] $AdminCredential
-    );
-
     Import-DscResource -ModuleName PSDesiredStateConfiguration,
         @{ModuleName="xNetworking";ModuleVersion="5.5.0.0"},
         @{ModuleName="xPSDesiredStateConfiguration";ModuleVersion="8.0.0.0"},
@@ -48,14 +42,6 @@ configuration Config
             DependsOn = "[File]tools"
         }
 
-        File "Testlimit"
-        {
-            Ensure = "Present"
-            Type = "Directory"
-            DestinationPath = "C:\tools\Testlimit"
-            DependsOn = "[File]tools"
-        }
-
         xRemoteFile "DiskSpd"
         {
             Uri = "https://gallery.technet.microsoft.com/DiskSpd-A-Robust-Storage-6ef84e62/file/199535/2/DiskSpd-2.0.21a.zip"
@@ -63,25 +49,11 @@ configuration Config
             DependsOn = "[File]DiskSpd"
         }
 
-        xRemoteFile "Testlimit"
-        {
-            Uri = "http://download.sysinternals.com/files/TestLimit.zip"
-            DestinationPath = "c:\tools\Testlimit"
-            DependsOn = "[File]Testlimit"
-        }
-
         Archive "PSTools"
         {
             Path = "c:\tools\DiskSpd\DiskSpd-2.0.21a.zip"
             Destination = "C:\tools\DiskSpd"
             DependsOn = "[xRemoteFile]DiskSpd"
-        }
-
-        Archive "Testlimit"
-        {
-            Path = "c:\tools\Testlimit\TestLimit.zip"
-            Destination = "C:\tools\Testlimit"
-            DependsOn = "[xRemoteFile]Testlimit"
         }
 
         ScheduledTask DiskSpd
@@ -92,24 +64,22 @@ configuration Config
             ActionArguments = "-b8K -d200 -o4 -t8 -h -r -w25 -L -Z125M -c1G C:\iotest.dat"
             ScheduleType = "Daily"
             DaysInterval = 1
-            RepeatInterval = "00:04:00"
+            RepeatInterval = "00:03:00"
             RepetitionDuration = "Indefinitely"
+            ExecutionTimeLimit = "00:02:30"
         }
 
-        ScheduledTask Testlimit
+        ScheduledTask CpuMemoryLoad
         {
-            TaskName = "Testlimit"
+            TaskName = "CpuMemoryLoad"
             TaskPath = '\Monitoring Hackathon'
-            ActionExecutable = "C:\tools\Testlimit\Testlimit64.exe"
-            ActionArguments = "-d -c 4096"
+            ActionExecutable = "powershell.exe"
+            ActionArguments = "-Command 1..50|%{`$x=1}{[array]`$x+=`$x}"
             ScheduleType = "Daily"
             DaysInterval = 1
             RepeatInterval = "00:03:00"
             RepetitionDuration = "Indefinitely"
             ExecutionTimeLimit = "00:02:30"
-            MultipleInstances = "IgnoreNew"
-            ExecuteAsCredential = $AdminCredential
-            LogonType = "S4U"
         }
     }
 }
