@@ -456,17 +456,6 @@
                     "UrlDsc": {
                         "value": "[variables('urlDsc')]"
                     },
-                    "Settings": {
-                        "value": {}
-                    },
-                    "SettingsProtected": {
-                        "value": {
-                            "AdminCredential": {
-                                "userName": "[parameters('AdminUsername')]",
-                                "password": "[parameters('AdminPassword')]"
-                            }
-                        }
-                    },
                     "Region": {
                         "value": "[variables('location')]"
                     }
