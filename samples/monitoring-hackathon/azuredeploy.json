@@ -2,7 +2,7 @@
     "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.5",
     "parameters": {
-        "ResourceGroupName": {
+        "NameResourceGroup": {
             "type": "string",
             "defaultValue": "mh",
             "metadata": {
@@ -164,15 +164,15 @@
         "nameDeploymentAutomationaccount": "[concat(variables('nameDeployment'), '-Automationaccount')]",
         "nameDeploymentDsc": "[concat(variables('nameDeployment'), '-Dsc')]",
         "nameDeploymentSchedule": "[concat(variables('nameDeployment'), '-Schedule')]",
-        "nameResourceGroup": "[parameters('ResourceGroupName')]",
-        "nameVnetHub": "[concat(parameters('ResourceGroupName'), '-hub')]",
-        "nameVnetSpoke": "[concat(parameters('ResourceGroupName'), '-spoke')]",
+        "nameResourceGroup": "[parameters('NameResourceGroup')]",
+        "nameVnetHub": "[concat(parameters('NameResourceGroup'), '-hub')]",
+        "nameVnetSpoke": "[concat(parameters('NameResourceGroup'), '-spoke')]",
         "nameVm": "vm",
-        "nameDnszone": "[concat(parameters('ResourceGroupName'), '.local')]",
-        "nameFirewall": "[parameters('ResourceGroupName')]",
-        "nameRecoveryvault": "[parameters('ResourceGroupName')]",
-        "nameStorage": "[uniqueString(subscription().id, parameters('ResourceGroupName'))]",
-        "nameAutomationaccount": "[concat(parameters('ResourceGroupName'), '-automation')]",
+        "nameDnszone": "[concat(parameters('NameResourceGroup'), '.local')]",
+        "nameFirewall": "[parameters('NameResourceGroup')]",
+        "nameRecoveryvault": "[parameters('NameResourceGroup')]",
+        "nameStorage": "[uniqueString(subscription().id, parameters('NameResourceGroup'))]",
+        "nameAutomationaccount": "[concat(parameters('NameResourceGroup'), '-automation')]",
         "nameDscScript": "Config.ps1",
         "nameDscFunction": "Config",
         "countVm": 3,
