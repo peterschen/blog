@@ -36,14 +36,14 @@
         },
         "Settings": {
             "type": "object",
-            "defaultValue": null,
+            "defaultValue": {},
             "metadata": {
                 "Description": "Unencrypted settings to pass to the DSC extension"
             }
         },
         "SettingsProtected": {
             "type": "secureObject",
-            "defaultValue": null,
+            "defaultValue": {},
             "metadata": {
                 "Description": "PSAutomationCredentials to pass to the DSC extension"
             }
