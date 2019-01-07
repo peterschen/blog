@@ -114,6 +114,7 @@
                 "etag": "*",
                 "displayName": "VMs not sending hearbeats for longer than 5 minutes",
                 "category": "Monitoring Hackathon",
+                "FunctionAlias": "slaAvailability",
                 "query": "Heartbeat\r\n| where Computer in ('vm0', 'vm1', 'vm2')\r\n| summarize HeartbeatsPerMinute = count() by bin_at(TimeGenerated, 1m, ago(1d)), Computer\r\n| extend AvailablePerMinute = iff(HeartbeatsPerMinute > 0, true, false)\r\n| summarize AvailableMinutes = countif(AvailablePerMinute == true) by Computer\r\n| extend Bins = round((now() - ago(1d)) / 1m)\r\n| extend Availability = AvailableMinutes * 100 / Bins\r\n| order by Availability desc",
                 "version": 2
             },
@@ -129,6 +130,7 @@
                 "etag": "*",
                 "displayName": "Avg. CPU utilization across vm0, vm1, and vm2",
                 "category": "Monitoring Hackathon",
+                "FunctionAlias": "slaUtilizationCpu",
                 "query": "Perf\r\n| where Computer in ('vm0', 'vm1', 'vm2')\r\n| where ObjectName == 'Processor'\r\n| where CounterName == '% Processor Time'\r\n| where InstanceName == '_Total'\r\n| summarize UtilizationCpu=avg(CounterValue) by Computer\r\n",
                 "version": 2
             },
@@ -144,6 +146,7 @@
                 "etag": "*",
                 "displayName": "Avg. memory utilization across vm0, vm1, and vm2",
                 "category": "Monitoring Hackathon",
+                "FunctionAlias": "slaUtilizationMemory",
                 "query": "Perf\r\n| where Computer in ('vm0', 'vm1', 'vm2')\r\n| where ObjectName == 'Memory'\r\n| where CounterName == '% Committed Bytes In Use'\r\n| summarize UtilizationMemory=avg(CounterValue) by Computer",
                 "version": 2
             },
