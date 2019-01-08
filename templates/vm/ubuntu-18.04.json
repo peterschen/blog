@@ -23,7 +23,7 @@
             }
         },
         "AdminSshKey": {
-            "type": "string",
+            "type": "securestring",
             "metadata": {
                 "description": "RSA key to be configured on all nodes for direct access through ssh."
             }
@@ -160,29 +160,6 @@
     },
     "resources": [
         {
-            "type": "Microsoft.Network/virtualNetworks",
-            "name": "[variables('nameVnet')]",
-            "apiVersion": "2015-06-15",
-            "location": "[variables('regionVnet')]",
-            "tags": {},
-            "properties": {
-                "addressSpace": {
-                    "addressPrefixes": [
-                        "10.0.0.0/16"
-                    ]
-                },
-                "subnets": [
-                    {
-                        "name": "subnet-0",
-                        "properties": {
-                            "addressPrefix": "10.0.0.0/24"
-                        }
-                    }
-                ]
-            },
-            "dependsOn": []
-        },
-        {
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('nameNsg')]",
             "apiVersion": "2015-06-15",
@@ -214,7 +191,7 @@
             "location": "[variables('regionIp')]",
             "tags": {},
             "properties": {
-                "publicIPAllocationMethod": null
+                "publicIPAllocationMethod": "Dynamic"
             },
             "dependsOn": []
         },
@@ -244,7 +221,6 @@
                 }
             },
             "dependsOn": [
-                "[concat('Microsoft.Network/virtualNetworks/', variables('nameVnet'))]",
                 "[concat('Microsoft.Network/networkSecurityGroups/', variables('nameNsg'))]",
                 "[concat('Microsoft.Network/publicIpAddresses/', variables('nameIp'))]"
             ]
@@ -289,7 +265,7 @@
                             "publicKeys": [
                                 {
                                     "keyData": "[concat(parameters('AdminSshKey'), '\n')]",
-                                    "path": "/home/labadmin/.ssh/authorized_keys"
+                                    "path": "[concat('/home/', parameters('AdminUsername'), '/.ssh/authorized_keys')]"
                                 }
                             ]
                         }
