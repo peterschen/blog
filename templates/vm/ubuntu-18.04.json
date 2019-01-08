@@ -147,7 +147,7 @@
         "nameNsg": "[concat(parameters('Name'), '-nsg')]",
         "nameIp": "[concat(parameters('Name'), '-ip')]",
         "nameNic": "[concat(parameters('Name'), '-nic')]",
-        "nameVm": "[concat(parameters('Name'), '-vm')]",
+        "nameVm": "[concat(parameters('Name'))]",
         "regionNsg": "[parameters('Region')]",
         "regionIp": "[parameters('Region')]",
         "regionNic": "[parameters('Region')]",
