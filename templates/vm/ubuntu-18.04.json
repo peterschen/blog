@@ -148,7 +148,6 @@
         "nameIp": "[concat(parameters('Name'), '-ip')]",
         "nameNic": "[concat(parameters('Name'), '-nic')]",
         "nameVm": "[concat(parameters('Name'), '-vm')]",
-        "regionVnet": "[parameters('Region')]",
         "regionNsg": "[parameters('Region')]",
         "regionIp": "[parameters('Region')]",
         "regionNic": "[parameters('Region')]",
