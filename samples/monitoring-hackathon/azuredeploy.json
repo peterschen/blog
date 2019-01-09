@@ -286,8 +286,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[concat(variables('urlTemplates'), '/vm/windows-2016.json')]",
-                    "contentVersion": "1.0.0.3"
+                    "uri": "[concat(variables('urlTemplates'), '/vm/windows-2016.json')]"
                 },
                 "parameters": {
                     "Name": {
@@ -326,8 +325,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[concat(variables('urlTemplates'), '/vm/ubuntu-18.04.json')]",
-                    "contentVersion": "1.0.0.2"
+                    "uri": "[concat(variables('urlTemplates'), '/vm/ubuntu-18.04.json')]"
                 },
                 "parameters": {
                     "Name": {
@@ -386,8 +384,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[concat(variables('urlTemplates'), '/network/firewall.json')]",
-                    "contentVersion": "1.0.0.5"
+                    "uri": "[concat(variables('urlTemplates'), '/network/firewall.json')]"
                 },
                 "parameters": {
                     "Name": {
