@@ -16,6 +16,7 @@
         "nameWorkspace": "[concat(resourceGroup().name, '-challenge3')]",
         "nameVmWindows": "vmw",
         "nameVmLinux": "vml",
+        "nameFirewall": "[resourceGroup().name]",
         "nameAutomationaccount": "[concat(resourceGroup().name, '-automation')]",
         "nameRecoveryvault": "[resourceGroup().name]",
         "idWorkspace": "[concat(resourceGroup().id, '/providers/Microsoft.OperationalInsights/workspaces/', variables('nameWorkspace'))]",
@@ -331,6 +332,31 @@
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentWorkspace'))]"
             ]
+        },
+        {
+            "name": "[concat(variables('nameFirewall'), '/Microsoft.Insights/challenge3')]",
+            "type": "Microsoft.Network/azureFirewalls/providers/diagnosticSettings",
+            "apiVersion": "2017-05-01-preview",
+            "properties": {
+                "name": "challenge3",
+                "workspaceId": "[variables('idWorkspace')]",
+                "logs": [
+                    {
+                        "category": "AzureFirewallApplicationRule",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AzureFirewallNetworkRule",
+                        "enabled": true
+                    }
+                ],
+                "metrics": [
+                    {
+                        "category": "AllMetrics",
+                        "enabled": true
+                    }
+                ]
+            }
         },
         {
             "name": "[concat(variables('nameAutomationaccount'), '/Microsoft.Insights/challenge3')]",
