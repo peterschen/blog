@@ -129,6 +129,9 @@
         "AdminPassword": {
             "type": "securestring"
         },
+        "AdminSshKey": {
+            "type": "securestring"
+        },
         "VmAutoShutdown": {
             "type": "bool",
             "defaultValue": true,
@@ -156,18 +159,21 @@
         "nameDeploymentVnetHub": "[concat(variables('nameDeployment'), '-Vnet-Hub')]",
         "nameDeploymentVnetSpoke": "[concat(variables('nameDeployment'), '-Vnet-Spoke')]",
         "nameDeploymentVnetPeering": "[concat(variables('nameDeployment'), '-Vnet-Peering')]",
-        "nameDeploymentVm": "[concat(variables('nameDeployment'), '-Vm-')]",
+        "nameDeploymentVmWindows": "[concat(variables('nameDeployment'), '-VmWindows-')]",
+        "nameDeploymentVmLinux": "[concat(variables('nameDeployment'), '-VmLinux-')]",
         "nameDeploymentDnszone": "[concat(variables('nameDeployment'), '-Dnszone')]",
         "nameDeploymentFirewall": "[concat(variables('nameDeployment'), '-Firewall')]",
         "nameDeploymentRecoveryvault": "[concat(variables('nameDeployment'), '-RecoveryServicesVault')]",
         "nameDeploymentStorage": "[concat(variables('nameDeployment'), '-Storage')]",
         "nameDeploymentAutomationaccount": "[concat(variables('nameDeployment'), '-Automationaccount')]",
         "nameDeploymentDsc": "[concat(variables('nameDeployment'), '-Dsc')]",
-        "nameDeploymentSchedule": "[concat(variables('nameDeployment'), '-Schedule')]",
+        "nameDeploymentScheduleWindows": "[concat(variables('nameDeployment'), '-ScheduleWindows')]",
+        "nameDeploymentScheduleLinux": "[concat(variables('nameDeployment'), '-ScheduleLinux')]",
         "nameResourceGroup": "[parameters('NameResourceGroup')]",
         "nameVnetHub": "[concat(parameters('NameResourceGroup'), '-hub')]",
         "nameVnetSpoke": "[concat(parameters('NameResourceGroup'), '-spoke')]",
-        "nameVm": "vm",
+        "nameVmWindows": "vmw",
+        "nameVmLinux": "vml",
         "nameDnszone": "[concat(parameters('NameResourceGroup'), '.local')]",
         "nameFirewall": "[parameters('NameResourceGroup')]",
         "nameRecoveryvault": "[parameters('NameResourceGroup')]",
@@ -175,7 +181,8 @@
         "nameAutomationaccount": "[concat(parameters('NameResourceGroup'), '-automation')]",
         "nameDscScript": "Config.ps1",
         "nameDscFunction": "Config",
-        "countVm": 3,
+        "countVmWindows": 3,
+        "countVmLinux": 3,
         "versionDscConfiguration": "[parameters('VersionDscConfiguration')]"
     },
     "resources": [
@@ -273,7 +280,7 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "name": "[concat(variables('nameDeploymentVm'), copyIndex())]",
+            "name": "[concat(variables('nameDeploymentVmWindows'), copyIndex())]",
             "apiVersion": "2017-05-10",
             "resourceGroup": "[variables('nameResourceGroup')]",
             "properties": {
@@ -284,7 +291,7 @@
                 },
                 "parameters": {
                     "Name": {
-                        "value": "[concat(variables('nameVm'), copyIndex())]"
+                        "value": "[concat(variables('nameVmWindows'), copyIndex())]"
                     },
                     "Region": {
                         "value": "[variables('location')]"
@@ -305,7 +312,47 @@
             },
             "copy": {
                 "name": "copyVm",
-                "count": "[variables('countVm')]"
+                "count": "[variables('countVmWindows')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVnetSpoke'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[concat(variables('nameDeploymentVmLinux'), copyIndex())]",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[variables('nameResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/vm/ubuntu-18.04.json')]",
+                    "contentVersion": "1.0.0.2"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[concat(variables('nameVmLinux'), copyIndex())]"
+                    },
+                    "Region": {
+                        "value": "[variables('location')]"
+                    },
+                    "AdminUsername": {
+                        "value": "[parameters('AdminUsername')]"
+                    },
+                    "AdminSshKey": {
+                        "value": "[parameters('AdminSshKey')]"
+                    },
+                    "VmSize": {
+                        "value": "[parameters('VmSize')]"
+                    },
+                    "VnetName": {
+                        "value": "[variables('nameVnetSpoke')]"
+                    }
+                }
+            },
+            "copy": {
+                "name": "copyVm",
+                "count": "[variables('countVmLinux')]"
             },
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVnetSpoke'))]"
@@ -442,7 +489,7 @@
                 },
                 "parameters": {
                     "NameVm": {
-                        "value": "[concat(variables('nameVm'), copyIndex())]"
+                        "value": "[concat(variables('nameVmWindows'), copyIndex())]"
                     },
                     "NameDscScript": {
                         "value": "[variables('nameDscScript')]"
@@ -463,16 +510,16 @@
             },
             "copy": {
                 "name": "copySchedule",
-                "count": "[variables('countVm')]"
+                "count": "[variables('countVmWindows')]"
             },
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVm'), copyIndex())]"
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmWindows'), copyIndex())]"
             ]
         },
         {
             "condition": "[parameters('VmAutoShutdown')]",
             "type": "Microsoft.Resources/deployments",
-            "name": "[concat(variables('nameDeploymentSchedule'), '-', copyIndex())]",
+            "name": "[concat(variables('nameDeploymentScheduleWindows'), '-', copyIndex())]",
             "apiVersion": "2017-05-10",
             "resourceGroup": "[variables('nameResourceGroup')]",
             "properties": {
@@ -482,7 +529,7 @@
                 },
                 "parameters": {
                     "NameVm": {
-                        "value": "[concat(variables('nameVm'), copyIndex())]"
+                        "value": "[concat(variables('nameVmWindows'), copyIndex())]"
                     },
                     "Region": {
                         "value": "[variables('location')]"
@@ -491,10 +538,38 @@
             },
             "copy": {
                 "name": "copySchedule",
-                "count": "[variables('countVm')]"
+                "count": "[variables('countVmWindows')]"
             },
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVm'), copyIndex())]"
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmLinux'), copyIndex())]"
+            ]
+        },
+        {
+            "condition": "[parameters('VmAutoShutdown')]",
+            "type": "Microsoft.Resources/deployments",
+            "name": "[concat(variables('nameDeploymentScheduleLinux'), '-', copyIndex())]",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[variables('nameResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/auxiliary/schedule.json')]"
+                },
+                "parameters": {
+                    "NameVm": {
+                        "value": "[concat(variables('nameVmLinux'), copyIndex())]"
+                    },
+                    "Region": {
+                        "value": "[variables('location')]"
+                    }
+                }
+            },
+            "copy": {
+                "name": "copyScheduleLinux",
+                "count": "[variables('countVmLinux')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmLinux'), copyIndex())]"
             ]
         }
     ],

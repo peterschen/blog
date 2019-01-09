@@ -4,15 +4,17 @@
     "parameters": {},
     "variables": {
         "location": "[resourceGroup().location]",
-        "nameVm": "vm",
+        "nameVmWindows": "vmw",
+        "nameVmLinux": "vml",
         "nameStorage": "[uniqueString(subscription().id, resourceGroup().name)]",
         "idStorage": "[resourceId('Microsoft.Storage/storageAccounts', variables('nameStorage'))]",
-        "countVm": 3
+        "countVmWindows": 3,
+        "countVmLinux": 3
     },
     "resources": [
         {
             "type": "Microsoft.Compute/virtualMachines",
-            "name": "[concat(variables('nameVm'), copyIndex())]",
+            "name": "[concat(variables('nameVmWindows'), copyIndex())]",
             "apiVersion": "2017-12-01",
             "location": "[variables('location')]",
             "identity": {
@@ -21,12 +23,26 @@
             "properties": {},
             "copy": {
                 "name": "copyVm",
-                "count": "[variables('countVm')]"
+                "count": "[variables('countVmWindows')]"
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[concat(variables('nameVmLinux'), copyIndex())]",
+            "apiVersion": "2017-12-01",
+            "location": "[variables('location')]",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {},
+            "copy": {
+                "name": "copyVm",
+                "count": "[variables('countVmLinux')]"
             }
         },
         {
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(variables('nameVm'), copyIndex(), '/Microsoft.ManagedIdentity')]",
+            "name": "[concat(variables('nameVmWindows'), copyIndex(), '/Microsoft.ManagedIdentity')]",
             "apiVersion": "2018-10-01",
             "location": "[resourceGroup().location]",
             "properties": {
@@ -39,16 +55,38 @@
                 }
             },
             "copy": {
-                "name": "copyVmExtensionManagedIdentity",
-                "count": "[variables('countVm')]"
+                "name": "copyVmExtensionManagedIdentityWindows",
+                "count": "[variables('countVmWindows')]"
             },
             "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', variables('nameVm'), copyIndex())]"
+                "[concat('Microsoft.Compute/virtualMachines/', variables('nameVmWindows'), copyIndex())]"
             ]
         },
         {
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(variables('nameVm'), copyIndex(), '/Microsoft.Azure.Diagnostics')]",
+            "name": "[concat(variables('nameVmLinux'), copyIndex(), '/Microsoft.ManagedIdentity')]",
+            "apiVersion": "2018-10-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "publisher": "Microsoft.ManagedIdentity",
+                "type": "ManagedIdentityExtensionForLinux",
+                "typeHandlerVersion": "1.0",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "port": 50342
+                }
+            },
+            "copy": {
+                "name": "copyVmExtensionManagedIdentityLinux",
+                "count": "[variables('countVmLinux')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('nameVmLinux'), copyIndex())]"
+            ]
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('nameVmWindows'), copyIndex(), '/Microsoft.Azure.Diagnostics')]",
             "apiVersion": "2018-10-01",
             "location": "[resourceGroup().location]",
             "properties": {
@@ -105,11 +143,117 @@
                 }
             },
             "copy": {
-                "name": "copyVmExtensionDiagnostics",
-                "count": "[variables('countVm')]"
+                "name": "copyVmExtensionDiagnosticsWindows",
+                "count": "[variables('countVmWindows')]"
             },
             "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', variables('nameVm'), copyIndex(), '/extensions/Microsoft.ManagedIdentity')]"
+                "[concat('Microsoft.Compute/virtualMachines/', variables('nameVmWindows'), copyIndex(), '/extensions/Microsoft.ManagedIdentity')]"
+            ]
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('nameVmLinux'), copyIndex(), '/Microsoft.Azure.Diagnostics')]",
+            "apiVersion": "2018-10-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "publisher": "Microsoft.Azure.Diagnostics",
+                "type": "LinuxDiagnostic",
+                "typeHandlerVersion": "3.0",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "ladCfg": {
+                        "diagnosticMonitorConfiguration": {
+                            "eventVolume": "Large", 
+                            "performanceCounters": {
+                                "performanceCounterConfiguration": [
+                                    {
+                                        "annotation": [
+                                            {
+                                                "displayName": "CPU IO wait time", 
+                                                "locale": "en-us"
+                                            }
+                                        ], 
+                                        "class": "processor", 
+                                        "condition": "IsAggregate=TRUE", 
+                                        "counter": "percentiowaittime", 
+                                        "counterSpecifier": "/builtin/processor/percentiowaittime", 
+                                        "type": "builtin", 
+                                        "unit": "Percent"
+                                    }, 
+                                    {
+                                        "annotation": [
+                                            {
+                                                "displayName": "Filesystem transfers/sec", 
+                                                "locale": "en-us"
+                                            }
+                                        ], 
+                                        "class": "filesystem", 
+                                        "condition": "IsAggregate=TRUE", 
+                                        "counter": "transferspersecond", 
+                                        "counterSpecifier": "/builtin/filesystem/transferspersecond", 
+                                        "type": "builtin", 
+                                        "unit": "CountPerSecond"
+                                    },
+                                    {
+                                        "annotation": [
+                                            {
+                                                "displayName": "Memory used", 
+                                                "locale": "en-us"
+                                            }
+                                        ], 
+                                        "class": "memory", 
+                                        "counter": "usedmemory", 
+                                        "counterSpecifier": "/builtin/memory/usedmemory", 
+                                        "type": "builtin", 
+                                        "unit": "Bytes"
+                                    },
+                                    {
+                                        "annotation": [
+                                            {
+                                                "displayName": "CPU percentage guest OS", 
+                                                "locale": "en-us"
+                                            }
+                                        ], 
+                                        "class": "processor", 
+                                        "condition": "IsAggregate=TRUE", 
+                                        "counter": "percentprocessortime", 
+                                        "counterSpecifier": "/builtin/processor/percentprocessortime", 
+                                        "type": "builtin", 
+                                        "unit": "Percent"
+                                    }
+                                ]
+                            },
+                            "metrics": {
+                                "metricAggregation": [
+                                {
+                                    "scheduledTransferPeriod": "PT1H"
+                                }, 
+                                {
+                                    "scheduledTransferPeriod": "PT1M"
+                                }
+                                ], 
+                                "resourceId": "[resourceId('Microsoft.Compute/virtualMachines', concat(variables('nameVmLinux'), copyIndex()))]"
+                            }, 
+                            "syslogEvents": {
+                                "syslogEventConfiguration": {}
+                            }
+                        },
+                        "sampleRateInSeconds": 15
+                    },
+                    "StorageAccount": "[variables('nameStorage')]"
+                },
+                "protectedSettings": {
+                    "storageAccountName": "[variables('nameStorage')]",
+                    "storageAccountKey": "[listKeys(variables('idStorage'), '2015-06-15').key1]",
+                    "storageAccountEndPoint": "https://core.windows.net/"
+                }
+            },
+            "copy": {
+                "name": "copyVmExtensionDiagnosticsLinux",
+                "count": "[variables('countVmLinux')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('nameVmLinux'), copyIndex(), '/extensions/Microsoft.ManagedIdentity')]"
             ]
         }
     ],
