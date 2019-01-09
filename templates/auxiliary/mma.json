@@ -1,0 +1,51 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.1",
+    "parameters": {
+        "NameVm": {
+            "type": "string",
+            "metadata": {
+                "Description": "Name of the VM"
+            }
+        },
+        "IdWorkspace": {
+            "type": "string",
+            "metadata": {
+                "description": "ID of the Log Analytics workspace to connect"
+            }
+        },
+        "Region": {
+            "type": "string",
+            "defaultValue": "westeurope",
+            "metadata": {
+                "description": "Region in which the resources should be deployed."
+            }
+        }
+    },
+    "variables": {
+        "location": "[parameters('Region')]",
+        "nameVm": "[parameters('NameVm')]",
+        "idWorkspace": "[parameters('IdWorkspace')]"
+    },
+    "resources": [
+        {
+            "name": "[concat(variables('nameVm'), '/MicrosoftMonitoringAgent')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "2015-06-15",
+            "location": "[variables('location')]",
+            "properties": {
+                "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+                "type": "MicrosoftMonitoringAgent",
+                "typeHandlerVersion": "1.0",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "workspaceId": "[reference(variables('idWorkspace'), '2015-03-20').customerId]"
+                },
+                "protectedSettings": {
+                    "workspaceKey": "[listKeys(variables('idWorkspace'), '2015-03-20').primarySharedKey]"
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

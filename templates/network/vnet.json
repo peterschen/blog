@@ -1,11 +1,18 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.1",
+    "contentVersion": "1.0.0.3",
     "parameters": {
         "Name": {
             "type": "string",
             "metadata": {
                 "description": "Name of the vnet."
+            }
+        },
+        "NameSubnet": {
+            "type": "string",
+            "defaultValue": "subnet-0",
+            "metadata": {
+                "description": "Name of the subnet"
             }
         },
         "Region": {
@@ -21,8 +28,7 @@
             "metadata": {
                 "description": "Total address space for this vnet."
             }
-        }
-        ,
+        },
         "SubnetAddressSpace": {
             "type": "string",
             "defaultValue": "10.0.0.0/24",
@@ -33,16 +39,20 @@
     },
     "variables": {
         "nameVnet": "[parameters('Name')]",
+        "nameSubnet": "[parameters('NameSubnet')]",
         "nameNsg": "[concat(parameters('Name'), '-nsg')]",
         "regionVnet": "[parameters('Region')]",
         "regionNsg": "[parameters('Region')]",
-        "idNsg": "[concat(resourceGroup().id, '/providers/Microsoft.Network/networkSecurityGroups/', variables('nameNsg'))]"
+        "idNsg": "[concat(resourceGroup().id, '/providers/Microsoft.Network/networkSecurityGroups/', variables('nameNsg'))]",
+        "networkSecurityGroup": {
+            "id": "[variables('idNsg')]"
+        }
     },
     "resources": [
         {
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[variables('nameVnet')]",
-            "apiVersion": "2015-06-15",
+            "apiVersion": "2018-08-01",
             "location": "[variables('regionVnet')]",
             "tags": {},
             "properties": {
@@ -53,12 +63,10 @@
                 },
                 "subnets": [
                     {
-                        "name": "subnet-0",
+                        "name": "[variables('nameSubnet')]",
                         "properties": {
                             "addressPrefix": "[parameters('SubnetAddressSpace')]",
-                            "networkSecurityGroup": {
-                                "id": "[variables('idNsg')]"
-                            }
+                            "networkSecurityGroup": "[if(not(equals(variables('nameSubnet'), 'AzureFirewallSubnet')), variables('networkSecurityGroup'), json('null'))]"
                         }
                     }
                 ]
@@ -68,6 +76,7 @@
             ]
         },
         {
+            "condition": "[not(equals(variables('nameSubnet'), 'AzureFirewallSubnet'))]",
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('nameNsg')]",
             "apiVersion": "2015-06-15",

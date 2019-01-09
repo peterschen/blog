@@ -1,0 +1,579 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.5",
+    "parameters": {
+        "NameResourceGroup": {
+            "type": "string",
+            "defaultValue": "mh",
+            "metadata": {
+                "Description": "Resource group containing the resources"
+            }
+        },
+        "Region": {
+            "type": "string",
+            "defaultValue": "westeurope",
+            "metadata": {
+                "description": "Region in which the resources should be deployed."
+            }
+        },
+        "VmSize": {
+            "type": "string",
+            "defaultValue": "Standard_D2s_v3",
+            "allowedValues": [
+                "Standard_A1_v2",
+                "Standard_A2m_v2",
+                "Standard_A2_v2",
+                "Standard_A4m_v2",
+                "Standard_A4_v2",
+                "Standard_A8m_v2",
+                "Standard_A8_v2",
+                "Standard_B1ms",
+                "Standard_B1s",
+                "Standard_B2ms",
+                "Standard_B2s",
+                "Standard_B4ms",
+                "Standard_B8ms",
+                "Standard_D1_v2",
+                "Standard_D2_v2",
+                "Standard_D3_v2",
+                "Standard_D4_v2",
+                "Standard_D5_v2",
+                "Standard_D11_v2",
+                "Standard_D12_v2",
+                "Standard_D13_v2",
+                "Standard_D14_v2",
+                "Standard_D15_v2",
+                "Standard_DS1_v2",
+                "Standard_DS2_v2",
+                "Standard_DS3_v2",
+                "Standard_DS4_v2",
+                "Standard_DS5_v2",
+                "Standard_DS11_v2",
+                "Standard_DS12_v2",
+                "Standard_DS13_v2",
+                "Standard_DS14_v2",
+                "Standard_DS15_v2",
+                "Standard_D2_v3",
+                "Standard_D4_v3",
+                "Standard_D8_v3",
+                "Standard_D16_v3",
+                "Standard_D32_v3",
+                "Standard_D64_v3",
+                "Standard_D2s_v3",
+                "Standard_D4s_v3",
+                "Standard_D8s_v3",
+                "Standard_D16s_v3",
+                "Standard_D32s_v3",
+                "Standard_D64s_v3",
+                "Standard_E2_v3",
+                "Standard_E4_v3",
+                "Standard_E8_v3",
+                "Standard_E16_v3",
+                "Standard_E32_v3",
+                "Standard_E64_v3",
+                "Standard_E2s_v3",
+                "Standard_E4s_v3",
+                "Standard_E8s_v3",
+                "Standard_E16s_v3",
+                "Standard_E32s_v3",
+                "Standard_E64s_v3",
+                "Standard_F1",
+                "Standard_F2",
+                "Standard_F4",
+                "Standard_F8",
+                "Standard_F16",
+                "Standard_F1s",
+                "Standard_F2s",
+                "Standard_F4s",
+                "Standard_F8s",
+                "Standard_F16s",
+                "Standard_H8",
+                "Standard_H16",
+                "Standard_H8m",
+                "Standard_H16m",
+                "Standard_H16r",
+                "Standard_H16mr",
+                "Standard_G1",
+                "Standard_G2",
+                "Standard_G3",
+                "Standard_G4",
+                "Standard_G5",
+                "Standard_GS1",
+                "Standard_GS2",
+                "Standard_GS3",
+                "Standard_GS4",
+                "Standard_GS5",
+                "Standard_L4s",
+                "Standard_L8s",
+                "Standard_L16s",
+                "Standard_L32s",
+                "Standard_M64s",
+                "Standard_M64ms",
+                "Standard_M128s",
+                "Standard_M128ms",
+                "Standard_NC6",
+                "Standard_NC12",
+                "Standard_NC24",
+                "Standard_NC24r",
+                "Standard_NV6",
+                "Standard_NV12",
+                "Standard_NV24"
+            ],
+            "metadata": {
+                "description": "The size of the Virtual Machine."
+            }
+        },
+        "AdminUsername": {
+            "type": "string"
+        },
+        "AdminPassword": {
+            "type": "securestring"
+        },
+        "AdminSshKey": {
+            "type": "securestring"
+        },
+        "VmAutoShutdown": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "Description": "Indicates whether the VMs should be automatically turned off at night."
+            }
+        },
+        "VersionDscConfiguration": {
+            "type": "string",
+            "defaultValue": "1.0.0.0",
+            "metadata": {
+                "Description": "Version of the DSC configuration"
+            }
+        }
+    },
+    "variables": {
+        "gitBranch": "monitoring-hackathon",
+        "nameSample": "monitoring-hackathon",
+        "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'))]",
+        "urlTemplates": "[concat(variables('urlBase'), '/templates')]",
+        "urlSamples": "[concat(variables('urlBase'), '/samples/', variables('nameSample'))]",
+        "urlDsc": "[concat(variables('urlSamples'), '/Config.ps1.zip')]",
+        "location": "[parameters('Region')]",
+        "nameDeployment": "[deployment().name]",
+        "nameDeploymentVnetHub": "[concat(variables('nameDeployment'), '-Vnet-Hub')]",
+        "nameDeploymentVnetSpoke": "[concat(variables('nameDeployment'), '-Vnet-Spoke')]",
+        "nameDeploymentVnetPeering": "[concat(variables('nameDeployment'), '-Vnet-Peering')]",
+        "nameDeploymentVmWindows": "[concat(variables('nameDeployment'), '-VmWindows-')]",
+        "nameDeploymentVmLinux": "[concat(variables('nameDeployment'), '-VmLinux-')]",
+        "nameDeploymentDnszone": "[concat(variables('nameDeployment'), '-Dnszone')]",
+        "nameDeploymentFirewall": "[concat(variables('nameDeployment'), '-Firewall')]",
+        "nameDeploymentRecoveryvault": "[concat(variables('nameDeployment'), '-RecoveryServicesVault')]",
+        "nameDeploymentStorage": "[concat(variables('nameDeployment'), '-Storage')]",
+        "nameDeploymentAutomationaccount": "[concat(variables('nameDeployment'), '-Automationaccount')]",
+        "nameDeploymentDsc": "[concat(variables('nameDeployment'), '-Dsc')]",
+        "nameDeploymentScheduleWindows": "[concat(variables('nameDeployment'), '-ScheduleWindows')]",
+        "nameDeploymentScheduleLinux": "[concat(variables('nameDeployment'), '-ScheduleLinux')]",
+        "nameResourceGroup": "[parameters('NameResourceGroup')]",
+        "nameVnetHub": "[concat(parameters('NameResourceGroup'), '-hub')]",
+        "nameVnetSpoke": "[concat(parameters('NameResourceGroup'), '-spoke')]",
+        "nameVmWindows": "vmw",
+        "nameVmLinux": "vml",
+        "nameDnszone": "[concat(parameters('NameResourceGroup'), '.local')]",
+        "nameFirewall": "[parameters('NameResourceGroup')]",
+        "nameRecoveryvault": "[parameters('NameResourceGroup')]",
+        "nameStorage": "[uniqueString(subscription().id, parameters('NameResourceGroup'))]",
+        "nameAutomationaccount": "[concat(parameters('NameResourceGroup'), '-automation')]",
+        "nameDscScript": "Config.ps1",
+        "nameDscFunction": "Config",
+        "countVmWindows": 3,
+        "countVmLinux": 3,
+        "versionDscConfiguration": "[parameters('VersionDscConfiguration')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/resourceGroups",
+            "name": "[variables('nameResourceGroup')]",
+            "apiVersion": "2018-05-01",
+            "location": "[variables('location')]",
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentVnetHub')]",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[variables('nameResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/network/vnet.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameVnetHub')]"
+                    },
+                    "NameSubnet": {
+                        "value": "AzureFirewallSubnet"
+                    },
+                    "Region": {
+                        "value": "[variables('location')]"
+                    },
+                    "AddressSpace": {
+                        "value": "10.0.0.0/16"
+                    },
+                    "SubnetAddressSpace": {
+                        "value": "10.0.0.0/24"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/resourceGroups/', variables('nameResourceGroup'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentVnetSpoke')]",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[variables('nameResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/network/vnet.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameVnetSpoke')]"
+                    },
+                    "Region": {
+                        "value": "[variables('location')]"
+                    },
+                    "AddressSpace": {
+                        "value": "192.168.0.0/16"
+                    },
+                    "SubnetAddressSpace": {
+                        "value": "192.168.0.0/24"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/resourceGroups/', variables('nameResourceGroup'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentVnetPeering')]",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[variables('nameResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/network/peering.json')]"
+                },
+                "parameters": {
+                    "NameVnet1": {
+                        "value": "[variables('nameVnetHub')]"
+                    },
+                    "NameVnet2": {
+                        "value": "[variables('nameVnetSpoke')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVnetHub'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVnetSpoke'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[concat(variables('nameDeploymentVmWindows'), copyIndex())]",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[variables('nameResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/vm/windows-2016.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[concat(variables('nameVmWindows'), copyIndex())]"
+                    },
+                    "Region": {
+                        "value": "[variables('location')]"
+                    },
+                    "AdminUsername": {
+                        "value": "[parameters('AdminUsername')]"
+                    },
+                    "AdminPassword": {
+                        "value": "[parameters('AdminPassword')]"
+                    },
+                    "VmSize": {
+                        "value": "[parameters('VmSize')]"
+                    },
+                    "VnetName": {
+                        "value": "[variables('nameVnetSpoke')]"
+                    }
+                }
+            },
+            "copy": {
+                "name": "copyVm",
+                "count": "[variables('countVmWindows')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVnetSpoke'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[concat(variables('nameDeploymentVmLinux'), copyIndex())]",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[variables('nameResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/vm/ubuntu-18.04.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[concat(variables('nameVmLinux'), copyIndex())]"
+                    },
+                    "Region": {
+                        "value": "[variables('location')]"
+                    },
+                    "AdminUsername": {
+                        "value": "[parameters('AdminUsername')]"
+                    },
+                    "AdminSshKey": {
+                        "value": "[parameters('AdminSshKey')]"
+                    },
+                    "VmSize": {
+                        "value": "[parameters('VmSize')]"
+                    },
+                    "VnetName": {
+                        "value": "[variables('nameVnetSpoke')]"
+                    }
+                }
+            },
+            "copy": {
+                "name": "copyVm",
+                "count": "[variables('countVmLinux')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVnetSpoke'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentDnszone')]",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[variables('nameResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/network/dnszone.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameDnszone')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/resourceGroups/', variables('nameResourceGroup'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentFirewall')]",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[variables('nameResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/network/firewall.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameFirewall')]"
+                    },
+                    "NameVnet": {
+                        "value": "[variables('nameVnetHub')]"
+                    },
+                    "Region": {
+                        "value": "[variables('location')]"
+                    },
+                    "SubnetAddressSpace": {
+                        "value": "10.0.0.0/24"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVnetHub'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentRecoveryvault')]",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[variables('nameResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/management/recoveryvault.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameRecoveryvault')]"
+                    },
+                    "Region": {
+                        "value": "[variables('location')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/resourceGroups/', variables('nameResourceGroup'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentStorage')]",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[variables('nameResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/infrastructure/storage.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameStorage')]"
+                    },
+                    "Region": {
+                        "value": "[variables('location')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/resourceGroups/', variables('nameResourceGroup'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentAutomationaccount')]",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[variables('nameResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/management/automationaccount.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameAutomationaccount')]"
+                    },
+                    "Region": {
+                        "value": "[variables('location')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/resourceGroups/', variables('nameResourceGroup'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[concat(variables('nameDeploymentDsc'), '-', copyIndex())]",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[variables('nameResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/auxiliary/dsc.json')]"
+                },
+                "parameters": {
+                    "NameVm": {
+                        "value": "[concat(variables('nameVmWindows'), copyIndex())]"
+                    },
+                    "NameDscScript": {
+                        "value": "[variables('nameDscScript')]"
+                    },
+                    "NameDscFunction": {
+                        "value": "[variables('nameDscFunction')]"
+                    },
+                    "VersionDscConfiguration": {
+                        "value": "[variables('versionDscConfiguration')]"
+                    },
+                    "UrlDsc": {
+                        "value": "[variables('urlDsc')]"
+                    },
+                    "Region": {
+                        "value": "[variables('location')]"
+                    }
+                }
+            },
+            "copy": {
+                "name": "copySchedule",
+                "count": "[variables('countVmWindows')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmWindows'), copyIndex())]"
+            ]
+        },
+        {
+            "condition": "[parameters('VmAutoShutdown')]",
+            "type": "Microsoft.Resources/deployments",
+            "name": "[concat(variables('nameDeploymentScheduleWindows'), '-', copyIndex())]",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[variables('nameResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/auxiliary/schedule.json')]"
+                },
+                "parameters": {
+                    "NameVm": {
+                        "value": "[concat(variables('nameVmWindows'), copyIndex())]"
+                    },
+                    "Region": {
+                        "value": "[variables('location')]"
+                    }
+                }
+            },
+            "copy": {
+                "name": "copySchedule",
+                "count": "[variables('countVmWindows')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmLinux'), copyIndex())]"
+            ]
+        },
+        {
+            "condition": "[parameters('VmAutoShutdown')]",
+            "type": "Microsoft.Resources/deployments",
+            "name": "[concat(variables('nameDeploymentScheduleLinux'), '-', copyIndex())]",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[variables('nameResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/auxiliary/schedule.json')]"
+                },
+                "parameters": {
+                    "NameVm": {
+                        "value": "[concat(variables('nameVmLinux'), copyIndex())]"
+                    },
+                    "Region": {
+                        "value": "[variables('location')]"
+                    }
+                }
+            },
+            "copy": {
+                "name": "copyScheduleLinux",
+                "count": "[variables('countVmLinux')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmLinux'), copyIndex())]"
+            ]
+        }
+    ],
+    "outputs": {
+        "adminUsername": {
+            "type": "string",
+            "value": "[parameters('AdminUsername')]"
+        }
+    }
+}

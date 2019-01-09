@@ -1,0 +1,111 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.5",
+    "parameters": {
+        "Name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Azure Firewall"
+            }
+        },
+        "NameVnet": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the vnet"
+            }
+        },
+        "Region": {
+            "type": "string",
+            "defaultValue": "westeurope",
+            "metadata": {
+                "description": "Region in which the resources should be deployed."
+            }
+        },
+        "SubnetAddressSpace": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/24",
+            "metadata": {
+                "description": "Subnet used by Azure Firewall"
+            }
+        }
+    },
+    "variables": {
+        "gitBranch": "monitoring-hackathon",
+        "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'))]",
+        "urlTemplates": "[concat(variables('urlBase'), '/templates')]",
+        "nameDeployment": "[deployment().name]",
+        "nameDeploymentSubnet": "[concat(variables('nameDeployment'), '-Subnet')]",
+        "nameIp": "[concat(parameters('Name'), '-ip')]",
+        "nameVnet": "[parameters('NameVnet')]",
+        "nameSubnet": "AzureFirewallSubnet",
+        "nameFirewall": "[parameters('Name')]",
+        "regionIp": "[parameters('Region')]",
+        "regionFirewall": "[parameters('Region')]",
+        "idIp": "[concat(resourceGroup().id, '/providers/Microsoft.Network/publicIPAddresses/', variables('nameIp'))]",
+        "idSubnet": "[concat(resourceGroup().id, '/providers/Microsoft.Network/virtualNetworks/', variables('nameVnet'), '/subnets/', variables('nameSubnet'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[variables('nameIp')]",
+            "apiVersion": "2018-08-01",
+            "location": "[variables('regionIp')]",
+            "sku": {
+                "name": "Standard"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Static"
+            },
+            "tags": {}
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentSubnet')]",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/network/subnet.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameSubnet')]"
+                    },
+                    "NameVnet": {
+                        "value": "[variables('nameVnet')]"
+                    },
+                    "SubnetAddressSpace": {
+                        "value": "[parameters('SubnetAddressSpace')]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/azureFirewalls",
+            "name": "[variables('nameFirewall')]",
+            "apiVersion": "2018-08-01",
+            "location": "[variables('regionFirewall')]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "IpConf",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('idSubnet')]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[variables('idIp')]"
+                            }
+                        }
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIpAddresses/', variables('nameIp'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentSubnet'))]"
+            ]
+        }
+    ],
+    "outputs": {}
+}

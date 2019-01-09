@@ -1,6 +1,6 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.2",
+    "contentVersion": "1.0.0.3",
     "parameters": {
         "Name": {
             "type": "string",
@@ -22,7 +22,7 @@
                 "description": "User name for the Linux Virtual Machines."
             }
         },
-        "AdminSshKey": {
+        "AdminPassword": {
             "type": "securestring",
             "metadata": {
                 "description": "RSA key to be configured on all nodes for direct access through ssh."
@@ -167,11 +167,11 @@
             "properties": {
                 "securityRules": [
                     {
-                        "name": "allow-ssh",
+                        "name": "allow-rdp",
                         "properties": {
                             "protocol": "Tcp",
                             "sourcePortRange": "*",
-                            "destinationPortRange": "22",
+                            "destinationPortRange": "3389",
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
@@ -249,27 +249,21 @@
                         }
                     },
                     "imageReference": {
-                        "publisher": "Canonical",
-                        "offer": "UbuntuServer",
-                        "sku": "18.04-LTS",
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2016-Datacenter",
                         "version": "latest"
                     }
                 },
                 "osProfile": {
                     "computerName": "[variables('nameVm')]",
                     "adminUsername": "[parameters('AdminUsername')]",
-                    "linuxConfiguration": {
-                        "disablePasswordAuthentication": true,
-                        "ssh": {
-                            "publicKeys": [
-                                {
-                                    "keyData": "[concat(parameters('AdminSshKey'), '\n')]",
-                                    "path": "[concat('/home/', parameters('AdminUsername'), '/.ssh/authorized_keys')]"
-                                }
-                            ]
-                        }
+                    "adminPassword": "[parameters('AdminPassword')]",
+                    "windowsConfiguration": {
+                        "provisionVmAgent": "true"
                     }
-                }
+                },
+                "licenseType": "Windows_Client"
             },
             "dependsOn": [
                 "[variables('idNic')]"

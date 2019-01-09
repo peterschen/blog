@@ -1,0 +1,39 @@
+
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.1",
+    "parameters": {
+        "Name": {
+            "type": "string",
+            "metadata": {
+               "description": "Name of the Automation account"
+            }
+        },
+        "Region": {
+            "type": "string",
+            "defaultValue": "westeurope",
+            "metadata": {
+                "description": "Region in which the resources should be deployed."
+            }
+        }
+    },
+    "variables": {
+        "nameAutomationaccount": "[parameters('Name')]",
+        "regionAutomationaccount": "[parameters('Region')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Automation/automationAccounts",
+            "name": "[variables('nameAutomationaccount')]",
+            "apiVersion": "2015-10-31",
+            "location": "[variables('regionAutomationaccount')]",
+            "properties": {
+                "sku": {
+                    "name": "Basic"
+                }
+            },
+            "dependsOn": []
+        }
+    ],
+    "outputs": {}
+}
