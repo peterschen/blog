@@ -21,8 +21,8 @@
         "nameEmailreceiver": "[parameters('NameEmailreceiver')]",
         "nameMetricalert": "challenge2-Publicip-Bytes",
         "email": "[parameters('Email')]",
-        "idIp": "[concat(resourceGroup().id, '/providers/Microsoft.Network/publicIPAddresses/', concat(resourceGroup().name, '-ip'))]",
-        "idActiongroup": "[concat(resourceGroup().id, '/providers/Microsoft.Insights/actionGroups/', variables('nameActiongroup'))]"
+        "idIp": "[resourceId('Microsoft.Network/publicIPAddresses', concat(resourceGroup().name, '-ip'))]",
+        "idActiongroup": "[resourceId('Microsoft.Insights/actionGroups', variables('nameActiongroup'))]"
     },
     "resources": [
         {
