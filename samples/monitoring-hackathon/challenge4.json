@@ -1,0 +1,273 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "Office365Account": {
+            "type": "string",
+            "metadata": {
+                "Description": "Office 365 account used in Playbooks for Azure Security Center"
+            }
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "nameWorkspace": "[concat(resourceGroup().name, '-challenge3')]",
+        "nameLogicapp": "challenge4",
+        "nameConnectionTeams": "teams"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Web/connections",
+            "name": "[variables('nameConnectionTeams')]",
+            "apiVersion": "2016-06-01",
+            "location": "[resourceGroup().location]",
+            "scale": null,
+            "properties": {
+                "displayName": "[parameters('Office365Account')]",
+                "customParameterValues": {},
+                "api": {
+                    "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/', variables('nameConnectionTeams'))]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Logic/workflows",
+            "name": "[variables('nameLogicapp')]",
+            "apiVersion": "2016-06-01",
+            "location": "[variables('location')]",
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "manual": {
+                            "inputs": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "context": {
+                                                    "properties": {
+                                                        "condition": {
+                                                            "properties": {
+                                                                "allOf": {
+                                                                    "items": {
+                                                                        "properties": {
+                                                                            "dimensions": {
+                                                                                "items": {
+                                                                                    "properties": {
+                                                                                        "name": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "value": {
+                                                                                            "type": "string"
+                                                                                        }
+                                                                                    },
+                                                                                    "required": [
+                                                                                        "name",
+                                                                                        "value"
+                                                                                    ],
+                                                                                    "type": "object"
+                                                                                },
+                                                                                "type": "array"
+                                                                            },
+                                                                            "metricName": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "metricValue": {
+                                                                                "type": "integer"
+                                                                            },
+                                                                            "operator": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "threshold": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "timeAggregation": {
+                                                                                "type": "string"
+                                                                            }
+                                                                        },
+                                                                        "required": [
+                                                                            "metricName",
+                                                                            "dimensions",
+                                                                            "operator",
+                                                                            "threshold",
+                                                                            "timeAggregation",
+                                                                            "metricValue"
+                                                                        ],
+                                                                        "type": "object"
+                                                                    },
+                                                                    "type": "array"
+                                                                },
+                                                                "windowSize": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "conditionType": {
+                                                            "type": "string"
+                                                        },
+                                                        "description": {
+                                                            "type": "string"
+                                                        },
+                                                        "id": {
+                                                            "type": "string"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "portalLink": {
+                                                            "type": "string"
+                                                        },
+                                                        "resourceGroupName": {
+                                                            "type": "string"
+                                                        },
+                                                        "resourceId": {
+                                                            "type": "string"
+                                                        },
+                                                        "resourceName": {
+                                                            "type": "string"
+                                                        },
+                                                        "resourceType": {
+                                                            "type": "string"
+                                                        },
+                                                        "subscriptionId": {
+                                                            "type": "string"
+                                                        },
+                                                        "timestamp": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "properties": {
+                                                    "properties": {},
+                                                    "type": "object"
+                                                },
+                                                "status": {
+                                                    "type": "string"
+                                                },
+                                                "version": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "schemaId": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            },
+                            "kind": "Http",
+                            "type": "Request"
+                        }
+                    },
+                    "actions": {
+                        "Condition": {
+                            "actions": {
+                                "ForEachRequestItem": {
+                                    "actions": {
+                                        "TeamsPostMessageAlert": {
+                                            "inputs": {
+                                                "body": {
+                                                    "rootMessage": {
+                                                        "body": {
+                                                            "content": "<p><strong>Azure Metric Alert Fired</strong></p>\n<p><strong>Metric Name:</strong>&nbps;@{items('ForEachRequestItem')?['metricName']}&nbsp;@{items('ForEachRequestItem')?['operator']}&nbsp;@{items('ForEachRequestItem')?['threshold']}</p>\n<p><a href=\"@{triggerBody()?['data']?['context']?['portalLink']}\">View results</a></p>",
+                                                            "contentType": 1
+                                                        }
+                                                    }
+                                                },
+                                                "host": {
+                                                    "connection": {
+                                                        "name": "@parameters('$connections')['teams']['connectionId']"
+                                                    }
+                                                },
+                                                "method": "post",
+                                                "path": "/beta/groups/@{encodeURIComponent('f27dee84-91dc-4403-b044-01a0b04e8f07')}/channels/@{encodeURIComponent('19:f252680ae68f41f3813222a3a1ecc3fb@thread.skype')}/chatThreads"
+                                            },
+                                            "runAfter": {},
+                                            "type": "ApiConnection"
+                                        }
+                                    },
+                                    "foreach": "@triggerBody()?['data']?['context']?['condition']?['allOf']",
+                                    "runAfter": {},
+                                    "type": "Foreach"
+                                }
+                            },
+                            "else": {
+                                "actions": {
+                                    "TeamsPostMessageUnrecognizedAlert": {
+                                        "inputs": {
+                                            "body": {
+                                                "rootMessage": {
+                                                    "body": {
+                                                        "content": "<p><strong>Unrecognized Azure Monitor Alert</strong></p>\n@{json(triggerBody())}",
+                                                        "contentType": 1
+                                                    }
+                                                }
+                                            },
+                                            "host": {
+                                                "connection": {
+                                                    "name": "@parameters('$connections')['teams']['connectionId']"
+                                                }
+                                            },
+                                            "method": "post",
+                                            "path": "/beta/groups/@{encodeURIComponent('f27dee84-91dc-4403-b044-01a0b04e8f07')}/channels/@{encodeURIComponent('19:f252680ae68f41f3813222a3a1ecc3fb@thread.skype')}/chatThreads"
+                                        },
+                                        "runAfter": {},
+                                        "type": "ApiConnection"
+                                    }
+                                }
+                            },
+                            "expression": {
+                                "and": [
+                                    {
+                                        "equals": [
+                                            "@triggerBody()?['schemaId']",
+                                            "AzureMonitorMetricAlert"
+                                        ]
+                                    },
+                                    {
+                                        "equals": [
+                                            "@triggerBody()?['data']?['version']",
+                                            "2.0"
+                                        ]
+                                    }
+                                ]
+                            },
+                            "runAfter": {},
+                            "type": "If"
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "teams": {
+                                "connectionId": "[resourceId('Microsoft.Web/connections', variables('nameConnectionTeams'))]",
+                                "connectionName": "teams",
+                                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', variables('location'), '/managedApis/', variables('nameConnectionTeams'))]"
+                            }
+                        }
+                    }
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/connections', variables('nameConnectionTeams'))]"
+            ]
+        }
+    ],
+    "outputs": {}
+}
