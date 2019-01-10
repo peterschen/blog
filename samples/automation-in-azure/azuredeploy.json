@@ -1,0 +1,122 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {},
+    "variables": {
+        "gitBranch": "automation-in-azure",
+        "nameSample": "automation-in-azure",
+        "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'))]",
+        "urlTemplates": "[concat(variables('urlBase'), '/templates')]",
+        "urlSamples": "[concat(variables('urlBase'), '/samples/', variables('nameSample'))]",
+        "location": "[resourceGroup().location]",
+        "nameDeployment": "[deployment().name]",
+        "nameDeploymentAutomationaccount": "[concat(variables('nameDeployment'), '-Automationaccount')]",
+        "nameResourceGroup": "[resourceGroup().name]",
+        "nameAutomationaccount": "[concat(variables('NameResourceGroup'), '-automation')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentAutomationaccount')]",
+            "apiVersion": "2018-05-01",
+            "resourceGroup": "[variables('nameResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/management/automationaccount.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameAutomationaccount')]"
+                    },
+                    "Region": {
+                        "value": "[variables('location')]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Automation/automationAccounts/modules",
+            "name": "[concat(variables('nameAutomationaccount'), '/xNetworking')]",
+            "apiVersion": "2015-10-31",
+            "properties": {
+                "contentLink": {
+                    "uri": "https://devopsgallerystorage.blob.core.windows.net/packages/xnetworking.5.7.0.nupkg"
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', variables('nameDeploymentAutomationaccount'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Automation/automationAccounts/runbooks",
+            "name": "[concat(variables('nameAutomationaccount'), '/StartVmPsScript')]",
+            "apiVersion": "2018-06-30",
+            "location": "[variables('location')]",
+            "properties": {
+                "logVerbose": false,
+                "logProgress": false,
+                "runbookType": "PowerShell",
+                "publishContentLink": {
+                    "uri": "[concat(variables('urlSamples'), '/StartVmPsScript.ps1')]"
+                },
+                "logActivityTrace": 0
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', variables('nameDeploymentAutomationaccount'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Automation/automationAccounts/runbooks",
+            "name": "[concat(variables('nameAutomationaccount'), '/StartVmPsWorkflow')]",
+            "apiVersion": "2018-06-30",
+            "location": "[variables('location')]",
+            "properties": {
+                "logVerbose": false,
+                "logProgress": false,
+                "runbookType": "PowerShellWorkflow",
+                "publishContentLink": {
+                    "uri": "[concat(variables('urlSamples'), '/StartVmPsWorkflow.ps1')]"
+                },
+                "logActivityTrace": 0
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', variables('nameDeploymentAutomationaccount'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Automation/automationAccounts/runbooks",
+            "name": "[concat(variables('nameAutomationaccount'), '/StartVmPy')]",
+            "apiVersion": "2018-06-30",
+            "location": "[variables('location')]",
+            "properties": {
+                "logVerbose": false,
+                "logProgress": false,
+                "runbookType": "Python2",
+                "publishContentLink": {
+                    "uri": "[concat(variables('urlSamples'), '/StartVmPy.py')]"
+                },
+                "logActivityTrace": 0
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', variables('nameDeploymentAutomationaccount'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Automation/automationAccounts/configurations",
+            "name": "[concat(variables('nameAutomationaccount'), '/Dsc')]",
+            "apiVersion": "2015-10-31",
+            "location": "[variables('location')]",
+            "properties": {
+                "source": {
+                    "type": "uri",
+                    "value": "[concat(variables('urlSamples'), '/Dsc.ps1')]"
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Automation/automationAccounts/', variables('nameAutomationaccount'), '/modules/xNetworking')]"
+            ]
+        }
+    ],
+    "outputs": {}
+}
