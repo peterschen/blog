@@ -6,6 +6,8 @@ This directory contains a selection of samples that are referenced in articles.
 
 After running this template you need to add a Azure Automation run as account. Additionally you need to start the DSC configuration compilation.
 
+[![Deploy to Azure](https://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpeterschen%2Fblog%2Fmaster%2Fsamples%2Fautomation-in-azure%2Fazuredeploy.json)
+
 ### Configure Azure Automation run as account ###
 
 Navigate to **Automation Accounts > *[your account]* > Run as accounts**:
@@ -33,8 +35,6 @@ Select **Configurations** and select **Dsc**:
 Hit **Compile**:
 
 ![Compile DSC configuration step 3](automation-in-azure/dsc3.png?raw=true)
-
-[![Deploy to Azure](https://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpeterschen%2Fblog%2Fmaster%2Fsamples%2Fautomation-in-azure%2Fazuredeploy.json)
 
 ## [Automation with Ansibe](automation-with-ansible/) ##
 
