@@ -11,6 +11,7 @@ namespace Sfsample
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
     using Microsoft.ServiceFabric.Services.Communication.Runtime;
     using Microsoft.ServiceFabric.Services.Runtime;
 
@@ -29,7 +30,23 @@ namespace Sfsample
         /// <returns>A collection of listeners.</returns>
         protected override IEnumerable<ServiceInstanceListener> CreateServiceInstanceListeners()
         {
-            return new ServiceInstanceListener[0];
+            return new ServiceInstanceListener[] {
+                new ServiceInstanceListener(serviceContext => 
+                    new WebListenerCommunicationListener(serviceContext, "ServiceEndpoint", url => {
+                        ServiceEventSource.Current.ServiceMessage(serviceContext, $"Starting WebListener on {url}");
+
+                        return new WebHostBuilder().UseWebListener()
+                            .ConfigureServices(
+                                services => services
+                                    .AddSingleton<StatelessServiceContext>(serviceContext)
+                                    .AddSingleton<ITelemetryInitializer>((serviceProvider) => FabricTelemetryInitializerExtension.CreateFabricTelemetryInitializer(serviceContext)))
+                            .UseContentRoot(Directory.GetCurrentDirectory())
+                            .UseStartup<Startup>()
+                            .UseApplicationInsights()
+                            .UseUrls(url)
+                            .Build();
+                    }))
+            };
         }
 
         /// <summary>

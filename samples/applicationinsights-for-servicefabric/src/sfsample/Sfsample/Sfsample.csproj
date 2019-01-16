@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>Stateless Service Application</Description>
-    <Authors> </Authors>
+    <Authors>cp@peterschen.de</Authors>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <AssemblyName>Sfsample</AssemblyName>
     <OutputType>Exe</OutputType>
@@ -12,7 +12,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.ServiceFabric.Services" Version="3.1.274" />
+    <PackageReference Include="Microsoft.ApplicationInsights.ServiceFabric.Native" Version="2.2.1" />
+    <PackageReference Include="Microsoft.ServiceFabric" Version="6.4.624" />
+    <PackageReference Include="Microsoft.ServiceFabric.AspNetCore.WebListener" Version="3.2.162" />
+    <PackageReference Include="Microsoft.ServiceFabric.Services" Version="3.2.162" />
   </ItemGroup>
-
 </Project>

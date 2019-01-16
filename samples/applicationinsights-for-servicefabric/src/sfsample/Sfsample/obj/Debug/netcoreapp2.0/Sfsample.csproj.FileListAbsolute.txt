@@ -1,0 +1,11 @@
+C:\dev\blog-gh\samples\applicationinsights-for-servicefabric\src\sfsample\Sfsample\bin\Debug\netcoreapp2.0\Sfsample.deps.json
+C:\dev\blog-gh\samples\applicationinsights-for-servicefabric\src\sfsample\Sfsample\bin\Debug\netcoreapp2.0\Sfsample.runtimeconfig.json
+C:\dev\blog-gh\samples\applicationinsights-for-servicefabric\src\sfsample\Sfsample\bin\Debug\netcoreapp2.0\Sfsample.runtimeconfig.dev.json
+C:\dev\blog-gh\samples\applicationinsights-for-servicefabric\src\sfsample\Sfsample\bin\Debug\netcoreapp2.0\Sfsample.dll
+C:\dev\blog-gh\samples\applicationinsights-for-servicefabric\src\sfsample\Sfsample\bin\Debug\netcoreapp2.0\Sfsample.pdb
+C:\dev\blog-gh\samples\applicationinsights-for-servicefabric\src\sfsample\Sfsample\obj\Debug\netcoreapp2.0\Sfsample.csprojAssemblyReference.cache
+C:\dev\blog-gh\samples\applicationinsights-for-servicefabric\src\sfsample\Sfsample\obj\Debug\netcoreapp2.0\Sfsample.csproj.CoreCompileInputs.cache
+C:\dev\blog-gh\samples\applicationinsights-for-servicefabric\src\sfsample\Sfsample\obj\Debug\netcoreapp2.0\Sfsample.AssemblyInfoInputs.cache
+C:\dev\blog-gh\samples\applicationinsights-for-servicefabric\src\sfsample\Sfsample\obj\Debug\netcoreapp2.0\Sfsample.AssemblyInfo.cs
+C:\dev\blog-gh\samples\applicationinsights-for-servicefabric\src\sfsample\Sfsample\obj\Debug\netcoreapp2.0\Sfsample.dll
+C:\dev\blog-gh\samples\applicationinsights-for-servicefabric\src\sfsample\Sfsample\obj\Debug\netcoreapp2.0\Sfsample.pdb
