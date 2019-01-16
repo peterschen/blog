@@ -1,8 +1,3 @@
-// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
-
 namespace Sfsample
 {
     using System;
@@ -21,7 +16,7 @@ namespace Sfsample
         {
             try
             {
-                //Creating a new event listener to redirect the traces to a file
+                // Creating a new event listener to redirect the traces to a file
                 ServiceEventListener listener = new ServiceEventListener();
                 listener.EnableEvents(ServiceEventSource.Current, EventLevel.LogAlways, EventKeywords.All);
 
@@ -32,7 +27,7 @@ namespace Sfsample
                 ServiceEventSource.Current.Message("Registering Service : {0}", "Sfsample");
 
                 ServiceRuntime.RegisterServiceAsync("SfsampleType",
-                    context => new Sfsample (context)).GetAwaiter().GetResult();
+                    context => new Sfsample(context)).GetAwaiter().GetResult();
 
                 ServiceEventSource.Current.Message("Registered Service : {0}", "Sfsample");
 

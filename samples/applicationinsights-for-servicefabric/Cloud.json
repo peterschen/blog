@@ -1,0 +1,10 @@
+{
+    "ClusterConnectionParameters": {
+        "ConnectionIPOrURL": "",
+        "ConnectionPort": "19080",
+        "ClientKey": "",
+        "ClientCert": "",
+        "ServerCertThumbprint": "",
+        "ClientCertThumbprint": ""
+    }
+}

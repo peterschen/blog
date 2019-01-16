@@ -1,19 +1,16 @@
-// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
-
 namespace Sfsample
 {
-    using System;
     using System.Collections.Generic;
     using System.Fabric;
-    using System.Linq;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
+    using System.IO;
+    using Microsoft.ApplicationInsights.Extensibility;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.AspNetCore;
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.ServiceFabric.Services.Communication.Runtime;
     using Microsoft.ServiceFabric.Services.Runtime;
+    using Microsoft.ApplicationInsights.ServiceFabric;
+    using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
 
     /// <summary>
     /// An instance of this class is created for each service instance by the Service Fabric runtime.
@@ -31,39 +28,25 @@ namespace Sfsample
         protected override IEnumerable<ServiceInstanceListener> CreateServiceInstanceListeners()
         {
             return new ServiceInstanceListener[] {
-                new ServiceInstanceListener(serviceContext => 
-                    new WebListenerCommunicationListener(serviceContext, "ServiceEndpoint", url => {
+                new ServiceInstanceListener(serviceContext =>
+                    new WebListenerCommunicationListener(serviceContext, "ServiceEndpoint", (url, listener) => {
                         ServiceEventSource.Current.ServiceMessage(serviceContext, $"Starting WebListener on {url}");
 
-                        return new WebHostBuilder().UseWebListener()
+                        return new WebHostBuilder()
+                            .UseHttpSys()
                             .ConfigureServices(
                                 services => services
+                                    .AddSingleton<ITelemetryInitializer>((serviceProvider) => FabricTelemetryInitializerExtension.CreateFabricTelemetryInitializer(serviceContext))
                                     .AddSingleton<StatelessServiceContext>(serviceContext)
-                                    .AddSingleton<ITelemetryInitializer>((serviceProvider) => FabricTelemetryInitializerExtension.CreateFabricTelemetryInitializer(serviceContext)))
+                            )
                             .UseContentRoot(Directory.GetCurrentDirectory())
                             .UseStartup<Startup>()
+                            .UseServiceFabricIntegration(listener, ServiceFabricIntegrationOptions.None)
                             .UseApplicationInsights()
                             .UseUrls(url)
                             .Build();
                     }))
             };
-        }
-
-        /// <summary>
-        /// This is the main entry point for your service instance.
-        /// </summary>
-        /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service instance.</param>
-        protected override async Task RunAsync(CancellationToken cancellationToken)
-        {
-            // TODO: Replace the following sample code with your own logic 
-            //       or remove this RunAsync override if it's not needed in your service.
-
-            while (true)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
-            }
         }
     }
 }

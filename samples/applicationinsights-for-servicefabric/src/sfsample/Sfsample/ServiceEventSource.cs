@@ -1,8 +1,3 @@
-// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
-
 namespace Sfsample
 {
     using System;
@@ -49,6 +44,37 @@ namespace Sfsample
             }
         }
 
+        [NonEvent]
+        public void ServiceMessage(ServiceContext serviceContext, string message, params object[] args)
+        {
+            if (this.IsEnabled())
+            {
+                string finalMessage = string.Format(message, args);
+                this.ServiceMessage(
+                    serviceContext.ServiceName.ToString(),
+                    serviceContext.ServiceTypeName,
+                    GetReplicaOrInstanceId(serviceContext),
+                    serviceContext.PartitionId,
+                    serviceContext.CodePackageActivationContext.ApplicationName,
+                    serviceContext.CodePackageActivationContext.ApplicationTypeName,
+                    serviceContext.NodeContext.NodeName,
+                    finalMessage);
+            }
+        }
+
+        // For very high-frequency events it might be advantageous to raise events using WriteEventCore API.
+        // This results in more efficient parameter handling, but requires explicit allocation of EventData structure and unsafe code.
+        // To enable this code path, define UNSAFE conditional compilation symbol and turn on unsafe code support in project properties.
+        private const int ServiceMessageEventId = 2;
+
+        [Event(ServiceMessageEventId, Level = EventLevel.Informational, Message = "{7}")]
+        private void ServiceMessage(string serviceName, string serviceTypeName, long replicaOrInstanceId,
+            Guid partitionId, string applicationName, string applicationTypeName, string nodeName, string message)
+        {
+            this.WriteEvent(ServiceMessageEventId, serviceName, serviceTypeName, replicaOrInstanceId, 
+                partitionId, applicationName, applicationTypeName, nodeName, message);
+        }
+
         [Event(ServiceTypeRegisteredEventId, Level = EventLevel.Informational, Message = "Service host process {0} registered service type {1}")]
         public void ServiceTypeRegistered(int hostProcessId, string serviceType)
         {
@@ -79,5 +105,21 @@ namespace Sfsample
             this.WriteEvent(ServiceWebHostBuilderFailedEventId, exception);
         }
 
+        private static long GetReplicaOrInstanceId(ServiceContext context)
+        {
+            StatelessServiceContext stateless = context as StatelessServiceContext;
+            if (stateless != null)
+            {
+                return stateless.InstanceId;
+            }
+
+            StatefulServiceContext stateful = context as StatefulServiceContext;
+            if (stateful != null)
+            {
+                return stateful.ReplicaId;
+            }
+
+            throw new NotSupportedException("Context type not supported.");
+        }
     }
 }
