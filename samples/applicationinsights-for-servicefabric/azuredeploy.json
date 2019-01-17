@@ -1,6 +1,6 @@
 {
     "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
-    "contentVersion": "1.0.0.0",
+    "contentVersion": "1.0.0.1",
     "parameters": {
         "Name": {
             "type": "string",
@@ -20,6 +20,13 @@
             "metadata": {
                 "description": "Remote desktop user password. Must be a strong password"
             }
+        },
+        "VersionDscConfiguration": {
+            "type": "string",
+            "defaultValue": "1.0.0.0",
+            "metadata": {
+                "Description": "Version of the DSC configuration"
+            }
         }
     },
     "variables": {
@@ -28,6 +35,7 @@
         "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'))]",
         "urlTemplates": "[concat(variables('urlBase'), '/templates')]",
         "urlSamples": "[concat(variables('urlBase'), '/samples/', variables('nameSample'))]",
+        "urlDsc": "[concat(variables('urlSamples'), '/Config.ps1.zip')]",
         "location": "[resourceGroup().location]",
         "nameDeployment": "[deployment().name]",
         "nameDeploymentVnet": "[concat(variables('nameDeployment'), '-Vnet')]",
@@ -43,6 +51,8 @@
         "nameIp": "[concat(variables('nameLoadbalancer'), '-ip')]",
         "nameNic": "[concat(variables('nameServicefabric'), '-nic')]",
         "nameNodetype": "nt0",
+        "nameDscScript": "Config.ps1",
+        "nameDscFunction": "Config",
         "idStorageLog": "[resourceId('Microsoft.Storage/storageAccounts', variables('nameStorageLog'))]",
         "idStorageDiagnostics": "[resourceId('Microsoft.Storage/storageAccounts', variables('nameStorageDiagnostics'))]",
         "idVnet": "[resourceId('Microsoft.Network/virtualNetworks', variables('nameVnet'))]",
@@ -67,7 +77,8 @@
         "rangePortsEphemeralStart": 49152,
         "rangePortsEphemeralEnd": 65534,
         "portSfTcp": 19000,
-        "portSfHttp": 19080
+        "portSfHttp": 19080,
+        "versionDscConfiguration": "[parameters('VersionDscConfiguration')]"
     },
     "resources": [
         {
@@ -517,6 +528,23 @@
                                         "storageAccountName": "[variables('nameStorageDiagnostics')]",
                                         "storageAccountKey": "[listKeys(variables('idStorageDiagnostics'),'2015-06-15').key1]",
                                         "storageAccountEndPoint": "https://core.windows.net/"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "Microsoft.Powershell.DSC",
+                                "properties": {
+                                    "publisher": "Microsoft.Powershell",
+                                    "type": "DSC",
+                                    "typeHandlerVersion": "2.77",
+                                    "autoUpgradeMinorVersion": true,
+                                    "forceUpdateTag": "[variables('versionDscConfiguration')]",
+                                    "settings": {
+                                        "configuration": {
+                                            "url": "[variables('urlDsc')]",
+                                            "script": "[variables('nameDscScript')]",
+                                            "function": "[variables('nameDscFunction')]"
+                                        }
                                     }
                                 }
                             }
