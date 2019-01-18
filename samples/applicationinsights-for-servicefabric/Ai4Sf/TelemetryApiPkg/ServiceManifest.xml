@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ServiceManifest Name="TodoApiPkg"
+<ServiceManifest Name="TelemetryApiPkg"
                  Version="1.0.0"
                  xmlns="http://schemas.microsoft.com/2011/01/fabric"
                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -7,7 +7,7 @@
   <ServiceTypes>
     <!-- This is the name of your ServiceType. 
          This name must match the string used in RegisterServiceType call in Program.cs. -->
-    <StatefulServiceType ServiceTypeName="TodoApi" HasPersistedState="true" />
+    <StatefulServiceType ServiceTypeName="TelemetryApi" HasPersistedState="true" />
   </ServiceTypes>
 
   <!-- Code package is your service executable. -->
@@ -15,10 +15,12 @@
     <EntryPoint>
       <ExeHost IsExternalExecutable="true">
         <Program>dotnet</Program>
-        <Arguments>TodoApi.dll</Arguments>
-        <ConsoleRedirection FileRetentionCount="10"/>
+        <Arguments>TelemetryApi.dll</Arguments>
       </ExeHost>
     </EntryPoint>
+    <EnvironmentVariables>
+      <EnvironmentVariable Name="aiKey" Value="" />
+    </EnvironmentVariables>
   </CodePackage>
 
   <!-- Config package is the contents of the Config directoy under PackageRoot that contains an 

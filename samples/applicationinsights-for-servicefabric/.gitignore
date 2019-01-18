@@ -1,3 +1,5 @@
 bin/
 obj/
 Ai4Sf/*/Code
+
+install.development.ps1

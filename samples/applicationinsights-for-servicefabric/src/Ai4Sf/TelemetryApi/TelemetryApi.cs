@@ -1,4 +1,4 @@
-namespace Ai4Sf.TodoApi
+namespace Ai4Sf.TelemetryApi
 {
     using System;
     using System.Collections.Generic;
@@ -17,9 +17,9 @@ namespace Ai4Sf.TodoApi
     /// <summary>
     /// An instance of this class is created for each service instance by the Service Fabric runtime.
     /// </summary>
-    internal sealed class TodoApi : StatefulService
+    internal sealed class TelemetryApi : StatefulService
     {
-        public TodoApi(StatefulServiceContext context)
+        public TelemetryApi(StatefulServiceContext context)
             : base(context)
         { }
 

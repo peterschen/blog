@@ -1,4 +1,4 @@
-﻿namespace Ai4Sf.TodoApi
+﻿namespace Ai4Sf.TelemetryCrawler
 {
     using System;
     using System.Diagnostics;
@@ -21,10 +21,10 @@
                 // an instance of the class is created in this host process.
 
                 ServiceRuntime.RegisterServiceAsync(
-                    "TodoApi",
-                    context => new TodoApi(context)).GetAwaiter().GetResult();
+                    "TelemetryCrawler",
+                    context => new TelemetryCrawler(context)).GetAwaiter().GetResult();
 
-                ServiceEventSource.Current.ServiceTypeRegistered(Process.GetCurrentProcess().Id, typeof(TodoApi).Name);
+                ServiceEventSource.Current.ServiceTypeRegistered(Process.GetCurrentProcess().Id, typeof(TelemetryCrawler).Name);
 
                 // Prevents this host process from terminating so services keeps running. 
                 Thread.Sleep(Timeout.Infinite);

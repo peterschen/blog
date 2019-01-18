@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Ai4Sf.TodoApi.Models;
+using Ai4Sf.TelemetryApi.Models;
 
-namespace Ai4Sf.TodoApi
+namespace Ai4Sf.TelemetryApi
 {
     public class Startup
     {
@@ -20,7 +20,7 @@ namespace Ai4Sf.TodoApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<TodoContext>(optionsBuilder =>
+            services.AddDbContext<TelemetryContext>(optionsBuilder =>
                 optionsBuilder.UseInMemoryDatabase("TodoList"));
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
