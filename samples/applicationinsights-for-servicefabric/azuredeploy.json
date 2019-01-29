@@ -30,7 +30,7 @@
         }
     },
     "variables": {
-        "gitBranch": "applicationinsights-for-servicefabric",
+        "gitBranch": "master",
         "nameSample": "applicationinsights-for-servicefabric",
         "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'))]",
         "urlTemplates": "[concat(variables('urlBase'), '/templates')]",
