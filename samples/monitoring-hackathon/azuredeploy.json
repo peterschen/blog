@@ -286,7 +286,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[concat(variables('urlTemplates'), '/vm/windows-2016.json')]"
+                    "uri": "[concat(variables('urlTemplates'), '/vm/windows-2019.json')]"
                 },
                 "parameters": {
                     "Name": {
