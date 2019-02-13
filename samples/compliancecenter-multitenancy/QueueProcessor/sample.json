@@ -78,7 +78,7 @@
             }
         ],
         "TargetContextId": "41463f53-8812-40f4-890f-865bf6e35190",
-        "UserId": "admin@contoso.onmicrosoft.com",
+        "UserId": "cpetersen@ad.peterschen.de",
         "UserKey": "1003BFFD8EC47CA6@contoso.onmicrosoft.com",
         "UserType": 0,
         "Workload": "AzureActiveDirectory"
