@@ -1,4 +1,3 @@
-#r "Microsoft.Azure.WebJobs.Extensions.Storage"
 #r "Microsoft.WindowsAzure.Storage"
 #r "Newtonsoft.Json"
 
@@ -10,9 +9,13 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Azure.WebJobs;
 using Microsoft.WindowsAzure.Storage.Queue;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
+private static string SettingTenantId = "SCCMT_TENANTID";
+private static string SettingClientId = "SCCMT_CLIENTID";
+private static string SettingClientSecret = "SCCMT_CLIENTSECRET";
 private static string SettingLoganalyticsId = "PROCESSOR_LOGANALYTICSID";
 private static string SettingLoganalyticsKey = "PROCESSOR_LOGANALYTICSKEY";
 private static string SettingTargetAccount = "PROCESSOR_TARGETACCOUNT_";
@@ -21,6 +24,8 @@ private static string SettingTargetQueue = "PROCESSOR_TARGETQUEUE_";
 private static HttpClient client = new HttpClient(
     new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate }
 );
+
+private static AuthenticationContext authentication = new AuthenticationContext($"https://login.windows.net/{GetSetting(SettingTenantId, true)}");
 
 public static async Task Run(string data, ILogger log, Binder binder)
 {
@@ -56,7 +61,11 @@ public static async Task Run(string data, ILogger log, Binder binder)
 
 private static async Task<string> RetrieveData(string uri)
 {
+    var clientId = GetSetting(SettingClientId, true);
+    var clientSecret = GetSetting(SettingClientSecret, true);
+
     ResetHttpClient();
+    client.DefaultRequestHeaders.Authorization = await GetOfficeAuthenticationHeader(clientId, clientSecret);    
 
     var response = await client.GetAsync(uri);
     response.EnsureSuccessStatusCode();
@@ -70,7 +79,7 @@ private static async Task PostData(string id, string key, string domain, string 
 
     var date = DateTime.UtcNow.ToString("r");
 
-    client.DefaultRequestHeaders.Authorization = BuildAuthorization(id, key, date, data);
+    client.DefaultRequestHeaders.Authorization = GetLogAnalyticsAuthenticationHeader(id, key, date, data);
     client.DefaultRequestHeaders.Add("Log-Type", CleanDomain(domain));
     client.DefaultRequestHeaders.Add("x-ms-date", date);
     client.DefaultRequestHeaders.Add("time-generated-field", "CreationTime");
@@ -82,7 +91,7 @@ private static async Task PostData(string id, string key, string domain, string 
     response.EnsureSuccessStatusCode();
 }
 
-private static AuthenticationHeaderValue BuildAuthorization(string id, string key, string date, string data)
+private static AuthenticationHeaderValue GetLogAnalyticsAuthenticationHeader(string id, string key, string date, string data)
 {
     string message = $"POST\n{Encoding.UTF8.GetBytes(data).Length}\napplication/json\nx-ms-date:{date}\n/api/logs";
     var keyBytes = Convert.FromBase64String(key);
@@ -92,6 +101,13 @@ private static AuthenticationHeaderValue BuildAuthorization(string id, string ke
         var signature = Convert.ToBase64String(hmacsha256.ComputeHash(payload));
         return new AuthenticationHeaderValue("SharedKey", $"{id}:{signature}");
     }
+}
+
+private static async Task<AuthenticationHeaderValue> GetOfficeAuthenticationHeader(string clientId, string clientSecret)
+{
+    var credential = new ClientCredential(clientId, clientSecret);
+    var result = await authentication.AcquireTokenAsync($"https://manage.office.com", credential);
+    return new AuthenticationHeaderValue(result.AccessTokenType, result.AccessToken);
 }
 
 private static string GetTargetAccount(string domain)
