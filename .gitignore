@@ -3,3 +3,6 @@
 
 # Office temp files
 ~$*
+
+local.ps1
+*.log

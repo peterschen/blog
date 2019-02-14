@@ -1,0 +1,12 @@
+{
+    "disabled": false,
+    "bindings": [
+      {
+        "name": "data",
+        "type": "queueTrigger",
+        "direction": "in",
+        "queueName": "contenturis",
+        "connection": "SCCMT_STORAGE"
+      }
+    ]
+  }
