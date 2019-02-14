@@ -25,7 +25,7 @@ private static HttpClient client = new HttpClient(
     new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate }
 );
 
-private static AuthenticationContext authentication = new AuthenticationContext($"https://login.windows.net/{GetSetting(SettingTenantId, true)}");
+private static AuthenticationContext authentication = new AuthenticationContext($"https://login.microsoftonline.com/{GetSetting(SettingTenantId, true)}");
 
 public static async Task Run(string data, ILogger log, Binder binder)
 {
