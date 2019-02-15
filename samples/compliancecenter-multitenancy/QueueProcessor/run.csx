@@ -34,17 +34,25 @@ public static async Task Run(string data, ILogger log, Binder binder)
     string result = await RetrieveData(data);
     var json = (JArray)JsonConvert.DeserializeObject(result);
 
+    log.LogInformation($"Item contains {json.Count} records");
     foreach (var record in json)
     {
         var user = record["UserId"].ToString();
-        var domain = user.Split('@')[1];
+        var domain = "none";
+        
+        log.LogInformation($"Processing record for {user}");
+        
+        if(user.IndexOf("@") > -1)
+        {
+            domain = user.Split('@')[1];
+        }
 
-        log.LogInformation($"Processing record for {domain}");
+        domain = CleanDomain(domain);
 
         var account = GetTargetAccount(domain);
         if (account == null)
         {
-            log.LogInformation($"Writing data to Log Analytics");
+            log.LogInformation($"Writing data to Log Analytics table {domain}_CL");
 
             var laId = GetSetting(SettingLoganalyticsId, true);
             var laKey = GetSetting(SettingLoganalyticsKey, true);
@@ -80,7 +88,7 @@ private static async Task PostData(string id, string key, string domain, string 
     var date = DateTime.UtcNow.ToString("r");
 
     client.DefaultRequestHeaders.Authorization = GetLogAnalyticsAuthenticationHeader(id, key, date, data);
-    client.DefaultRequestHeaders.Add("Log-Type", CleanDomain(domain));
+    client.DefaultRequestHeaders.Add("Log-Type", domain);
     client.DefaultRequestHeaders.Add("x-ms-date", date);
     client.DefaultRequestHeaders.Add("time-generated-field", "CreationTime");
 
@@ -112,12 +120,12 @@ private static async Task<AuthenticationHeaderValue> GetOfficeAuthenticationHead
 
 private static string GetTargetAccount(string domain)
 {
-    return GetSetting($"{SettingTargetAccount}{CleanDomain(domain)}");
+    return GetSetting($"{SettingTargetAccount}{domain}");
 }
 
 private static string GetTargetQueue(string domain)
 {
-    return GetSetting($"{SettingTargetQueue}{CleanDomain(domain)}", true);
+    return GetSetting($"{SettingTargetQueue}{domain}", true);
 }
 
 private static string GetSetting(string name, bool isRequired = false)
@@ -149,7 +157,7 @@ private static async Task WriteData(string domain, string data, Binder binder)
     var attributes = new Attribute[]
     {
         new QueueAttribute(queue),
-        new StorageAccountAttribute($"{SettingTargetAccount}{CleanDomain(domain)}")
+        new StorageAccountAttribute($"{SettingTargetAccount}{domain}")
     };
 
     var output = await binder.BindAsync<CloudQueue>(attributes);
