@@ -154,7 +154,7 @@
         },
         "VmAutoShutdown": {
             "type": "bool",
-            "defaultValue": "true",
+            "defaultValue": true,
             "metadata": {
                 "Description": "Indicates whether the VMs should be automatically turned off at night."
             }
