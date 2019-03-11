@@ -13,9 +13,6 @@ using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-private static string SettingTenantId = "SCCMT_TENANTID";
-private static string SettingClientId = "SCCMT_CLIENTID";
-private static string SettingClientSecret = "SCCMT_CLIENTSECRET";
 private static string SettingLoganalyticsId = "PROCESSOR_LOGANALYTICSID";
 private static string SettingLoganalyticsKey = "PROCESSOR_LOGANALYTICSKEY";
 private static string SettingTargetAccount = "PROCESSOR_TARGETACCOUNT_";
@@ -29,56 +26,36 @@ private static AuthenticationContext authentication = new AuthenticationContext(
 
 public static async Task Run(string data, ILogger log, Binder binder)
 {
-    log.LogInformation($"Processing item '{data}'");
+    log.LogInformation($"Processing item");
 
-    string result = await RetrieveData(data);
-    var json = (JArray)JsonConvert.DeserializeObject(result);
-
-    log.LogInformation($"Item contains {json.Count} records");
-    foreach (var record in json)
+    var json = (JToken)JsonConvert.DeserializeObject(data);
+    var user = record["UserId"].ToString();
+    var domain = "none";
+    
+    log.LogInformation($"Processing record for {user}");
+    
+    if(user.IndexOf("@") > -1)
     {
-        var user = record["UserId"].ToString();
-        var domain = "none";
-        
-        log.LogInformation($"Processing record for {user}");
-        
-        if(user.IndexOf("@") > -1)
-        {
-            domain = user.Split('@')[1];
-        }
-
-        domain = CleanDomain(domain);
-
-        var account = GetTargetAccount(domain);
-        if (account == null)
-        {
-            log.LogInformation($"Writing data to Log Analytics table {domain}_CL");
-
-            var laId = GetSetting(SettingLoganalyticsId, true);
-            var laKey = GetSetting(SettingLoganalyticsKey, true);
-
-            await PostData(laId, laKey, domain, result);
-        }
-        else
-        {
-            log.LogInformation($"Writing data to Storage Queue");
-            await WriteData(domain, result, binder);
-        }
+        domain = user.Split('@')[1];
     }
-}
 
-private static async Task<string> RetrieveData(string uri)
-{
-    var clientId = GetSetting(SettingClientId, true);
-    var clientSecret = GetSetting(SettingClientSecret, true);
+    domain = CleanDomain(domain);
 
-    ResetHttpClient();
-    client.DefaultRequestHeaders.Authorization = await GetOfficeAuthenticationHeader(clientId, clientSecret);    
+    var account = GetTargetAccount(domain);
+    if (account == null)
+    {
+        log.LogInformation($"Writing data to Log Analytics table {domain}_CL");
 
-    var response = await client.GetAsync(uri);
-    response.EnsureSuccessStatusCode();
+        var laId = GetSetting(SettingLoganalyticsId, true);
+        var laKey = GetSetting(SettingLoganalyticsKey, true);
 
-    return await response.Content.ReadAsStringAsync();
+        await PostData(laId, laKey, domain, record.ToString());
+    }
+    else
+    {
+        log.LogInformation($"Writing data to Storage Queue");
+        await WriteData(domain, record.ToString(), binder);
+    }
 }
 
 private static async Task PostData(string id, string key, string domain, string data)
@@ -109,13 +86,6 @@ private static AuthenticationHeaderValue GetLogAnalyticsAuthenticationHeader(str
         var signature = Convert.ToBase64String(hmacsha256.ComputeHash(payload));
         return new AuthenticationHeaderValue("SharedKey", $"{id}:{signature}");
     }
-}
-
-private static async Task<AuthenticationHeaderValue> GetOfficeAuthenticationHeader(string clientId, string clientSecret)
-{
-    var credential = new ClientCredential(clientId, clientSecret);
-    var result = await authentication.AcquireTokenAsync($"https://manage.office.com", credential);
-    return new AuthenticationHeaderValue(result.AccessTokenType, result.AccessToken);
 }
 
 private static string GetTargetAccount(string domain)

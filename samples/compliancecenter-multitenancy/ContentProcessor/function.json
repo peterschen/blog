@@ -1,0 +1,12 @@
+{
+    "disabled": false,
+    "bindings": [
+      {
+        "name": "data",
+        "type": "queueTrigger",
+        "direction": "in",
+        "queueName": "content",
+        "connection": "SCCMT_STORAGE"
+      }
+    ]
+  }
