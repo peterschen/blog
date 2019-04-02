@@ -1,0 +1,43 @@
+
+{
+    "Actor": [
+        {
+            "ID": "1cef1fdb-ff52-48c4-8e4e-dfb5ea83d357",
+            "Type": 2
+        },
+        {
+            "ID": "admin@contoso.onmicrosoft.com",
+            "Type": 5
+        },
+        {
+            "ID": "1003BFFD8EC47CA6",
+            "Type": 3
+        }
+    ],
+    "ActorContextId": "41463f53-8812-40f4-890f-865bf6e35190",
+    "AzureActiveDirectoryEventType": 0,
+    "CreationTime": "2015-06-29T20:04:55",
+    "Id": "b567caf0-088e-4c1c-a4ea-633a1e3d66c8",
+    "InterSystemsId": "c2ced078-ad57-4079-a743-5c37f5284790",
+    "IntraSystemId": "d1497f7e-15b4-49aa-83ad-11a17ca4a2f4",
+    "ObjectId": "user001@contoso.onmicrosoft.com",
+    "Operation": "Add User.",
+    "OrganizationId": "41463f53-8812-40f4-890f-865bf6e35190",
+    "RecordType": 8,
+    "ResultStatus": "success",
+    "Target": [
+        {
+            "ID": "user001@contoso.onmicrosoft.com",
+            "Type": 5
+        },
+        {
+            "ID": "10037FFE91510806",
+            "Type": 3
+        }
+    ],
+    "TargetContextId": "41463f53-8812-40f4-890f-865bf6e35190",
+    "UserId": "cpetersen@ad.peterschen.de",
+    "UserKey": "1003BFFD8EC47CA6@contoso.onmicrosoft.com",
+    "UserType": 0,
+    "Workload": "AzureActiveDirectory"
+}

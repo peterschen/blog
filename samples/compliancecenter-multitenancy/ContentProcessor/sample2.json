@@ -1,0 +1,18 @@
+{
+    "AzureActiveDirectoryEventType": 0,
+    "Client": "Exchange",
+    "ClientIP": "134.170.188.221",
+    "CreationTime": "2015-06-29T20:03:34",
+    "Id": "4e655d3f-35fa-42e0-b050-264b2d255c7a",
+    "LoginStatus": 0,
+    "ObjectId": "admin@abc.de",
+    "Operation": "PasswordLogonInitialAuthUsingPassword",
+    "OrganizationId": "41463f53-8812-40f4-890f-865bf6e35190",
+    "RecordType": 9,
+    "ResultStatus": "success",
+    "UserDomain": "abc.de",
+    "UserId": "admin@abc.de",
+    "UserKey": "1153977025279851686@abc.de",
+    "UserType": 0,
+    "Workload": "AzureActiveDirectory"
+}
