@@ -1,15 +1,12 @@
-#r "Microsoft.WindowsAzure.Storage"
-#r "Newtonsoft.Json"
-
 using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Security.Cryptography;
-using System.Text;
+using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
-using Microsoft.WindowsAzure.Storage.Queue;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
+using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -45,7 +42,7 @@ private static async Task<string> RetrieveData(string uri)
     var clientSecret = GetSetting(SettingClientSecret, true);
 
     ResetHttpClient();
-    client.DefaultRequestHeaders.Authorization = await GetOfficeAuthenticationHeader(clientId, clientSecret);    
+    client.DefaultRequestHeaders.Authorization = await GetOfficeAuthenticationHeader(clientId, clientSecret);
 
     var response = await client.GetAsync(uri);
     response.EnsureSuccessStatusCode();
@@ -64,7 +61,7 @@ private static string GetSetting(string name, bool isRequired = false)
 {
     var setting = Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.Process);
 
-    if(isRequired && string.IsNullOrEmpty(setting))
+    if (isRequired && string.IsNullOrEmpty(setting))
     {
         throw new ArgumentNullException($"{name} is missing in Application Settings");
     }
@@ -85,8 +82,8 @@ private static async Task WriteData(string data, Binder binder)
 
     var attributes = new Attribute[]
     {
-        new QueueAttribute(queue),
-        new StorageAccountAttribute(account)
+    new QueueAttribute(queue),
+    new StorageAccountAttribute(account)
     };
 
     var output = await binder.BindAsync<CloudQueue>(attributes);
