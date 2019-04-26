@@ -22,6 +22,13 @@
                 "description": "User name for the Linux Virtual Machines."
             }
         },
+        "AdminPassword": {
+            "type": "securestring",
+            "defaultValue": null,
+            "metadata": {
+                "description": "Password when password-based authentication isn't disabled"
+            }
+        },
         "AdminSshKey": {
             "type": "securestring",
             "metadata": {
@@ -166,7 +173,7 @@
                 "osProfile": {
                     "computerName": "[variables('nameVm')]",
                     "adminUsername": "[parameters('AdminUsername')]",
-                    "adminPassword": "[parameters('AdminSshKey')]",
+                    "adminPassword": "[parameters('AdminPassword')]",
                     "linuxConfiguration": {
                         "disablePasswordAuthentication": "[parameters('PasswordAuthenticationDisabled')]",
                         "ssh": {
