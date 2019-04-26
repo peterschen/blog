@@ -1,0 +1,188 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.2",
+    "parameters": {
+        "Name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the virtual machine."
+            }
+        },
+        "Region": {
+            "type": "string",
+            "defaultValue": "westeurope",
+            "metadata": {
+                "description": "Region in which the resources should be deployed."
+            }
+        },
+        "AdminUsername": {
+            "type": "string",
+            "defaultValue": "labadmin",
+            "metadata": {
+                "description": "User name for the Linux Virtual Machines."
+            }
+        },
+        "AdminSshKey": {
+            "type": "securestring",
+            "metadata": {
+                "description": "RSA key to be configured on all nodes for direct access through ssh."
+            }
+        },
+        "VmSize": {
+            "type": "string",
+            "defaultValue": "Standard_D2s_v3",
+            "metadata": {
+                "description": "The size of the Virtual Machine."
+            }
+        },
+        "VnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the virtual network."
+            }
+        },
+        "PasswordAuthenticationDisabled": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Should password authentication thorugh SSH be disabled"
+            }
+        }
+    },
+    "variables": {
+        "nameVnet": "[parameters('VnetName')]",
+        "nameNsg": "[concat(parameters('Name'), '-nsg')]",
+        "nameIp": "[concat(parameters('Name'), '-ip')]",
+        "nameNic": "[concat(parameters('Name'), '-nic')]",
+        "nameVm": "[concat(parameters('Name'))]",
+        "regionNsg": "[parameters('Region')]",
+        "regionIp": "[parameters('Region')]",
+        "regionNic": "[parameters('Region')]",
+        "regionVm": "[parameters('Region')]",
+        "idSubnet": "[concat(resourceGroup().id, '/providers/Microsoft.Network/virtualNetworks/', variables('nameVnet'), '/subnets/subnet-0')]",
+        "idNsg": "[concat(resourceGroup().id, '/providers/Microsoft.Network/networkSecurityGroups/', variables('nameNsg'))]",
+        "idIp": "[concat(resourceGroup().id, '/providers/Microsoft.Network/publicIPAddresses/', variables('nameIp'))]",
+        "idNic": "[concat(resourceGroup().id, '/providers/Microsoft.Network/networkInterfaces/', variables('nameNic'))]",
+        "sku": "16.04-LTS"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('nameNsg')]",
+            "apiVersion": "2015-06-15",
+            "location": "[variables('regionNsg')]",
+            "tags": {},
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "allow-ssh",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[variables('nameIp')]",
+            "apiVersion": "2018-01-01",
+            "location": "[variables('regionIp')]",
+            "tags": {},
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic"
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[variables('nameNic')]",
+            "apiVersion": "2018-04-01",
+            "location": "[variables('regionNic')]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig",
+                        "properties": {
+                            "privateIpAddressVersion": "IPv4",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('idSubnet')]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[variables('idIp')]"
+                            }
+                        }
+                    }
+                ],
+                "networkSecurityGroup": {
+                    "id": "[variables('idNsg')]"
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkSecurityGroups/', variables('nameNsg'))]",
+                "[concat('Microsoft.Network/publicIpAddresses/', variables('nameIp'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[variables('nameVm')]",
+            "apiVersion": "2017-12-01",
+            "location": "[variables('regionVm')]",
+            "tags": {},
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('VmSize')]"
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[variables('idNic')]"
+                        }
+                    ]
+                },
+                "storageProfile": {
+                    "osDisk": {
+                        "createOption": "FromImage",
+                        "managedDisk": {
+                            "storageAccountType": "Premium_LRS"
+                        }
+                    },
+                    "imageReference": {
+                        "publisher": "Canonical",
+                        "offer": "UbuntuServer",
+                        "sku": "[variables('sku')]",
+                        "version": "latest"
+                    }
+                },
+                "osProfile": {
+                    "computerName": "[variables('nameVm')]",
+                    "adminUsername": "[parameters('AdminUsername')]",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": "[parameters('PasswordAuthenticationDisabled')]",
+                        "ssh": {
+                            "publicKeys": [
+                                {
+                                    "keyData": "[concat(parameters('AdminSshKey'), '\n')]",
+                                    "path": "[concat('/home/', parameters('AdminUsername'), '/.ssh/authorized_keys')]"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "dependsOn": [
+                "[variables('idNic')]"
+            ]
+        }
+    ],
+    "outputs": {}
+}
