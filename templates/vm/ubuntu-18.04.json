@@ -54,6 +54,13 @@
             "metadata": {
                 "description": "Should password-based authentication thorugh SSH be disabled"
             }
+        },
+        "CloudInit": {
+            "type": "string",
+            "defaultValue": null,
+            "metadata": {
+                "description": "Cloud-init configuration"
+            }
         }
     },
     "variables": {
@@ -173,6 +180,7 @@
                     "computerName": "[variables('nameVm')]",
                     "adminUsername": "[parameters('AdminUsername')]",
                     "adminPassword": "[parameters('AdminPassword')]",
+                    "customData": "[base64(parameters('CloudInit'))]",
                     "linuxConfiguration": {
                         "disablePasswordAuthentication": "[parameters('PasswordAuthenticationDisabled')]",
                         "ssh": {
