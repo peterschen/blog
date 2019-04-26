@@ -40,6 +40,13 @@
             "metadata": {
                 "description": "Name of the virtual network."
             }
+        },
+        "PasswordAuthenticationDisabled": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Should password authentication thorugh SSH be disabled"
+            }
         }
     },
     "variables": {
@@ -159,7 +166,7 @@
                     "computerName": "[variables('nameVm')]",
                     "adminUsername": "[parameters('AdminUsername')]",
                     "linuxConfiguration": {
-                        "disablePasswordAuthentication": true,
+                        "disablePasswordAuthentication": "[parameters('PasswordAuthenticationDisabled')]",
                         "ssh": {
                             "publicKeys": [
                                 {
