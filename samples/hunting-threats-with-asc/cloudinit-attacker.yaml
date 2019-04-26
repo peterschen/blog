@@ -1,0 +1,9 @@
+runcmd:
+  - cp /usr/share/wordlists/rockyou.txt.gz /usr/share/wordlists/dce.txt.gz
+  - gunzip /usr/share/wordlists/dce.txt.gz
+  - echo "$(head -n 15 /usr/share/wordlists/dce.txt)" > /usr/share/wordlists/dce.txt
+  - echo "admin >> /usr/share/wordlists/dce.txt"
+  - echo "office >> /usr/share/wordlists/dce.txt"
+  - echo "John >> /usr/share/wordlists/dce.txt"
+  - echo "Jane >> /usr/share/wordlists/dce.txt"
+  - echo "Susan >> /usr/share/wordlists/dce.txt"
