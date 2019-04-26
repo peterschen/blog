@@ -22,6 +22,12 @@
         "AdminPassword": {
             "type": "securestring"
         },
+        "AdminSshKey": {
+            "type": "securestring",
+            "metadata": {
+                "description": "RSA key to be configured on all nodes for direct access through ssh."
+            }
+        },
         "WorkspaceResourceGroup": {
             "type": "string",
             "defaultValue": "dce",
@@ -66,19 +72,103 @@
         "urlTemplates": "[concat(variables('urlBase'), '/templates')]",
         "urlSamples": "[concat(variables('urlBase'), '/samples/hunting-threats-with-asc')]",
         "urlDsc": "[concat(variables('urlSamples'), '/DCE.ps1.zip')]",
+        "urlCustomScriptAttacker": "[concat(variables('urlSamples'), '/cs-attacker.sh')]",
+        "urlCustomScriptVictim": "[concat(variables('urlSamples'), '/cs-victim.sh')]",
         "nameDeployment": "[deployment().name]",
         "nameDeploymentVmAttacker": "[concat(variables('nameDeployment'), '-AttackerVm')]",
+        "nameDeploymentVmAttacker1": "[concat(variables('nameDeploymentVmAttacker'), '1')]",        
+        "nameDeploymentVmAttacker2": "[concat(variables('nameDeploymentVmAttacker'), '2')]",        
         "nameDeploymentVmVictim": "[concat(variables('nameDeployment'), '-VictimVm')]",
+        "nameDeploymentVmVictim1": "[concat(variables('nameDeploymentVmVictim'), '1')]",
+        "nameDeploymentVmVictim2": "[concat(variables('nameDeploymentVmVictim'), '2')]",
         "nameDeploymentLogicApp": "[concat(variables('nameDeployment'), '-LogicApp')]",
         "nameVmAttacker": "attacker",
+        "nameVmAttacker1": "[concat(variables('nameVmAttacker'), '1')]",
+        "nameVmAttacker2": "[concat(variables('nameVmAttacker'), '2')]",
         "nameVmVictim": "victim",
+        "nameVmVictim1": "[concat(variables('nameVmVictim'), '1')]",
+        "nameVmVictim2": "[concat(variables('nameVmVictim'), '2')]",
         "nameVnet": "[concat(parameters('ResourcePrefix'), '-vnet')]",
         "idWorkspace": "[concat(subscription().id, '/resourceGroups/', parameters('WorkspaceResourceGroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('WorkspaceName'))]"
     },
     "resources": [
         {
             "type": "Microsoft.Resources/deployments",
-            "name": "[variables('nameDeploymentVmAttacker')]",
+            "name": "[variables('nameDeploymentVmAttacker1')]",
+            "apiVersion": "2018-05-01",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/vm/kali-linux.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameVmAttacker1')]"
+                    },
+                    "Region": {
+                        "value": "[resourceGroup().location]"
+                    },
+                    "AdminUsername": {
+                        "value": "[parameters('AdminUsername')]"
+                    },
+                    "AdminPassword": {
+                        "value": "[parameters('AdminPassword')]"
+                    },
+                    "AdminSshKey": {
+                        "value": "[parameters('AdminSshKey')]"
+                    },
+                    "VmSize": {
+                        "value": "[parameters('VmSize')]"
+                    },
+                    "VnetName": {
+                        "value": "[variables('nameVnet')]"
+                    },
+                    "PasswordAuthenticationDisabled": {
+                        "value": true
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentVmVictim1')]",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('urlTemplates'), '/vm/ubuntu-16.04.json')]"
+                },
+                "parameters": {
+                    "Name": {
+                        "value": "[variables('nameVmVictim1')]"
+                    },
+                    "Region": {
+                        "value": "[resourceGroup().location]"
+                    },
+                    "AdminUsername": {
+                        "value": "[parameters('AdminUsername')]"
+                    },
+                    "AdminPassword": {
+                        "value": "[parameters('AdminPassword')]"
+                    },
+                    "AdminSshKey": {
+                        "value": "[parameters('AdminSshKey')]"
+                    },
+                    "VmSize": {
+                        "value": "[parameters('VmSize')]"
+                    },
+                    "VnetName": {
+                        "value": "[variables('nameVnet')]"
+                    },
+                    "PasswordAuthenticationDisabled": {
+                        "value": false
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "[variables('nameDeploymentVmAttacker2')]",
             "apiVersion": "2017-05-10",
             "properties": {
                 "mode": "Incremental",
@@ -87,7 +177,7 @@
                 },
                 "parameters": {
                     "Name": {
-                        "value": "[variables('nameVmAttacker')]"
+                        "value": "[variables('nameVmAttacker2')]"
                     },
                     "Region": {
                         "value": "[resourceGroup().location]"
@@ -109,7 +199,7 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "name": "[variables('nameDeploymentVmVictim')]",
+            "name": "[variables('nameDeploymentVmVictim2')]",
             "apiVersion": "2017-05-10",
             "properties": {
                 "mode": "Incremental",
@@ -118,7 +208,7 @@
                 },
                 "parameters": {
                     "Name": {
-                        "value": "[variables('nameVmVictim')]"
+                        "value": "[variables('nameVmVictim2')]"
                     },
                     "Region": {
                         "value": "[resourceGroup().location]"
@@ -138,14 +228,18 @@
                 }
             },
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmAttacker'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmAttacker2'))]"
             ]
         },
         {
-            "name": "[concat('shutdown-computevm-', variables('nameVmAttacker'), '-vm')]",
+            "name": "[concat('shutdown-computevm-', variables('nameVmAttacker'), copyIndex(1))]",
             "type": "Microsoft.DevTestLab/schedules",
             "apiVersion": "2017-04-26-preview",
             "location": "[resourceGroup().location]",
+            "copy": {
+                "name": "copyShutdownVmAttacker",
+                "count": 2
+            },
             "properties": {
                 "status": "[if(equals(parameters('VmAutoShutdown'), 'true'), 'Enabled', 'Disabled')]",
                 "taskType": "ComputeVmShutdownTask",
@@ -153,21 +247,25 @@
                     "time": "19:00"
                 },
                 "timeZoneId": "Central European Standard Time",
-                "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines', concat(variables('nameVmAttacker'), '-vm'))]",
+                "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines', concat(variables('nameVmAttacker'), copyIndex(1)))]",
                 "notificationSettings": {
                     "status": "Disabled",
                     "timeInMinutes": "30"
                 }
             },
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmAttacker'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmAttacker'), copyIndex(1))]"
             ]
         },
         {
-            "name": "[concat('shutdown-computevm-', variables('nameVmVictim'), '-vm')]",
+            "name": "[concat('shutdown-computevm-', variables('nameVmVictim'), copyIndex(1))]",
             "type": "Microsoft.DevTestLab/schedules",
             "apiVersion": "2017-04-26-preview",
             "location": "[resourceGroup().location]",
+            "copy": {
+                "name": "copyShutdownVmAttacker",
+                "count": 2
+            },
             "properties": {
                 "status": "[if(equals(parameters('VmAutoShutdown'), 'true'), 'Enabled', 'Disabled')]",
                 "taskType": "ComputeVmShutdownTask",
@@ -175,23 +273,46 @@
                     "time": "19:00"
                 },
                 "timeZoneId": "Central European Standard Time",
-                "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines', concat(variables('nameVmVictim'), '-vm'))]",
+                "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines', concat(variables('nameVmVictim'), copyIndex(1)))]",
                 "notificationSettings": {
                     "status": "Disabled",
                     "timeInMinutes": "30"
                 }
             },
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmVictim'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmVictim'), copyIndex(1))]"
             ]
         },
         {
-            "name": "[concat(variables('nameVmAttacker'), '-vm/dsc')]",
+            "name": "[concat(variables('nameVmVictim1'), '/CustomScriptForLinux')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2018-10-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments/', variables('nameDeploymentVmVictim1'))]"
+            ],
+            "properties": {
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "[variables('urlCustomScriptVictim')]"
+                    ]
+                },
+                "publisher": "Microsoft.OSTCExtensions",
+                "type": "CustomScriptForLinux",
+                "typeHandlerVersion": "1.4",
+                "protectedSettings": {
+                    "commandToExecute": "sh cs-victim.sh"
+                }
+            }
+        },
+        {
+            "name": "[concat(variables('nameVmAttacker2'), '/dsc')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "location": "[resourceGroup().location]",
             "apiVersion": "2015-06-15",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmAttacker'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmAttacker2'))]"
             ],
             "properties": {
                 "publisher": "Microsoft.Powershell",
@@ -212,12 +333,12 @@
             }
         },
         {
-            "name": "[concat(variables('nameVmVictim'), '-vm/dsc')]",
+            "name": "[concat(variables('nameVmVictim2'), '/dsc')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "location": "[resourceGroup().location]",
             "apiVersion": "2015-06-15",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmVictim'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmVictim2'))]"
             ],
             "properties": {
                 "publisher": "Microsoft.Powershell",
@@ -238,12 +359,33 @@
             }
         },
         {
-            "name": "[concat(variables('nameVmAttacker'), '-vm/MMA')]",
+            "name": "[concat(variables('nameVmVictim1'), '/OmsAgentForLinux')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "apiVersion": "2015-06-15",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmAttacker'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmVictim1'))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+                "type": "OmsAgentForLinux",
+                "typeHandlerVersion": "1.8",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "workspaceId": "[reference(variables('idWorkspace'), '2015-03-20').customerId]"
+                },
+                "protectedSettings": {
+                    "workspaceKey": "[listKeys(variables('idWorkspace'), '2015-03-20').primarySharedKey]"
+                }
+            }
+        },
+        {
+            "name": "[concat(variables('nameVmAttacker2'), '/MMA')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "2015-06-15",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmAttacker2'))]"
             ],
             "properties": {
                 "publisher": "Microsoft.EnterpriseCloud.Monitoring",
@@ -259,12 +401,12 @@
             }
         },
         {
-            "name": "[concat(variables('nameVmVictim'), '-vm/MMA')]",
+            "name": "[concat(variables('nameVmVictim2'), '/MMA')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "apiVersion": "2015-06-15",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmVictim'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('nameDeploymentVmVictim2'))]"
             ],
             "properties": {
                 "publisher": "Microsoft.EnterpriseCloud.Monitoring",
@@ -300,9 +442,5 @@
         }
     ],
     "outputs": {
-        "adminUsername": {
-            "type": "string",
-            "value": "[parameters('AdminUsername')]"
-        }
     }
 }
