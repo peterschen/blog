@@ -194,6 +194,11 @@
                     }
                 }
             },
+            "plan": {
+                "name": "kali",
+                "publisher": "kali-linux",
+                "product": "kali-linux"
+            },
             "dependsOn": [
                 "[variables('idNic')]"
             ]
