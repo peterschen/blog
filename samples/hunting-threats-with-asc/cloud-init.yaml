@@ -16,3 +16,6 @@ users:
   - name: Susan
     groups: users
     passwd: $6$rounds=4096$6c1Q1yIB$UlH1tuJahdJiquWWIDONETyk9SWBzgjuMO0ovVrLjibZ1l2fMza3yzXDqBYykKsnlh0pr4vHa4At1t1vdZFLi. # QWERTZ!
+
+packages:
+  - auditd
