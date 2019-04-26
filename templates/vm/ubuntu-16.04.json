@@ -43,9 +43,9 @@
         },
         "PasswordAuthenticationDisabled": {
             "type": "bool",
-            "defaultValue": true,
+            "defaultValue": "true",
             "metadata": {
-                "description": "Should password authentication thorugh SSH be disabled"
+                "description": "Should password-based authentication thorugh SSH be disabled"
             }
         }
     },
@@ -166,6 +166,7 @@
                 "osProfile": {
                     "computerName": "[variables('nameVm')]",
                     "adminUsername": "[parameters('AdminUsername')]",
+                    "adminPassword": "[parameters('AdminSshKey')]",
                     "linuxConfiguration": {
                         "disablePasswordAuthentication": "[parameters('PasswordAuthenticationDisabled')]",
                         "ssh": {
