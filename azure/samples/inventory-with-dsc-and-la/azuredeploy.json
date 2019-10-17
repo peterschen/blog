@@ -16,7 +16,11 @@
         }
     },
     "variables": {
-        "urlAssets": "https://raw.githubusercontent.com/peterschen/blog/master/samples/inventory-with-dsc-and-la"
+        "gitBranch": "master",
+        "nameSample": "hunting-threats-with-asc",
+        "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'), '/')]",
+        "urlTemplates": "[concat(variables('urlBase'), '/azure/templates')]",
+        "urlSamples": "[concat(variables('urlBase'), '/azure/samples/', variables('nameSample'))]"
     },
     "resources": [
         {
@@ -30,7 +34,7 @@
                 "typeHandlerVersion": "2.76",
                 "autoUpgradeMinorVersion": "true",
                 "settings": {
-                    "ModulesUrl": "[concat(variables('urlAssets'), '/inventory-with-dsc-and-la.zip')]",
+                    "ModulesUrl": "[concat(variables('urlSamples'), '/inventory-with-dsc-and-la.zip')]",
                     "ConfigurationFunction": "dsc-inventory.ps1\\DscInventory",
                     "Properties": "",
                     "WmfVersion": "latest",

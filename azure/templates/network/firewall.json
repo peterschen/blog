@@ -32,7 +32,7 @@
     "variables": {
         "gitBranch": "master",
         "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'))]",
-        "urlTemplates": "[concat(variables('urlBase'), '/templates')]",
+        "urlTemplates": "[concat(variables('urlBase'), '/azure/templates')]",
         "nameDeployment": "[deployment().name]",
         "nameDeploymentSubnet": "[concat(variables('nameDeployment'), '-Subnet')]",
         "nameIp": "[concat(parameters('Name'), '-ip')]",

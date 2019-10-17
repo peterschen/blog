@@ -23,8 +23,11 @@
         }
     },
     "variables": {
-        "urlBase": "https://raw.githubusercontent.com/peterschen/blog/master/templates",
-        "urlAssets": "https://raw.githubusercontent.com/peterschen/blog/master/samples/automation-with-ansible",
+        "gitBranch": "master",
+        "nameSample": "automation-with-ansible",
+        "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'))]",
+        "urlTemplates": "[concat(variables('urlBase'), '/azure/templates')]",
+        "urlSamples": "[concat(variables('urlBase'), '/azure/samples/', variables('nameSample'))]",
         "nameDeployment": "[deployment().name]",
         "nameDeploymentVm": "[concat(variables('nameDeployment'), '-vm')]",
         "regionVm": "westeurope"
@@ -37,7 +40,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[concat(variables('urlBase'), '/vm/ubuntu-18.04.json')]",
+                    "uri": "[concat(variables('urlTemplates'), '/vm/ubuntu-18.04.json')]",
                     "contentVersion": "1.0.0.1"
                 },
                 "parameters": {

@@ -35,8 +35,11 @@
         }
     },
     "variables": {
-        "urlBase": "https://raw.githubusercontent.com/peterschen/blog/master/templates",
-        "urlAssets": "https://raw.githubusercontent.com/peterschen/blog/master/samples/container-monitoring-demo",
+        "gitBranch": "master",
+        "nameSample": "container-monitoring-demo",
+        "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'))]",
+        "urlTemplates": "[concat(variables('urlBase'), '/azure/templates')]",
+        "urlSamples": "[concat(variables('urlBase'), '/azure/samples/', variables('nameSample'))]",
         "nameDeployment": "[deployment().name]",
         "nameDeploymentLogAnalytics": "[concat(variables('nameDeployment'), '-LogAnalytics')]",
         "nameDeploymentAcs": "[concat(variables('nameDeployment'), '-AzureContainerService')]",
@@ -111,7 +114,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[concat(variables('urlAssets'), '/acs.json')]"
+                    "uri": "[concat(variables('urlSamples'), '/acs.json')]"
                 },
                 "parameters": {
                     "Name": {
@@ -145,7 +148,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[concat(variables('urlAssets'), '/aks.json')]"
+                    "uri": "[concat(variables('urlSamples'), '/aks.json')]"
                 },
                 "parameters": {
                     "Name": {

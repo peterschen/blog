@@ -68,9 +68,10 @@
     },
     "variables": {
         "gitBranch": "master",
+        "nameSample": "automation-in-azure",
         "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'), '/')]",
-        "urlTemplates": "[concat(variables('urlBase'), '/templates')]",
-        "urlSamples": "[concat(variables('urlBase'), '/samples/hunting-threats-with-asc')]",
+        "urlTemplates": "[concat(variables('urlBase'), '/azure/templates')]",
+        "urlSamples": "[concat(variables('urlBase'), '/azure/samples/', variables('nameSample'))]",
         "urlDsc": "[concat(variables('urlSamples'), '/DCE.ps1.zip')]",
         "urlCustomScriptAttacker": "[concat(variables('urlSamples'), '/cs-attacker.sh')]",
         "urlCustomScriptVictim": "[concat(variables('urlSamples'), '/cs-victim.sh')]",
