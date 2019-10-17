@@ -1,2 +1,2 @@
-# Azure Resource Manager Templates #
-This directory contains a selection of ARM templates that are used in samples.
+# Templates #
+This directory contains a number of templates for Google Cloud Deployment Manager and older Azure Resource Manager templates.
