@@ -14,3 +14,9 @@ To get started issue the following commands:
 terraform validate
 terraform apply
 ```
+
+## Cleanup ##
+To cleanup resources (after a succesful demo/presentation):
+```
+terraform destroy
+```
