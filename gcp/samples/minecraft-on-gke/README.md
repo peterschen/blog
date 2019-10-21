@@ -1,5 +1,5 @@
 # Minecraft on GKE #
-This sample shows how to provision GKE through Terraform and run a simple container on it. Minecraft might not be the perfect example as it does not support hotizontal scaling or shared state but it is fun nonetheless.
+This sample shows how to provision GKE through Terraform and run a simple container on it. Minecraft might not be the perfect example as it does not support horizontal scaling or shared state but it is fun nonetheless.
 
 ## Enable Kubernetes Engine API ##
 If you haven't used the Kubernetes Engine API in the project you are working in yet, you need to enable it before the template will work.
