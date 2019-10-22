@@ -4,5 +4,8 @@
 # Office temp files
 ~$*
 
+# Terraform
+.terraform
+
 local.ps1
 *.log
