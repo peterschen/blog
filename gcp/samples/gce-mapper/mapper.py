@@ -22,7 +22,9 @@ def main():
     parser_d.add_argument("-p", metavar = "project_id", help = "GCP project id for which to download available machine types", required = True)
 
     parser_m = subparser.add_parser("match")
-    parser_m.add_argument("-d", metavar = "/path/to/file.xlsx", help = "Path to .xlsx document", required=True)
+    group = parser_m.add_mutually_exclusive_group(required = True)
+    group.add_argument("-c", metavar = "file.csv", help = "Path to .csv file")
+    group.add_argument("-x", metavar = "file.xlsx", help = "Path to .xlsx file")
     parser_m.add_argument("-z", metavar = "zone", help = "GCP zone", default = "europe-west3")
 
     args = parser.parse_args()
@@ -30,21 +32,28 @@ def main():
     if args.action == "download":
         download_machineTypes(args.p)
         load_machineTypes()
+    elif args.action == "match":
+        if args.c != None:
+            match_csv(args.c, args.z)
+        else:
+            match_xlsx(args.x, args.z)
     else:
-        match_instance(args.d, args.z)
+        parser.print_help()
 
-def match_instance(path_xlsx, zone, loadMachineTypes = False):
-    if load_machineTypes == True:
-        load_machineTypes()
+def match_csv(path_csv, zone):
+    columns = pandas.read_csv(path_csv).columns
+    data = pandas.read_csv(path_csv, skiprows=1, names=columns)
+    iterate_doc(data, zone)
 
-    cursor = db.cursor()
-
+def match_xlsx(path_xlsx, zone):
     x = pandas.ExcelFile(path_xlsx)
-    df = x.parse(x.sheet_names[0])
+    data = x.parse(x.sheet_names[0])
+    iterate_doc(data, zone)
 
-    for name, values in df.iterrows():
-        cpus = values[-2]
-        memory = values[-1]
+def iterate_doc(data, zone):
+    for name, values in data.iterrows():
+        cpus = values["cpus"]
+        memory = values["memory"]
 
         if not pandas.isna(cpus) and not pandas.isna(memory):
             lookup_instace(cpus, memory, zone)
