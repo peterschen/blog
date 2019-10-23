@@ -19,7 +19,7 @@ def main():
     setup_db()
 
     parser = argparse.ArgumentParser(description = "Match compute configuration to GCE instances")
-    parser.add_argument("-v", action="store_true", help="Verbose output", default=False)
+    parser.add_argument("-v", action="store_true", help="Verbose output")
 
     subparser = parser.add_subparsers(dest = "action")
 
@@ -34,6 +34,7 @@ def main():
 
     args = parser.parse_args()
 
+    global setting_verbose_output
     setting_verbose_output = args.v
 
     if args.action == "download":
@@ -106,8 +107,7 @@ def lookup_instance(cpus, memory, zone=None):
     match_memory = lookup_closest_memory(cpus, memory, zone)
 
     if match_exact == None and match_cpu == None and match_memory == None:
-        if setting_verbose_output == True:
-            print("No match found for {}/{}".format(cpus, memory))
+        log_verbose("No match found for {}/{}".format(cpus, memory))
 
     return (match_exact, match_cpu, match_memory)
 
@@ -129,8 +129,7 @@ def lookup_exact(cpus, memory, zone=None):
     match = cursor.fetchone()
     
     if match != None:
-        if setting_verbose_output == True:
-            print("Exact match for {} vCPUs / {} MB memory: {} ({} vCPUs / {} MB memory)".format(cpus, memory, match[0], match[1], match[2]))
+        log_verbose("Exact match for {} vCPUs / {} MB memory: {} ({} vCPUs / {} MB memory)".format(cpus, memory, match[0], match[1], match[2]))
         return match
     
     return None
@@ -153,8 +152,7 @@ def lookup_closest_cpu(cpus, memory, zone=None):
     match = cursor.fetchone()
 
     if match != None:
-        if setting_verbose_output == True:
-            print("CPU match for {} vCPUs / {} MB memory: {} ({} vCPUs / {} MB memory)".format(cpus, memory, match[0], match[1], match[2]))
+        log_verbose("CPU match for {} vCPUs / {} MB memory: {} ({} vCPUs / {} MB memory)".format(cpus, memory, match[0], match[1], match[2]))
         return match
     
     return None
@@ -177,8 +175,7 @@ def lookup_closest_memory(cpus, memory, zone=None):
     match = cursor.fetchone()
 
     if match != None:
-        if setting_verbose_output == True:
-            print("Memory match for {} vCPUs / {} MB memory: {} ({} vCPUs / {} MB memory)".format(cpus, memory, match[0], match[1], match[2]))
+        log_verbose("Memory match for {} vCPUs / {} MB memory: {} ({} vCPUs / {} MB memory)".format(cpus, memory, match[0], match[1], match[2]))
         return match
     
     return None
@@ -236,5 +233,9 @@ def setup_db():
 def get_output_path(path_input):
     name, extension = os.path.splitext(path_input)
     return "{}-output{}".format(name, extension)
+
+def log_verbose(message):
+    if setting_verbose_output == True:
+        print(message)
 
 main()
