@@ -7,8 +7,10 @@ import googleapiclient.discovery
 import sqlite3
 import pandas
 import xlrd
+import openpyxl
 import os
 
+setting_verbose_output = False
 name_file = "gce_machineTypes.json"
 
 db = sqlite3.connect("machineTypes.sqlite")
@@ -17,6 +19,8 @@ def main():
     setup_db()
 
     parser = argparse.ArgumentParser(description = "Match compute configuration to GCE instances")
+    parser.add_argument("-v", action="store_true", help="Verbose output", default=False)
+
     subparser = parser.add_subparsers(dest = "action")
 
     parser_d = subparser.add_parser("download")
@@ -29,6 +33,8 @@ def main():
     parser_m.add_argument("-z", metavar = "zone", help = "GCP zone", default=None)
 
     args = parser.parse_args()
+
+    setting_verbose_output = args.v
 
     if args.action == "download":
         download_machineTypes(args.p)
@@ -45,12 +51,17 @@ def match_csv(path_csv, zone=None):
     columns = pandas.read_csv(path_csv).columns
     data = pandas.read_csv(path_csv, skiprows=1, names=columns)
     output = iterate_doc(data, zone)
-    output.to_csv(get_output_path(path_csv))
+    path_output = get_output_path(path_csv)
+    print("Writing output to '{}'".format(path_output))
+    output.to_csv(path_output)
 
 def match_xlsx(path_xlsx, zone=None):
     x = pandas.ExcelFile(path_xlsx)
     data = x.parse(x.sheet_names[0])
     output = iterate_doc(data, zone)
+    path_output = get_output_path(path_xlsx)
+    print("Writing output to '{}'".format(path_output))
+    output.to_excel(path_output)
 
 def iterate_doc(data, zone=None):
     matches_exact = []
@@ -95,7 +106,8 @@ def lookup_instance(cpus, memory, zone=None):
     match_memory = lookup_closest_memory(cpus, memory, zone)
 
     if match_exact == None and match_cpu == None and match_memory == None:
-        print("No match found for {}/{}".format(cpus, memory))
+        if setting_verbose_output == True:
+            print("No match found for {}/{}".format(cpus, memory))
 
     return (match_exact, match_cpu, match_memory)
 
@@ -117,7 +129,8 @@ def lookup_exact(cpus, memory, zone=None):
     match = cursor.fetchone()
     
     if match != None:
-        print("Exact match for {} vCPUs / {} MB memory: {} ({} vCPUs / {} MB memory)".format(cpus, memory, match[0], match[1], match[2]))
+        if setting_verbose_output == True:
+            print("Exact match for {} vCPUs / {} MB memory: {} ({} vCPUs / {} MB memory)".format(cpus, memory, match[0], match[1], match[2]))
         return match
     
     return None
@@ -140,7 +153,8 @@ def lookup_closest_cpu(cpus, memory, zone=None):
     match = cursor.fetchone()
 
     if match != None:
-        print("CPU match for {} vCPUs / {} MB memory: {} ({} vCPUs / {} MB memory)".format(cpus, memory, match[0], match[1], match[2]))
+        if setting_verbose_output == True:
+            print("CPU match for {} vCPUs / {} MB memory: {} ({} vCPUs / {} MB memory)".format(cpus, memory, match[0], match[1], match[2]))
         return match
     
     return None
@@ -163,7 +177,8 @@ def lookup_closest_memory(cpus, memory, zone=None):
     match = cursor.fetchone()
 
     if match != None:
-        print("Memory match for {} vCPUs / {} MB memory: {} ({} vCPUs / {} MB memory)".format(cpus, memory, match[0], match[1], match[2]))
+        if setting_verbose_output == True:
+            print("Memory match for {} vCPUs / {} MB memory: {} ({} vCPUs / {} MB memory)".format(cpus, memory, match[0], match[1], match[2]))
         return match
     
     return None
