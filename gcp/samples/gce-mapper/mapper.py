@@ -7,6 +7,7 @@ import googleapiclient.discovery
 import sqlite3
 import pandas
 import xlrd
+import os
 
 name_file = "gce_machineTypes.json"
 
@@ -25,7 +26,7 @@ def main():
     group = parser_m.add_mutually_exclusive_group(required = True)
     group.add_argument("-c", metavar = "file.csv", help = "Path to .csv file")
     group.add_argument("-x", metavar = "file.xlsx", help = "Path to .xlsx file")
-    parser_m.add_argument("-z", metavar = "zone", help = "GCP zone", default = "europe-west3")
+    parser_m.add_argument("-z", metavar = "zone", help = "GCP zone", default=None)
 
     args = parser.parse_args()
 
@@ -40,30 +41,132 @@ def main():
     else:
         parser.print_help()
 
-def match_csv(path_csv, zone):
+def match_csv(path_csv, zone=None):
     columns = pandas.read_csv(path_csv).columns
     data = pandas.read_csv(path_csv, skiprows=1, names=columns)
-    iterate_doc(data, zone)
+    output = iterate_doc(data, zone)
+    output.to_csv(get_output_path(path_csv))
 
-def match_xlsx(path_xlsx, zone):
+def match_xlsx(path_xlsx, zone=None):
     x = pandas.ExcelFile(path_xlsx)
     data = x.parse(x.sheet_names[0])
-    iterate_doc(data, zone)
+    output = iterate_doc(data, zone)
 
-def iterate_doc(data, zone):
+def iterate_doc(data, zone=None):
+    matches_exact = []
+    matches_cpu = []
+    matches_memory = []
+
     for name, values in data.iterrows():
         cpus = values["cpus"]
         memory = values["memory"]
 
         if not pandas.isna(cpus) and not pandas.isna(memory):
-            lookup_instace(cpus, memory, zone)
+            result = lookup_instance(cpus, memory, zone)
+            
+            if result[0] != None:
+                matches_exact.append("{} ({} vCPUs/{} MB memory)".format(result[0][0], result[0][1], result[0][2]))
+            else:
+                matches_exact.append("-")
 
-def lookup_instace(guestCpus, memoryMb, zone):
-    print("Matching compute configuration with {} vCPUs and {} MB memory to GCE machine types in '{}'".format(guestCpus, memoryMb, zone))
+            if result[1] != None:
+                matches_cpu.append("{} ({} vCPUs/{} MB memory)".format(result[1][0], result[1][1], result[1][2]))
+            else:
+                matches_cpu.append("-")
+
+            if result[2] != None:
+                matches_memory.append("{} ({} vCPUs/{} MB memory)".format(result[2][0], result[2][1], result[2][2]))
+            else:
+                matches_memory.append("-")
+        else:
+            matches_exact.append("-")
+            matches_cpu.append("-")
+            matches_memory.append("-")
+
+    data["match_exact"] = matches_exact
+    data["match_cpu"] = matches_cpu
+    data["match_memory"] = matches_memory
+    return data
+
+
+def lookup_instance(cpus, memory, zone=None):
+    match_exact = lookup_exact(cpus, memory, zone)
+    match_cpu = lookup_closest_cpu(cpus, memory, zone)
+    match_memory = lookup_closest_memory(cpus, memory, zone)
+
+    if match_exact == None and match_cpu == None and match_memory == None:
+        print("No match found for {}/{}".format(cpus, memory))
+
+    return (match_exact, match_cpu, match_memory)
+
+def lookup_exact(cpus, memory, zone=None):
+    params = (cpus, memory)
+    query = ("SELECT name, guestCpus, memoryMb "
+    "FROM MachineTypes "
+    "WHERE guestCpus = ? " 
+    "AND memoryMb = ? ")
+
+    if zone != None:
+        params.append(zone)
+        query += " AND zone = ?"
+
+    query += "ORDER BY guestCpus, memoryMb"
 
     cursor = db.cursor()
-    cursor.execute("SELECT name FROM MachineTypes WHERE guestCpus = ? AND memoryMb = ? AND zone LIKE ? ORDER BY guestCpus, memoryMb LIMIT 0, 1", (guestCpus, memoryMb, "{}%".format(zone)))
-    print(cursor.fetchall())
+    cursor.execute(query, params)
+    match = cursor.fetchone()
+    
+    if match != None:
+        print("Exact match for {} vCPUs / {} MB memory: {} ({} vCPUs / {} MB memory)".format(cpus, memory, match[0], match[1], match[2]))
+        return match
+    
+    return None
+
+def lookup_closest_cpu(cpus, memory, zone=None):
+    params = (cpus, memory)
+    query = ("SELECT name, guestCpus, memoryMb "
+    "FROM MachineTypes "
+    "WHERE guestCpus = ? "
+    "AND memoryMb >= ? ")
+    
+    if zone != None:
+        params.append(zone)
+        query += " AND zone = ?"
+
+    query += "ORDER BY guestCpus, memoryMb"
+
+    cursor = db.cursor()
+    cursor.execute(query, params)
+    match = cursor.fetchone()
+
+    if match != None:
+        print("CPU match for {} vCPUs / {} MB memory: {} ({} vCPUs / {} MB memory)".format(cpus, memory, match[0], match[1], match[2]))
+        return match
+    
+    return None
+
+def lookup_closest_memory(cpus, memory, zone=None):
+    params = (cpus, memory)
+    query = ("SELECT name, guestCpus, memoryMb "
+    "FROM MachineTypes "
+    "WHERE guestCpus >= ? "
+    "AND memoryMb = ? ")
+    
+    if zone != None:
+        params.append(zone)
+        query += " AND zone = ?"
+
+    query += "ORDER BY guestCpus, memoryMb"
+
+    cursor = db.cursor()
+    cursor.execute(query, params)
+    match = cursor.fetchone()
+
+    if match != None:
+        print("Memory match for {} vCPUs / {} MB memory: {} ({} vCPUs / {} MB memory)".format(cpus, memory, match[0], match[1], match[2]))
+        return match
+    
+    return None
 
 def download_machineTypes(project_id):
     print("Downloading machine types for project '{}'".format(project_id))
@@ -114,5 +217,9 @@ def setup_db():
         "maximumPersistentDisksSizeGb INTEGER, "
         "zone TEXT"
         ")")
+
+def get_output_path(path_input):
+    name, extension = os.path.splitext(path_input)
+    return "{}-output{}".format(name, extension)
 
 main()
