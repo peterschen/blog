@@ -1,0 +1,3 @@
+,Name,cpus,memory,match_exact,match_cpu,match_memory
+0,CBP-VM1,4,32768,n2-highmem-4 (4 vCPUs/32768 MB memory),n2-highmem-4 (4 vCPUs/32768 MB memory),n2-highmem-4 (4 vCPUs/32768 MB memory)
+1,CBP-VM2,16,131072,n2-highmem-16 (16 vCPUs/131072 MB memory),n2-highmem-16 (16 vCPUs/131072 MB memory),n2-highmem-16 (16 vCPUs/131072 MB memory)

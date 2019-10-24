@@ -7,5 +7,20 @@
 # Terraform
 .terraform
 
+# Python
+__pycache__
+
+# SQLite
+*.sqlite
+
 local.ps1
 *.log
+
+# Visual Studio Code
+.vscode
+
+# Apple
+.DS_Store
+
+# GCE Mapper
+gcp/samples/gce-mapper/gce_machineTypes.json
