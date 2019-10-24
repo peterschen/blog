@@ -46,6 +46,12 @@ The `closest_cpu` matching algorithm will check for a machine type that exactly 
 ### `closest_memory` ###
 The `closest_memory` matching algorithm will check for a machine type that exactly matches the vCPUs configuration but has either an equal or higher amount of memory attched.
 
+## Requirements ##
+Install necessary Python dependencies by running:
+```
+pip install -r requirements.txt
+```
+
 ## Usage ##
 GCE Mapper can be run in two different modes: `download` and `match`. While `download` will help you retrieve the available machine types for the target environment, `match` is used to do the matching against available GCE machine types.
 
