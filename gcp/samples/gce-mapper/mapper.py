@@ -23,10 +23,10 @@ def main():
 
     subparser = parser.add_subparsers(dest = "action")
 
-    parser_d = subparser.add_parser("download")
+    parser_d = subparser.add_parser("download", help = "Download GCE machine types")
     parser_d.add_argument("-p", metavar = "project_id", help = "GCP project id for which to download available machine types", required = True)
 
-    parser_m = subparser.add_parser("match")
+    parser_m = subparser.add_parser("match", help = "Match configurations against GCE machine types")
     group = parser_m.add_mutually_exclusive_group(required = True)
     group.add_argument("-c", metavar = "file.csv", help = "Path to .csv file")
     group.add_argument("-x", metavar = "file.xlsx", help = "Path to .xlsx file")
@@ -138,29 +138,6 @@ def lookup_closest_cpu(cpus, memory, zone=None):
     params = (cpus, memory)
     query = ("SELECT name, guestCpus, memoryMb "
     "FROM MachineTypes "
-    "WHERE guestCpus = ? "
-    "AND memoryMb >= ? ")
-    
-    if zone != None:
-        params.append(zone)
-        query += " AND zone = ?"
-
-    query += "ORDER BY guestCpus, memoryMb"
-
-    cursor = db.cursor()
-    cursor.execute(query, params)
-    match = cursor.fetchone()
-
-    if match != None:
-        log_verbose("CPU match for {} vCPUs / {} MB memory: {} ({} vCPUs / {} MB memory)".format(cpus, memory, match[0], match[1], match[2]))
-        return match
-    
-    return None
-
-def lookup_closest_memory(cpus, memory, zone=None):
-    params = (cpus, memory)
-    query = ("SELECT name, guestCpus, memoryMb "
-    "FROM MachineTypes "
     "WHERE guestCpus >= ? "
     "AND memoryMb = ? ")
     
@@ -176,6 +153,29 @@ def lookup_closest_memory(cpus, memory, zone=None):
 
     if match != None:
         log_verbose("Memory match for {} vCPUs / {} MB memory: {} ({} vCPUs / {} MB memory)".format(cpus, memory, match[0], match[1], match[2]))
+        return match
+    
+    return None
+
+def lookup_closest_memory(cpus, memory, zone=None):
+    params = (cpus, memory)
+    query = ("SELECT name, guestCpus, memoryMb "
+    "FROM MachineTypes "
+    "WHERE guestCpus = ? "
+    "AND memoryMb >= ? ")
+    
+    if zone != None:
+        params.append(zone)
+        query += " AND zone = ?"
+
+    query += "ORDER BY guestCpus, memoryMb"
+
+    cursor = db.cursor()
+    cursor.execute(query, params)
+    match = cursor.fetchone()
+
+    if match != None:
+        log_verbose("CPU match for {} vCPUs / {} MB memory: {} ({} vCPUs / {} MB memory)".format(cpus, memory, match[0], match[1], match[2]))
         return match
     
     return None
