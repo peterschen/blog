@@ -112,58 +112,29 @@ def lookup_instance(cpus, memory, zone=None):
     return (match_exact, match_cpu, match_memory)
 
 def lookup_exact(cpus, memory, zone=None):
-    params = (cpus, memory)
     query = ("SELECT name, guestCpus, memoryMb "
     "FROM MachineTypes "
     "WHERE guestCpus = ? " 
     "AND memoryMb = ? ")
-
-    if zone != None:
-        params.append(zone)
-        query += " AND zone = ?"
-
-    query += "ORDER BY guestCpus, memoryMb"
-
-    cursor = db.cursor()
-    cursor.execute(query, params)
-    match = cursor.fetchone()
-    
-    if match != None:
-        log_verbose("Exact match for {} vCPUs / {} MB memory: {} ({} vCPUs / {} MB memory)".format(cpus, memory, match[0], match[1], match[2]))
-        return match
-    
-    return None
+    return lookup(query, cpus, memory, zone, "Exact")
 
 def lookup_closest_cpu(cpus, memory, zone=None):
-    params = (cpus, memory)
     query = ("SELECT name, guestCpus, memoryMb "
     "FROM MachineTypes "
     "WHERE guestCpus >= ? "
     "AND memoryMb = ? ")
-    
-    if zone != None:
-        params.append(zone)
-        query += " AND zone = ?"
-
-    query += "ORDER BY guestCpus, memoryMb"
-
-    cursor = db.cursor()
-    cursor.execute(query, params)
-    match = cursor.fetchone()
-
-    if match != None:
-        log_verbose("Memory match for {} vCPUs / {} MB memory: {} ({} vCPUs / {} MB memory)".format(cpus, memory, match[0], match[1], match[2]))
-        return match
-    
-    return None
+    return lookup(query, cpus, memory, zone, "CPU")
 
 def lookup_closest_memory(cpus, memory, zone=None):
-    params = (cpus, memory)
     query = ("SELECT name, guestCpus, memoryMb "
     "FROM MachineTypes "
     "WHERE guestCpus = ? "
     "AND memoryMb >= ? ")
-    
+    return lookup(query, cpus, memory, zone, "Memory")
+
+def lookup(query, cpus, memory, zone, type):
+    params = (cpus, memory)
+
     if zone != None:
         params.append(zone)
         query += " AND zone = ?"
@@ -175,9 +146,9 @@ def lookup_closest_memory(cpus, memory, zone=None):
     match = cursor.fetchone()
 
     if match != None:
-        log_verbose("CPU match for {} vCPUs / {} MB memory: {} ({} vCPUs / {} MB memory)".format(cpus, memory, match[0], match[1], match[2]))
+        log_verbose("{} match for {} vCPUs / {} MB memory: {} ({} vCPUs / {} MB memory)".format(type, cpus, memory, match[0], match[1], match[2]))
         return match
-    
+
     return None
 
 def download_machineTypes(project_id):
