@@ -18,3 +18,9 @@ local.ps1
 
 # Visual Studio Code
 .vscode
+
+# Apple
+.DS_Store
+
+# GCE Mapper
+gcp/samples/gce-mapper/gce_machineTypes.json
