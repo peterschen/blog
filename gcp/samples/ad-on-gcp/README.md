@@ -21,7 +21,7 @@ terraform apply
 If you opted to specify the variables at deployment time you will be asked to provide the missing variables or you can provide them when invoking Terraform:
 
 ```sh
-terraform apply -var="name-project=cbp-samples" -var="name-domain=test.gcp" -var="password=Admin123Admin123"
+terraform apply -var="project=cbp-samples" -var="name-domain=test.gcp" -var="password=Admin123Admin123"
 ```
 
 The deployment will take a few minutes and create the following resources:
