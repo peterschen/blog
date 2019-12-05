@@ -6,6 +6,7 @@ $DebugPreference = "SilentlyContinue";
 
 $nameHost = '${nameHost}';
 $nameDomain = '${nameDomain}';
+$nameConfiguration = '${nameConfiguration}';
 $password = '${password}';
 $passwordSecure = ConvertTo-SecureString -String $password -AsPlainText -Force;
 
@@ -36,6 +37,16 @@ $modules = @(
         Name = "NetworkingDsc"
         Version = "7.3.0.0"
         Uri = "https://github.com/dsccommunity/NetworkingDsc/archive/7.3.0.0-PSGallery.zip"
+    },
+    @{
+        Name = "ComputerManagementDsc"
+        Version = "6.4.0.0"
+        Uri = "https://github.com/dsccommunity/ComputerManagementDsc/archive/6.4.0.0-PSGallery.zip"
+    },
+    @{
+        Name = "xDnsServer"
+        Version = "1.13.0.0"
+        Uri = "https://github.com/dsccommunity/xDnsServer/archive/1.13.0.0-PSGallery.zip"
     }
 );
 
@@ -55,13 +66,13 @@ foreach($module in $modules)
 
 # Download DSC (meta) configuration
 $pathDscConfigrationDefinitionMeta = (Join-Path -Path $env:TEMP -ChildPath "meta.ps1");
-$pathDscConfigrationDefinitionAd = (Join-Path -Path $env:TEMP -ChildPath "ad.ps1");
+$pathDscConfigrationDefinition = (Join-Path -Path $env:TEMP -ChildPath "$nameConfiguration.ps1");
 Invoke-WebRequest -Uri "https://storage.googleapis.com/s-ad-on-gcp/meta.ps1" -OutFile $pathDscConfigrationDefinitionMeta;
-Invoke-WebRequest -Uri "https://storage.googleapis.com/s-ad-on-gcp/ad.ps1" -OutFile $pathDscConfigrationDefinitionAd;
+Invoke-WebRequest -Uri "https://storage.googleapis.com/s-ad-on-gcp/$nameConfiguration.ps1" -OutFile $pathDscConfigrationDefinition;
 
 # Source DSC (meta) configuration
 . $pathDscConfigrationDefinitionMeta;
-. $pathDscConfigrationDefinitionAd;
+. $pathDscConfigrationDefinition;
 
 # Build DSC (meta) configuration
 $pathDscConfigurationOutput = Join-Path -Path $env:TEMP -ChildPath "dsc";
@@ -70,16 +81,16 @@ ConfigurationMeta `
     -ComputerName "localhost" `
     -OutputPath $pathDscConfigurationOutput | Out-Null;
 
-ConfigurationAD `
+ConfigurationWorkload `
     -ComputerName $nameHost `
     -DomainName $nameDomain `
     -Password $passwordSecure `
     -ConfigurationData @{AllNodes = @(@{NodeName = "$nameHost"; PSDscAllowPlainTextPassword = $true; PSDscAllowDomainUser = $true})} `
-    -OutputPath $pathDscConfigurationOutput | Out-Null
+    -OutputPath $pathDscConfigurationOutput | Out-Null;
 
 # Make DSC configuration pending
-$pathDscConfigurationPendingAd = Join-Path -Path "C:\Windows\system32\Configuration" -ChildPath "pending.mof";
-Move-Item -Path (Join-Path -Path $pathDscConfigurationOutput -ChildPath "$($nameHost).mof") -Destination $pathDscConfigurationPendingAd;
+$pathDscConfigurationPending = Join-Path -Path "C:\Windows\system32\Configuration" -ChildPath "pending.mof";
+Move-Item -Path (Join-Path -Path $pathDscConfigurationOutput -ChildPath "$($nameHost).mof") -Destination $pathDscConfigurationPending;
 
 # Enact meta configuration
 Set-DscLocalConfigurationManager -Path $pathDscConfigurationOutput -ComputerName "localhost";

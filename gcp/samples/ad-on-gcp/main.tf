@@ -11,6 +11,12 @@ provider "google" {
   zone = "${var.zone}"
 }
 
+provider "google-beta" {
+  project = "${var.project}"
+  region = "${var.region}"
+  zone = "${var.zone}"
+}
+
 data "google_client_config" "current" {}
 
 resource "google_project_service" "apis" {
@@ -59,8 +65,28 @@ resource "google_compute_firewall" "allow-icmp" {
   target_tags = ["icmp"]
 }
 
-resource "google_compute_firewall" "allow-rdp" {
-  name    = "allow-rdp"
+resource "google_compute_firewall" "allow-dns-gcp" {
+  name    = "allow-dns-gcp"
+  network = "${google_compute_network.network.name}"
+
+  allow {
+    protocol = "udp"
+    ports    = ["53"]
+  }
+
+  allow {
+    protocol = "tcp"
+    ports    = ["53"]
+  }
+
+  direction = "INGRESS"
+
+  source_ranges = ["35.199.192.0/19"]
+  target_tags = ["dns-gcp"]
+}
+
+resource "google_compute_firewall" "allow-rdp-iap" {
+  name    = "allow-rdp-iap"
   network = "${google_compute_network.network.name}"
 
   allow {
@@ -70,14 +96,28 @@ resource "google_compute_firewall" "allow-rdp" {
 
   direction = "INGRESS"
 
+  source_ranges = ["35.235.240.0/20"]
   target_tags = ["rdp"]
+}
+
+resource "google_compute_firewall" "allow-all-internal" {
+  name    = "allow-all-internal"
+  network = "${google_compute_network.network.name}"
+
+  allow {
+    protocol = "all"
+  }
+
+  direction = "INGRESS"
+
+  source_ranges = ["10.10.0.0/24"]
 }
 
 resource "google_compute_instance" "dc" {
    name         = "dc"
    machine_type = "n1-standard-2"
 
-  tags = ["sample-${var.name-sample}-dc", "rdp", "icmp"]
+  tags = ["sample-${var.name-sample}-dc", "rdp", "dns-gcp", "icmp"]
 
   boot_disk {
     initialize_params {
@@ -95,7 +135,8 @@ resource "google_compute_instance" "dc" {
     type                          = "dc"
     sysprep-specialize-script-ps1 = templatefile("specialize.ps1", { 
         nameHost = "dc", 
-        nameDomain = var.name-domain, 
+        nameDomain = var.name-domain,
+        nameConfiguration = "ad",
         password = var.password 
       })
   }
@@ -103,16 +144,93 @@ resource "google_compute_instance" "dc" {
   service_account {
     scopes = ["userinfo-email", "compute-ro", "storage-ro"]
   }
+}
 
-  # provisioner "file" {
-  #   source      = "ad.ps1"
-  #   destination = "c:/bootstrap"
+resource "google_compute_instance" "jumpy" {
+  name         = "jumpy"
+  machine_type = "n1-standard-1"
 
-  #   connection {
-  #     type     = "winrm"
-  #     user     = "Administrator"
-  #     password = "${var.password}"
-  #     host     = "${self.network_interface.0.access_config.0.nat_ip}"
-  #   }
-  # }
+  tags = ["sample-${var.name-sample}-jumpy", "rdp", "icmp"]
+
+  boot_disk {
+    initialize_params {
+      image = "windows-cloud/windows-2019"
+    }
+  }
+
+  network_interface {
+    network = "${google_compute_network.network.self_link}"
+    subnetwork = "${google_compute_subnetwork.network-subnet.self_link}"
+  }
+
+  metadata = {
+    sample                        = "${var.name-sample}"
+    type                          = "jumpy"
+    sysprep-specialize-script-ps1 = templatefile("specialize.ps1", { 
+      nameHost = "jumpy", 
+      nameDomain = var.name-domain,
+      nameConfiguration = "jumpy",
+      password = var.password 
+    })
+  }
+
+  service_account {
+    scopes = ["userinfo-email", "compute-ro", "storage-ro"]
+  }
+
+  depends_on = ["google_compute_instance.dc"]
+}
+
+resource "google_dns_managed_zone" "ad-forward" {
+  provider = "google-beta"
+  name        = "ad-forward"
+  dns_name    = "${var.name-domain}."
+
+  visibility = "private"
+
+  private_visibility_config {
+    networks {
+      network_url = google_compute_network.network.self_link
+    }
+  }
+
+  forwarding_config {
+    target_name_servers {
+      ipv4_address = google_compute_instance.dc.network_interface[0].network_ip
+    }
+  }
+}
+
+resource "google_dns_managed_zone" "ad-reverse" {
+  provider = "google-beta"
+  name        = "ad-reverse"
+  dns_name    = "0.10.10.in-addr.arpa."
+
+  visibility = "private"
+
+  private_visibility_config {
+    networks {
+      network_url = google_compute_network.network.self_link
+    }
+  }
+}
+
+resource "google_dns_record_set" "dc" {
+  name = "${element(split(".", google_compute_instance.dc.network_interface[0].network_ip), 3)}.0.10.10.in-addr.arpa."
+  type = "PTR"
+  ttl  = 60
+
+  managed_zone = google_dns_managed_zone.ad-reverse.name
+
+  rrdatas = ["dc.${var.name-domain}."]
+}
+
+resource "google_dns_record_set" "jumpy" {
+  name = "${element(split(".", google_compute_instance.jumpy.network_interface[0].network_ip), 3)}.0.10.10.in-addr.arpa."
+  type = "PTR"
+  ttl  = 60
+
+  managed_zone = google_dns_managed_zone.ad-reverse.name
+
+  rrdatas = ["jumpy.${var.name-domain}."]
 }

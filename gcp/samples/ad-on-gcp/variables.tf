@@ -22,5 +22,5 @@ variable "password" {
 }
 
 variable "apis" {
-  default = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com"]
+  default = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
 }

@@ -1,4 +1,4 @@
-configuration ConfigurationAD
+configuration ConfigurationWorkload
 {
     param 
     ( 
@@ -16,7 +16,7 @@ configuration ConfigurationAD
     );
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration, 
-        xActiveDirectory, xPSDesiredStateConfiguration, NetworkingDsc;
+        xActiveDirectory, xPSDesiredStateConfiguration, NetworkingDsc, xDnsServer;
 
     $features = @(
         "AD-Domain-Services"
@@ -165,6 +165,13 @@ configuration ConfigurationAD
                 DomainController = "$($Node.NodeName).$($DomainName)"
                 DependsOn = "[xADGroup]ADG-g-LocalAdmins", "[xADGroup]ADG-g-RemoteDesktopUsers", "[xADGroup]ADG-g-RemoteManagementUsers"
             }
+        }
+
+        xDnsServerSetting "DSS-DnsConfiguration"
+        { 
+            Name = "dns-server-forwarders"
+            Forwarders = "8.8.8.8", "8.8.4.4"
+            DependsOn = "[xWaitForADDomain]WFAD-FirstDC"
         }
     }
 }
