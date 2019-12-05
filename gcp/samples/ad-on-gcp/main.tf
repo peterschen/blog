@@ -17,7 +17,7 @@ locals {
 data "google_client_config" "current" {}
 
 resource "google_project_service" "apis" {
-  count = length(var.apis)
+  count = length(local.apis)
   
   service = "${local.apis[count.index]}"
   disable_dependent_services = false
