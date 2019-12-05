@@ -1,10 +1,3 @@
-terraform {
-  backend "gcs" {
-    bucket = "cbp-state"
-    prefix = "s-ad-on-gcp"
-  }
-}
-
 provider "google" {
   project = "${var.project}"
   region = "${var.region}"
