@@ -10,12 +10,16 @@ provider "google-beta" {
   zone = "${var.zone}"
 }
 
+locals {
+  apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
+}
+
 data "google_client_config" "current" {}
 
 resource "google_project_service" "apis" {
   count = length(var.apis)
   
-  service = "${var.apis[count.index]}"
+  service = "${local.apis[count.index]}"
   disable_dependent_services = false
 }
 
@@ -45,8 +49,8 @@ resource "google_compute_router_nat" "nat" {
   source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
 }
 
-resource "google_compute_firewall" "allow-icmp" {
-  name    = "allow-icmp"
+resource "google_compute_firewall" "allow-icmp-internal" {
+  name    = "allow-icmp-internal"
   network = "${google_compute_network.network.name}"
 
   allow {
@@ -55,6 +59,7 @@ resource "google_compute_firewall" "allow-icmp" {
 
   direction = "INGRESS"
 
+  source_ranges = ["10.10.0.0/24"]
   target_tags = ["icmp"]
 }
 

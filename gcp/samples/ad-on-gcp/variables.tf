@@ -1,5 +1,4 @@
 variable "project" {
-  default = "cbp-samples"
 }
 
 variable "region" {
@@ -18,9 +17,4 @@ variable "name-domain" {
 }
 
 variable "password" {
-  default = "Admin123Admin123"
-}
-
-variable "apis" {
-  default = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
 }
