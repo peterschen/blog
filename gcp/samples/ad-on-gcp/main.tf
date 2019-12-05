@@ -21,6 +21,7 @@ resource "google_project_service" "apis" {
   
   service = "${local.apis[count.index]}"
   disable_dependent_services = false
+  disable_on_destroy = false
 }
 
 resource "google_compute_network" "network" {
