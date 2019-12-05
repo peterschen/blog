@@ -62,3 +62,11 @@ The `Administrator` windows account is enabled and the password is set to the pa
 Additionally a  `johndoe` user with administrative rights was created during deloyment and the password was set to the one specificed during deployment as well.
 
 **Note:** PowerShell DSC runs on a repeating schedule and will reconfigure the system at least every 30 minutes. If you change the password for the default user this will be reset to the default after 30 minutes.
+
+## Cleanup ##
+
+In case you want to cleanup the environment you can delete all Terraform managed resources by running:
+
+```sh
+terraform destroy
+```
