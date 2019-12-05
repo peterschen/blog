@@ -18,3 +18,7 @@ variable "name-domain" {
 
 variable "password" {
 }
+
+variable "uri-configurations" {
+  default = "https://raw.githubusercontent.com/peterschen/blog/master/gcp/samples/ad-on-gcp/"
+}

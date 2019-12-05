@@ -7,6 +7,7 @@ $DebugPreference = "SilentlyContinue";
 $nameHost = '${nameHost}';
 $nameDomain = '${nameDomain}';
 $nameConfiguration = '${nameConfiguration}';
+$uriConfigurations = '${uriConfigurations}';
 $password = '${password}';
 $passwordSecure = ConvertTo-SecureString -String $password -AsPlainText -Force;
 
@@ -67,8 +68,8 @@ foreach($module in $modules)
 # Download DSC (meta) configuration
 $pathDscConfigrationDefinitionMeta = (Join-Path -Path $env:TEMP -ChildPath "meta.ps1");
 $pathDscConfigrationDefinition = (Join-Path -Path $env:TEMP -ChildPath "$nameConfiguration.ps1");
-Invoke-WebRequest -Uri "https://storage.googleapis.com/s-ad-on-gcp/meta.ps1" -OutFile $pathDscConfigrationDefinitionMeta;
-Invoke-WebRequest -Uri "https://storage.googleapis.com/s-ad-on-gcp/$nameConfiguration.ps1" -OutFile $pathDscConfigrationDefinition;
+Invoke-WebRequest -Uri "$uriConfigurations/meta.ps1" -OutFile $pathDscConfigrationDefinitionMeta;
+Invoke-WebRequest -Uri "$uriConfigurations/$nameConfiguration.ps1" -OutFile $pathDscConfigrationDefinition;
 
 # Source DSC (meta) configuration
 . $pathDscConfigrationDefinitionMeta;

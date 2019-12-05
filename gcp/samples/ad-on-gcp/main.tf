@@ -135,6 +135,7 @@ resource "google_compute_instance" "dc" {
         nameHost = "dc", 
         nameDomain = var.name-domain,
         nameConfiguration = "ad",
+        uriConfigurations = var.uri-configurations,
         password = var.password 
       })
   }
@@ -168,6 +169,7 @@ resource "google_compute_instance" "jumpy" {
       nameHost = "jumpy", 
       nameDomain = var.name-domain,
       nameConfiguration = "jumpy",
+      uriConfigurations = var.uri-configurations,
       password = var.password 
     })
   }
