@@ -16,7 +16,12 @@ configuration ConfigurationWorkload
         ComputerManagementDsc, xActiveDirectory;
 
     $features = @(
-        "RSAT-ADDS"
+        "NET-Framework-Features",
+        "RSAT-Clustering",
+        "RSAT-Storage-Replica",
+        "RSAT-ADDS",
+        "RSAT-DNS-Server",
+        "RSAT-File-Services"
     );
 
     $rules = @(
