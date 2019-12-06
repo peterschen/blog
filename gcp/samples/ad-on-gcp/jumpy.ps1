@@ -61,12 +61,12 @@ configuration ConfigurationWorkload
             }
         }
 
-        WaitForADDomain "WFAD"
+        xWaitForADDomain "WFAD"
         {
             DomainName  = $DomainName
-            WaitTimeout = 300
-            Restart = 2
-            PsDscRunAsCredential = $domainCredential
+            RetryIntervalSec = 300
+            RebootRetryCount = 2
+            DomainUserCredential = $domainCredential
         }
 
         Computer "JoinDomain"
@@ -74,7 +74,7 @@ configuration ConfigurationWorkload
             Name = $Node.NodeName
             DomainName = $DomainName
             Credential = $domainCredential
-            DependsOn = "[WaitForADDomain]WFAD"
+            DependsOn = "[xWaitForADDomain]WFAD"
         }
 
         Group "G-Administrators"
