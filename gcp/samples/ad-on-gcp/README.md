@@ -41,7 +41,7 @@ Additionally the deployment will enable the neccessary APIs required to deploy t
 
 ## Using the environment ##
 
-Once the deployment has completed it takes about 10 minutes for the configuration of Active Directory to complete.
+Once the deployment has completed it takes about 15 minutes for the configuration of Active Directory to complete. The deployment itself takes about 5 minutes where the majority of the time is spent waiting for the necessary APIs to be enabled.
 
 To connect to the environment you can make use of [Identity Aware TCP forwarding](https://cloud.google.com/iap/docs/using-tcp-forwarding) to establish a tunnel from your machine into the environment to connect to RDP. Firewall rules to allow IAP TCP forwarding ingress are automatically deployed as part of template.
 
