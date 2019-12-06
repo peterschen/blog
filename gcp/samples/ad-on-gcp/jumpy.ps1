@@ -13,7 +13,7 @@ configuration ConfigurationWorkload
     );
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration, 
-        ComputerManagementDsc;
+        ComputerManagementDsc, xActiveDirectory;
 
     $features = @(
         "RSAT-ADDS"
