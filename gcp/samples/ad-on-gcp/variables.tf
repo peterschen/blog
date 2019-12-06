@@ -2,11 +2,11 @@ variable "project" {
 }
 
 variable "region" {
-  default = "europe-west3"
+  default = "europe-west1"
 }
 
 variable "zone" {
-  default = "europe-west3-a"
+  default = "europe-west1-c"
 }
 
 variable "name-sample" {
