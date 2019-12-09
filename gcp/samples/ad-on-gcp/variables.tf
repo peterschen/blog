@@ -9,10 +9,6 @@ variable "zone" {
   default = "europe-west1-c"
 }
 
-variable "name-sample" {
-  default = "ad-on-gce"
-}
-
 variable "name-domain" {
 }
 

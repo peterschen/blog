@@ -13,6 +13,7 @@ provider "google-beta" {
 }
 
 locals {
+  name-sample = "ad-on-gce"
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
   network-prefix = "10.10.0"
   network-mask = "24"
@@ -30,7 +31,7 @@ resource "google_project_service" "apis" {
 }
 
 resource "google_compute_network" "network" {
-  name                    = "${var.name-sample}"
+  name                    = "${local.name-sample}"
   auto_create_subnetworks = false
 
   depends_on = ["google_project_service.apis"]
@@ -148,7 +149,7 @@ resource "google_compute_instance" "dc" {
    name         = "dc"
    machine_type = "n1-standard-2"
 
-  tags = ["sample-${var.name-sample}-dc", "rdp", "dns"]
+  tags = ["sample-${local.name-sample}-dc", "rdp", "dns"]
 
   boot_disk {
     initialize_params {
@@ -163,7 +164,7 @@ resource "google_compute_instance" "dc" {
   }
 
   metadata = {
-    sample                        = "${var.name-sample}"
+    sample                        = "${local.name-sample}"
     type                          = "dc"
     sysprep-specialize-script-ps1 = templatefile("specialize.ps1", { 
         nameHost = "dc", 
@@ -181,7 +182,7 @@ resource "google_compute_instance" "jumpy" {
   name         = "jumpy"
   machine_type = "n1-standard-1"
 
-  tags = ["sample-${var.name-sample}-jumpy", "rdp"]
+  tags = ["sample-${local.name-sample}-jumpy", "rdp"]
 
   boot_disk {
     initialize_params {
@@ -196,7 +197,7 @@ resource "google_compute_instance" "jumpy" {
   }
 
   metadata = {
-    sample                        = "${var.name-sample}"
+    sample                        = "${local.name-sample}"
     type                          = "jumpy"
     sysprep-specialize-script-ps1 = templatefile("specialize.ps1", { 
       nameHost = "jumpy", 
