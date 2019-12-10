@@ -166,7 +166,7 @@ resource "google_compute_instance" "dc" {
   metadata = {
     sample                        = "${local.name-sample}"
     type                          = "dc"
-    sysprep-specialize-script-ps1 = templatefile("specialize.ps1", { 
+    sysprep-specialize-script-ps1 = templatefile("${path.module}/specialize.ps1", { 
         nameHost = "dc", 
         nameDomain = var.name-domain,
         nameConfiguration = "ad",
@@ -199,7 +199,7 @@ resource "google_compute_instance" "jumpy" {
   metadata = {
     sample                        = "${local.name-sample}"
     type                          = "jumpy"
-    sysprep-specialize-script-ps1 = templatefile("specialize.ps1", { 
+    sysprep-specialize-script-ps1 = templatefile("${path.module}/specialize.ps1", { 
       nameHost = "jumpy", 
       nameDomain = var.name-domain,
       nameConfiguration = "jumpy",
