@@ -129,22 +129,6 @@ resource "google_dns_managed_zone" "ad-forward" {
   depends_on = ["google_project_service.apis"]
 }
 
-# resource "google_dns_managed_zone" "ad-reverse" {
-#   provider = "google-beta"
-#   name        = "ad-reverse"
-#   dns_name    = "10.in-addr.arpa."
-
-#   visibility = "private"
-
-#   private_visibility_config {
-#     networks {
-#       network_url = google_compute_network.network.self_link
-#     }
-#   }
-
-#   depends_on = ["google_project_service.apis"]
-# }
-
 resource "google_compute_instance" "dc" {
    name         = "dc"
    machine_type = "n1-standard-2"
@@ -210,23 +194,3 @@ resource "google_compute_instance" "jumpy" {
 
   depends_on = ["google_project_service.apis"]
 }
-
-# resource "google_dns_record_set" "dc" {
-#   name = "${join(".", reverse(split(".", google_compute_instance.dc.network_interface[0].network_ip)))}.in-addr.arpa."
-#   type = "PTR"
-#   ttl  = 60
-
-#   managed_zone = google_dns_managed_zone.ad-reverse.name
-
-#   rrdatas = ["dc.${var.name-domain}."]
-# }
-
-# resource "google_dns_record_set" "jumpy" {
-#   name = "${join(".", reverse(split(".", google_compute_instance.jumpy.network_interface[0].network_ip)))}.in-addr.arpa."
-#   type = "PTR"
-#   ttl  = 60
-
-#   managed_zone = google_dns_managed_zone.ad-reverse.name
-
-#   rrdatas = ["jumpy.${var.name-domain}."]
-# }
