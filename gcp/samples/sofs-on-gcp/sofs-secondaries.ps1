@@ -13,9 +13,10 @@ configuration ConfigurationWorkload
     );
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration, 
-        ComputerManagementDsc, xActiveDirectory;
+        ComputerManagementDsc, xActiveDirectory, xFailOverCluster;
 
     $features = @(
+        "Failover-clustering"
     );
 
     $rules = @(
@@ -98,6 +99,21 @@ configuration ConfigurationWorkload
             Credential = $domainCredential
             MembersToInclude = "$DomainName\g-RemoteManagementUsers"
             DependsOn = "[Computer]JoinDomain"
+        }
+
+        xWaitForCluster "WFC-sofs-cl"
+        {
+            Name = "sofs-cl"
+            RetryIntervalSec = 10
+            RetryCount = 60
+            DependsOn = '[WindowsFeature]WF-Failover-clustering'
+        }
+
+        xCluster JoinSecondNodeToCluster
+        {
+            Name = "sofs-cl"
+            DomainAdministratorCredential = $domainCredential
+            DependsOn = '[xWaitForCluster]WFC-sofs-cl'
         }
     }
 }

@@ -25,11 +25,11 @@ module "ad-on-gcp" {
   password = var.password
 }
 
-resource "google_compute_instance" "sofs1" {
-   name         = "sofs1"
+resource "google_compute_instance" "sofs-primary" {
+   name         = "sofs-1"
    machine_type = "n1-standard-2"
 
-  tags = ["sample-${local.name-sample}-sofs", "rdp"]
+  tags = ["sample-${local.name-sample}-sofs-1", "rdp"]
 
   boot_disk {
     initialize_params {
@@ -45,14 +45,45 @@ resource "google_compute_instance" "sofs1" {
   metadata = {
     sample                        = local.name-sample
     type                          = "sofs"
-    sysprep-specialize-script-ps1 = templatefile("specialize.ps1", { 
-        nameHost = "sofs1", 
+    sysprep-specialize-script-ps1 = templatefile("${module.ad-on-gcp.path-module}/specialize.ps1", { 
+        nameHost = "sofs-1", 
         nameDomain = var.name-domain,
-        nameConfiguration = "sofs",
+        nameConfiguration = "sofs-primary",
+        uriMeta = var.uri-meta,
         uriConfigurations = var.uri-configurations,
         password = var.password 
       })
   }
+}
 
-  depends_on = ["module.ad-on-gcp"]
+resource "google_compute_instance" "sofs-secondaries" {
+   count = 2
+   name         = "sofs-${count.index + 2}"
+   machine_type = "n1-standard-2"
+
+  tags = ["sample-${local.name-sample}-sofs-${count.index + 2}", "rdp"]
+
+  boot_disk {
+    initialize_params {
+      image = "windows-cloud/windows-2019"
+    }
+  }
+
+  network_interface {
+    network = module.ad-on-gcp.network
+    subnetwork = module.ad-on-gcp.subnet
+  }
+
+  metadata = {
+    sample                        = local.name-sample
+    type                          = "sofs"
+    sysprep-specialize-script-ps1 = templatefile("${module.ad-on-gcp.path-module}/specialize.ps1", { 
+        nameHost = "sofs-${count.index + 2}", 
+        nameDomain = var.name-domain,
+        nameConfiguration = "sofs-secondaries",
+        uriMeta = var.uri-meta,
+        uriConfigurations = var.uri-configurations,
+        password = var.password 
+      })
+  }
 }
