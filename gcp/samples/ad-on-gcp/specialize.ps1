@@ -49,6 +49,11 @@ $modules = @(
         Name = "xDnsServer"
         Version = "1.13.0.0"
         Uri = "https://github.com/dsccommunity/xDnsServer/archive/1.13.0.0-PSGallery.zip"
+    },
+    @{
+        Name = "xFailOverCluster"
+        Version = "1.12.0.0"
+        Uri = "https://github.com/dsccommunity/xFailOverCluster/archive/1.12.0.0-PSGallery.zip"
     }
 );
 
