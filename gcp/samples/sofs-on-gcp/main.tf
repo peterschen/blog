@@ -86,4 +86,6 @@ resource "google_compute_instance" "sofs-secondaries" {
         password = var.password 
       })
   }
+
+  depends_on = [google_compute_instance.sofs-primary]
 }
