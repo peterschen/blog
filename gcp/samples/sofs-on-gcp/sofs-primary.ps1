@@ -101,11 +101,11 @@ configuration ConfigurationWorkload
             DependsOn = "[Computer]JoinDomain"
         }
 
-        xCluster CreateCluster
-        {
-            Name = 'sofs-cl'
-            DomainAdministratorCredential = $domainCredential
-            DependsOn = '[WindowsFeature]WF-Failover-clustering'
-        }
+        # xCluster CreateCluster
+        # {
+        #     Name = 'sofs-cl'
+        #     DomainAdministratorCredential = $domainCredential
+        #     DependsOn = '[WindowsFeature]WF-Failover-clustering'
+        # }
     }
 }

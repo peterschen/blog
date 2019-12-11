@@ -101,19 +101,19 @@ configuration ConfigurationWorkload
             DependsOn = "[Computer]JoinDomain"
         }
 
-        xWaitForCluster "WFC-sofs-cl"
-        {
-            Name = "sofs-cl"
-            RetryIntervalSec = 10
-            RetryCount = 60
-            DependsOn = '[WindowsFeature]WF-Failover-clustering'
-        }
+        # xWaitForCluster "WFC-sofs-cl"
+        # {
+        #     Name = "sofs-cl"
+        #     RetryIntervalSec = 10
+        #     RetryCount = 60
+        #     DependsOn = '[WindowsFeature]WF-Failover-clustering'
+        # }
 
-        xCluster JoinSecondNodeToCluster
-        {
-            Name = "sofs-cl"
-            DomainAdministratorCredential = $domainCredential
-            DependsOn = '[xWaitForCluster]WFC-sofs-cl'
-        }
+        # xCluster JoinSecondNodeToCluster
+        # {
+        #     Name = "sofs-cl"
+        #     DomainAdministratorCredential = $domainCredential
+        #     DependsOn = '[xWaitForCluster]WFC-sofs-cl'
+        # }
     }
 }
