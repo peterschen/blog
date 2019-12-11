@@ -16,7 +16,9 @@ configuration ConfigurationWorkload
         ComputerManagementDsc, xActiveDirectory, xFailOverCluster;
 
     $features = @(
-        "Failover-clustering"
+        "Failover-clustering",
+        "FS-FileServer",
+        "Storage-Replica"
     );
 
     $rules = @(
