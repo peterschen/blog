@@ -12,7 +12,7 @@ provider "google-beta" {
 
 locals {
   name-sample = "sap-on-gce"
-  apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
+  apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com"]
   network-names = ["dmz", "sap"]
   network-prefixes = ["10.128.0.0", "10.132.0.0"]
   network-mask = "20"
@@ -101,4 +101,34 @@ resource "google_compute_firewall" "allow-ssh-gcp" {
 
   source_ranges = ["35.235.240.0/20"]
   target_tags = ["ssh"]
+}
+
+module "web-dispatcher" {
+  source = "./modules/web-dispatcher"
+  project = var.project
+  region = var.region
+  zones = var.zones
+  name-sample = local.name-sample
+  name-network = google_compute_network.network.name
+  name-subnet = google_compute_subnetwork.subnets[0].name
+}
+
+module "jumpbox-ssh" {
+  source = "./modules/jumpbox-ssh"
+  project = var.project
+  region = var.region
+  zones = var.zones
+  name-sample = local.name-sample
+  name-network = google_compute_network.network.name
+  name-subnet = google_compute_subnetwork.subnets[0].name
+}
+
+module "jumpbox-rdp" {
+  source = "./modules/jumpbox-rdp"
+  project = var.project
+  region = var.region
+  zones = var.zones
+  name-sample = local.name-sample
+  name-network = google_compute_network.network.name
+  name-subnet = google_compute_subnetwork.subnets[0].name
 }
