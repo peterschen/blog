@@ -196,10 +196,10 @@ configuration ConfigurationWorkload
 
             xADDomainController 'ADC-dc-1-DC'
             {
-                DomainName = 'contoso.com'
+                DomainName = $DomainName
                 DomainAdministratorCredential = $domainCredential
                 SafemodeAdministratorPassword = $domainCredential
-                DependsOn = '[xWaitForADDomain]WFAD-dc-1-FirstDC'
+                DependsOn = "[xWaitForADDomain]WFAD-dc-1-FirstDC"
             }
 
             $builtinGroups | ForEach-Object {
