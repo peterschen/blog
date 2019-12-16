@@ -132,7 +132,7 @@ configuration ConfigurationWorkload
                 Name = "$($Parameters.networkRange)"
                 Site = $Parameters.zone
                 Location = "GCP"
-                DependsOn = "[xADReplicationSubnet]ReplicationSite-$($Parameters.zone)"
+                DependsOn = "[xADReplicationSite]ReplicationSite-$($Parameters.zone)"
             }
 
             $ous | ForEach-Object {
@@ -228,7 +228,7 @@ configuration ConfigurationWorkload
                 Name = "$($Parameters.networkRange)"
                 Site = $Parameters.zone
                 Location = "GCP"
-                DependsOn = "[xADReplicationSubnet]ReplicationSite-$($Parameters.zone)"
+                DependsOn = "[xADReplicationSite]ReplicationSite-$($Parameters.zone)"
             }
 
             $builtinGroups | ForEach-Object {
