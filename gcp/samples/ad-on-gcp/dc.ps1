@@ -99,7 +99,7 @@ configuration ConfigurationWorkload
             }
         }
 
-        if($Parameters["isFirst"] -eq $true)
+        if($Parameters.isFirst)
         {
             # This configuration is applied to the first DC
             # in the domain and will setup the AD, add some
