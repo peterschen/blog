@@ -9,7 +9,7 @@ configuration ConfigurationWorkload
         [string] $DomainName,
 
         [Parameter(Mandatory = $true)]
-        [securestring] $Password
+        [securestring] $Password,
 
         [Parameter(Mandatory = $false)]
         [PSCustomObject] $Parameters        
