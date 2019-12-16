@@ -5,7 +5,6 @@ $VerbosePreference = "SilentlyContinue";
 $DebugPreference = "SilentlyContinue";
 
 $nameHost = '${nameHost}';
-$nameDomain = '${nameDomain}';
 $nameConfiguration = '${nameConfiguration}';
 $uriMeta = '${uriMeta}';
 $uriConfigurations = '${uriConfigurations}';
@@ -96,7 +95,6 @@ ConfigurationMeta `
 
 ConfigurationWorkload `
     -ComputerName $nameHost `
-    -DomainName $nameDomain `
     -Password $passwordSecure `
     -Parameters $parametersConfiguration `
     -ConfigurationData @{AllNodes = @(@{NodeName = "$nameHost"; PSDscAllowPlainTextPassword = $true; PSDscAllowDomainUser = $true})} `
