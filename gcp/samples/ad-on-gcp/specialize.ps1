@@ -11,7 +11,7 @@ $uriMeta = '${uriMeta}';
 $uriConfigurations = '${uriConfigurations}';
 $password = '${password}';
 $passwordSecure = ConvertTo-SecureString -String $password -AsPlainText -Force;
-$parametersConfiguration = '${parametersConfiguration}';
+$parametersConfiguration = ConvertFrom-Json -InputObject '${parametersConfiguration}';
 
 # Enable administrator
 Set-LocalUser -Name Administrator -Password $passwordSecure;
@@ -98,7 +98,7 @@ ConfigurationWorkload `
     -ComputerName $nameHost `
     -DomainName $nameDomain `
     -Password $passwordSecure `
-    -ParametersJson $parametersConfiguration `
+    -Parameters $parametersConfiguration `
     -ConfigurationData @{AllNodes = @(@{NodeName = "$nameHost"; PSDscAllowPlainTextPassword = $true; PSDscAllowDomainUser = $true})} `
     -OutputPath $pathDscConfigurationOutput | Out-Null;
 

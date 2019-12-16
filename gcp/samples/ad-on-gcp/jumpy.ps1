@@ -10,6 +10,9 @@ configuration ConfigurationWorkload
 
         [Parameter(Mandatory = $true)]
         [securestring] $Password
+
+        [Parameter(Mandatory = $false)]
+        [PSCustomObject] $Parameters        
     );
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration, 

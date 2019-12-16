@@ -12,13 +12,11 @@ configuration ConfigurationWorkload
         [securestring] $Password,
 
         [Parameter(Mandatory = $false)]
-        [string] $ParametersJson
+        [PSCustomObject] $Parameters
     );
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration, 
         xActiveDirectory, xPSDesiredStateConfiguration, NetworkingDsc, xDnsServer;
-
-    $parameters = ConvertFrom-Json -InputObject $ParametersJson;
 
     $features = @(
         "AD-Domain-Services"
@@ -101,7 +99,7 @@ configuration ConfigurationWorkload
             }
         }
 
-        if($parameters["isFirst"])
+        if($Parameters["isFirst"] -eq $true)
         {
             # This configuration is applied to the first DC
             # in the domain and will setup the AD, add some
