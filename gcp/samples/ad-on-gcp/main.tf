@@ -166,7 +166,7 @@ resource "google_compute_instance" "dc" {
         parametersConfiguration = jsonencode({
           domainName = var.name-domain,
           zone = "${var.regions[count.index]}-${var.zones[count.index]}"
-          networkRange = local.network-range[count.index]
+          networkRange = local.network-ranges[count.index]
           isFirst = (count.index == 0)
         })
       })
