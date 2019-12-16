@@ -163,7 +163,10 @@ resource "google_compute_instance" "dc" {
         nameConfiguration = "dc",
         uriMeta = var.uri-meta,
         uriConfigurations = var.uri-configurations,
-        password = var.password 
+        password = var.password,
+        parametersConfiguration = jsonencode({
+          isFirst = (count.index == 0)
+        })
       })
   }
 
@@ -198,7 +201,8 @@ resource "google_compute_instance" "jumpy" {
       nameConfiguration = "jumpy",
       uriMeta = var.uri-meta,
       uriConfigurations = var.uri-configurations,
-      password = var.password 
+      password = var.password,
+      parametersConfiguration = jsonencode({})
     })
   }
 
