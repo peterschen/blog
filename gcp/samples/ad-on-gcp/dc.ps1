@@ -102,7 +102,7 @@ configuration ConfigurationWorkload
             # in the domain and will setup the AD, add some
             # user groups
 
-            xADDomain "AD-FirstDC"
+            xADDomain "AD-CreateDomain"
             {
                 DomainName = $Parameters.domainName
                 DomainAdministratorCredential = $domainCredential
@@ -110,13 +110,13 @@ configuration ConfigurationWorkload
                 DependsOn = "[WindowsFeature]WF-AD-Domain-Services"
             }
 
-            xWaitForADDomain "WFAD-dc-0-FirstDC"
+            xWaitForADDomain "WFAD-CreateDomain"
             {
                 DomainName = $Parameters.domainName
                 DomainUserCredential = $domainCredential
                 RetryCount = 30
                 RetryIntervalSec = 10
-                DependsOn = "[xADDomain]AD-FirstDC"
+                DependsOn = "[xADDomain]AD-CreateDomain"
             }
 
             xADReplicationSite "ReplicationSite-$($Parameters.zone)"
@@ -124,7 +124,7 @@ configuration ConfigurationWorkload
                 Ensure = "Present"
                 Name = "$($Parameters.zone)"
                 RenameDefaultFirstSiteName = $false
-                DependsOn = "[xADDomainController]ADC-dc-0-DC"
+                DependsOn = "[xWaitForADDomain]WFAD-CreateDomain"
             }
 
             xADReplicationSubnet "ReplicationSubnet-$($Parameters.networkRange)"
@@ -141,7 +141,7 @@ configuration ConfigurationWorkload
                     Name = $_.Name
                     Path = $_.Path
                     Ensure = "Present"
-                    DependsOn = "[xWaitForADDomain]WFAD-dc-0-FirstDC"
+                    DependsOn = "[xWaitForADDomain]WFAD-CreateDomain"
                 }
             }
 
@@ -190,7 +190,7 @@ configuration ConfigurationWorkload
             { 
                 Name = "dns-server-forwarders"
                 Forwarders = "8.8.8.8", "8.8.4.4"
-                DependsOn = "[xWaitForADDomain]WFAD-dc-0-FirstDC"
+                DependsOn = "[xWaitForADDomain]WFAD-CreateDomain"
             }
         }
         else
@@ -199,7 +199,7 @@ configuration ConfigurationWorkload
             # and will wait until the domain is created before
             # adding an additional DC.
 
-            xWaitForADDomain "WFAD-dc-1-FirstDC"
+            xWaitForADDomain "WFAD-CreateDomain"
             {
                 DomainName = $Parameters.domainName
                 DomainUserCredential = $domainCredential
@@ -207,12 +207,12 @@ configuration ConfigurationWorkload
                 RetryIntervalSec = 10
             }
 
-            xADDomainController 'ADC-dc-1-DC'
+            xADDomainController 'ADC-DC'
             {
                 DomainName = $Parameters.domainName
                 DomainAdministratorCredential = $domainCredential
                 SafemodeAdministratorPassword = $domainCredential
-                DependsOn = "[xWaitForADDomain]WFAD-dc-1-FirstDC"
+                DependsOn = "[xWaitForADDomain]WFAD-CreateDomain"
             }
 
             xADReplicationSite "ReplicationSite-$($Parameters.zone)"
@@ -220,7 +220,7 @@ configuration ConfigurationWorkload
                 Ensure = "Present"
                 Name = "$($Parameters.zone)"
                 RenameDefaultFirstSiteName = $false
-                DependsOn = "[xADDomainController]ADC-dc-1-DC"
+                DependsOn = "[xADDomainController]ADC-DC"
             }
 
             xADReplicationSubnet "ReplicationSubnet-$($Parameters.networkRange)"
@@ -232,7 +232,7 @@ configuration ConfigurationWorkload
             }
 
             $builtinGroups | ForEach-Object {
-                xADGroup "ADG-dc-1-$($_.Name)"
+                xADGroup "ADG-$($_.Name)"
                 {
                     GroupName = $_.Name
                     GroupScope = "DomainLocal"
@@ -240,7 +240,7 @@ configuration ConfigurationWorkload
                     Path = $_.Path
                     MembersToInclude = $_.Members
                     DomainController = "$($Node.NodeName).$($Parameters.domainName)"
-                    DependsOn = "[xADDomainController]ADC-dc-1-DC"
+                    DependsOn = "[xADDomainController]ADC-DC"
                 }
             }
         }
