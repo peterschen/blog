@@ -159,12 +159,14 @@ resource "google_compute_instance" "dc" {
     type = "dc"
     sysprep-specialize-script-ps1 = templatefile("${path.module}/specialize.ps1", { 
         nameHost = "dc-${count.index}", 
-        nameDomain = var.name-domain,
         nameConfiguration = "dc",
         uriMeta = var.uri-meta,
         uriConfigurations = var.uri-configurations,
         password = var.password,
         parametersConfiguration = jsonencode({
+          domainName = var.name-domain,
+          zone = "${var.regions[count.index]}-${var.zones[count.index]}"
+          networkRange = local.network-range[count.index]
           isFirst = (count.index == 0)
         })
       })
@@ -197,12 +199,13 @@ resource "google_compute_instance" "jumpy" {
     type = "jumpy"
     sysprep-specialize-script-ps1 = templatefile("${path.module}/specialize.ps1", { 
       nameHost = "jumpy", 
-      nameDomain = var.name-domain,
       nameConfiguration = "jumpy",
       uriMeta = var.uri-meta,
       uriConfigurations = var.uri-configurations,
       password = var.password,
-      parametersConfiguration = jsonencode({})
+      parametersConfiguration = jsonencode({
+        domainName = var.name-domain
+      })
     })
   }
 

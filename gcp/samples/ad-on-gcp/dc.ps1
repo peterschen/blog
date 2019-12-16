@@ -6,9 +6,6 @@ configuration ConfigurationWorkload
         [string] $ComputerName,
 
         [Parameter(Mandatory = $true)]
-        [string] $DomainName,
-
-        [Parameter(Mandatory = $true)]
         [securestring] $Password,
 
         [Parameter(Mandatory = $false)]
@@ -37,7 +34,7 @@ configuration ConfigurationWorkload
         "RemoteSvcAdmin-RPCSS-In-TCP"
     );
 
-    $components = $DomainName.Split(".");
+    $components = $Parameters.domainName.Split(".");
     $dc = "";
     foreach($component in $components)
     {
@@ -48,10 +45,10 @@ configuration ConfigurationWorkload
 
         $dc += "dc=$component";
     }
-    $ou = "ou=$DomainName,$dc"
+    $ou = "ou=$($Parameters.domainName),$dc"
     
     $ous = @(
-        @{Name = $DomainName; Path = $dc},
+        @{Name = $Parameters.domainName; Path = $dc},
         @{Name = "Groups"; Path = $ou},
         @{Name = "Accounts"; Path = $ou},
         @{Name = "Services"; Path = "ou=Accounts,$ou"},
@@ -107,7 +104,7 @@ configuration ConfigurationWorkload
 
             xADDomain "AD-FirstDC"
             {
-                DomainName = $DomainName
+                DomainName = $Parameters.domainName
                 DomainAdministratorCredential = $domainCredential
                 SafemodeAdministratorPassword = $domainCredential
                 DependsOn = "[WindowsFeature]WF-AD-Domain-Services"
@@ -115,11 +112,27 @@ configuration ConfigurationWorkload
 
             xWaitForADDomain "WFAD-dc-0-FirstDC"
             {
-                DomainName = $DomainName
+                DomainName = $Parameters.domainName
                 DomainUserCredential = $domainCredential
                 RetryCount = 30
                 RetryIntervalSec = 10
                 DependsOn = "[xADDomain]AD-FirstDC"
+            }
+
+            xADReplicationSite "ReplicationSite-$($Parameters.zone)"
+            {
+                Ensure = "Present"
+                Name = "$($Parameters.zone)"
+                RenameDefaultFirstSiteName = $false
+                DependsOn = "[xADDomainController]ADC-dc-0-DC"
+            }
+
+            xADReplicationSubnet "ReplicationSubnet-$($Parameters.networkRange)"
+            {
+                Name = "$($Parameters.networkRange)"
+                Site = $Parameters.zone
+                Location = "GCP"
+                DependsOn = "[xADReplicationSubnet]ReplicationSite-$($Parameters.zone)"
             }
 
             $ous | ForEach-Object {
@@ -135,8 +148,8 @@ configuration ConfigurationWorkload
             $users | ForEach-Object {
                 xADUser "ADU-$($_.Name)"
                 {
-                    DomainName = $DomainName
-                    UserPrincipalName = "$($_.Name)@$($DomainName)"
+                    DomainName = $Parameters.domainName
+                    UserPrincipalName = "$($_.Name)@$($Parameters.domainName)"
                     DomainAdministratorCredential = $domainCredential
                     UserName = $_.Name
                     Password = $domainCredential
@@ -155,7 +168,7 @@ configuration ConfigurationWorkload
                     Ensure = "Present"
                     Path = $_.Path
                     MembersToInclude = $_.Members
-                    DomainController = "$($Node.NodeName).$($DomainName)"
+                    DomainController = "$($Node.NodeName).$($Parameters.domainName)"
                     DependsOn = "[xADUser]ADU-johndoe"
                 }
             }
@@ -168,7 +181,7 @@ configuration ConfigurationWorkload
                     Ensure = "Present"
                     Path = $_.Path
                     MembersToInclude = $_.Members
-                    DomainController = "$($Node.NodeName).$($DomainName)"
+                    DomainController = "$($Node.NodeName).$($Parameters.domainName)"
                     DependsOn = "[xADGroup]ADG-g-LocalAdmins", "[xADGroup]ADG-g-RemoteDesktopUsers", "[xADGroup]ADG-g-RemoteManagementUsers"
                 }
             }
@@ -188,7 +201,7 @@ configuration ConfigurationWorkload
 
             xWaitForADDomain "WFAD-dc-1-FirstDC"
             {
-                DomainName = $DomainName
+                DomainName = $Parameters.domainName
                 DomainUserCredential = $domainCredential
                 RetryCount = 30
                 RetryIntervalSec = 10
@@ -196,10 +209,26 @@ configuration ConfigurationWorkload
 
             xADDomainController 'ADC-dc-1-DC'
             {
-                DomainName = $DomainName
+                DomainName = $Parameters.domainName
                 DomainAdministratorCredential = $domainCredential
                 SafemodeAdministratorPassword = $domainCredential
                 DependsOn = "[xWaitForADDomain]WFAD-dc-1-FirstDC"
+            }
+
+            xADReplicationSite "ReplicationSite-$($Parameters.zone)"
+            {
+                Ensure = "Present"
+                Name = "$($Parameters.zone)"
+                RenameDefaultFirstSiteName = $false
+                DependsOn = "[xADDomainController]ADC-dc-1-DC"
+            }
+
+            xADReplicationSubnet "ReplicationSubnet-$($Parameters.networkRange)"
+            {
+                Name = "$($Parameters.networkRange)"
+                Site = $Parameters.zone
+                Location = "GCP"
+                DependsOn = "[xADReplicationSubnet]ReplicationSite-$($Parameters.zone)"
             }
 
             $builtinGroups | ForEach-Object {
@@ -210,7 +239,7 @@ configuration ConfigurationWorkload
                     Ensure = "Present"
                     Path = $_.Path
                     MembersToInclude = $_.Members
-                    DomainController = "$($Node.NodeName).$($DomainName)"
+                    DomainController = "$($Node.NodeName).$($Parameters.domainName)"
                     DependsOn = "[xADDomainController]ADC-dc-1-DC"
                 }
             }

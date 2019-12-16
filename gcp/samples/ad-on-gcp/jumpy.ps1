@@ -6,9 +6,6 @@ configuration ConfigurationWorkload
         [string] $ComputerName,
 
         [Parameter(Mandatory = $true)]
-        [string] $DomainName,
-
-        [Parameter(Mandatory = $true)]
         [securestring] $Password,
 
         [Parameter(Mandatory = $false)]
@@ -43,10 +40,10 @@ configuration ConfigurationWorkload
     );
 
     $admins = @(
-        "$DomainName\g-LocalAdmins"
+        "$($Parameters.domainName)\g-LocalAdmins"
     );
 
-    $domainCredential = New-Object System.Management.Automation.PSCredential ("$DomainName\Administrator", $Password);
+    $domainCredential = New-Object System.Management.Automation.PSCredential ("$($Parameters.domainName)\Administrator", $Password);
 
     Node $ComputerName
     {
@@ -71,7 +68,7 @@ configuration ConfigurationWorkload
 
         xWaitForADDomain "WFAD"
         {
-            DomainName  = $DomainName
+            DomainName  = $Parameters.domainName
             RetryIntervalSec = 300
             RebootRetryCount = 2
             DomainUserCredential = $domainCredential
@@ -80,7 +77,7 @@ configuration ConfigurationWorkload
         Computer "JoinDomain"
         {
             Name = $Node.NodeName
-            DomainName = $DomainName
+            DomainName = $Parameters.domainName
             Credential = $domainCredential
             DependsOn = "[xWaitForADDomain]WFAD"
         }
@@ -97,7 +94,7 @@ configuration ConfigurationWorkload
         {
             GroupName = "Remote Desktop Users"
             Credential = $domainCredential
-            MembersToInclude = "$DomainName\g-RemoteDesktopUsers"
+            MembersToInclude = "$($Parameters.domainName)\g-RemoteDesktopUsers"
             DependsOn = "[Computer]JoinDomain"
         }
 
@@ -105,7 +102,7 @@ configuration ConfigurationWorkload
         {
             GroupName = "Remote Management Users"
             Credential = $domainCredential
-            MembersToInclude = "$DomainName\g-RemoteManagementUsers"
+            MembersToInclude = "$($Parameters.domainName)\g-RemoteManagementUsers"
             DependsOn = "[Computer]JoinDomain"
         }
     }
