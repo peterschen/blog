@@ -5,12 +5,12 @@ $VerbosePreference = "SilentlyContinue";
 $DebugPreference = "SilentlyContinue";
 
 $nameHost = '${nameHost}';
-$nameDomain = '${nameDomain}';
 $nameConfiguration = '${nameConfiguration}';
 $uriMeta = '${uriMeta}';
 $uriConfigurations = '${uriConfigurations}';
 $password = '${password}';
 $passwordSecure = ConvertTo-SecureString -String $password -AsPlainText -Force;
+$parametersConfiguration = ConvertFrom-Json -InputObject '${parametersConfiguration}';
 
 # Enable administrator
 Set-LocalUser -Name Administrator -Password $passwordSecure;
@@ -95,8 +95,8 @@ ConfigurationMeta `
 
 ConfigurationWorkload `
     -ComputerName $nameHost `
-    -DomainName $nameDomain `
     -Password $passwordSecure `
+    -Parameters $parametersConfiguration `
     -ConfigurationData @{AllNodes = @(@{NodeName = "$nameHost"; PSDscAllowPlainTextPassword = $true; PSDscAllowDomainUser = $true})} `
     -OutputPath $pathDscConfigurationOutput | Out-Null;
 
