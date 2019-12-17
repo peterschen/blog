@@ -6,10 +6,10 @@ configuration ConfigurationWorkload
         [string] $ComputerName,
 
         [Parameter(Mandatory = $true)]
-        [string] $DomainName,
+        [securestring] $Password,
 
-        [Parameter(Mandatory = $true)]
-        [securestring] $Password
+        [Parameter(Mandatory = $false)]
+        [PSCustomObject] $Parameters
     );
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration, 
@@ -37,10 +37,10 @@ configuration ConfigurationWorkload
     );
 
     $admins = @(
-        "$DomainName\g-LocalAdmins"
+        "$($Parameters.domainName)\g-LocalAdmins"
     );
 
-    $domainCredential = New-Object System.Management.Automation.PSCredential ("$DomainName\Administrator", $Password);
+    $credentialAdminDomain = New-Object System.Management.Automation.PSCredential ("$($Parameters.domainName)\Administrator", $Password);
 
     Node $ComputerName
     {
@@ -65,24 +65,24 @@ configuration ConfigurationWorkload
 
         xWaitForADDomain "WFAD"
         {
-            DomainName  = $DomainName
+            DomainName  = $($Parameters.domainName)
             RetryIntervalSec = 300
             RebootRetryCount = 2
-            DomainUserCredential = $domainCredential
+            DomainUserCredential = $credentialAdminDomain
         }
 
         Computer "JoinDomain"
         {
             Name = $Node.NodeName
-            DomainName = $DomainName
-            Credential = $domainCredential
+            DomainName = $($Parameters.domainName)
+            Credential = $credentialAdminDomain
             DependsOn = "[xWaitForADDomain]WFAD"
         }
 
         Group "G-Administrators"
         {
             GroupName = "Administrators"
-            Credential = $domainCredential
+            Credential = $credentialAdminDomain
             MembersToInclude = $admins
             DependsOn = "[Computer]JoinDomain"
         }
@@ -90,24 +90,44 @@ configuration ConfigurationWorkload
         Group "G-RemoteDesktopUsers"
         {
             GroupName = "Remote Desktop Users"
-            Credential = $domainCredential
-            MembersToInclude = "$DomainName\g-RemoteDesktopUsers"
+            Credential = $credentialAdminDomain
+            MembersToInclude = "$($Parameters.domainName)\g-RemoteDesktopUsers"
             DependsOn = "[Computer]JoinDomain"
         }
 
         Group "G-RemoteManagementUsers"
         {
             GroupName = "Remote Management Users"
-            Credential = $domainCredential
-            MembersToInclude = "$DomainName\g-RemoteManagementUsers"
+            Credential = $credentialAdminDomain
+            MembersToInclude = "$($Parameters.domainName)\g-RemoteManagementUsers"
             DependsOn = "[Computer]JoinDomain"
         }
 
-        # xCluster CreateCluster
-        # {
-        #     Name = 'sofs-cl'
-        #     DomainAdministratorCredential = $domainCredential
-        #     DependsOn = '[WindowsFeature]WF-Failover-clustering'
-        # }
+        if($Parameters.isFirst)
+        {
+            xCluster CreateCluster
+            {
+                Name = 'sofs-cl'
+                DomainAdministratorCredential = $credentialAdminDomain
+                DependsOn = '[WindowsFeature]WF-Failover-clustering'
+            }
+        }
+        else
+        {
+            xWaitForCluster "WFC-sofs-cl"
+            {
+                Name = "sofs-cl"
+                RetryIntervalSec = 10
+                RetryCount = 60
+                DependsOn = '[WindowsFeature]WF-Failover-clustering'
+            }
+
+            xCluster JoinSecondNodeToCluster
+            {
+                Name = "sofs-cl"
+                DomainAdministratorCredential = $domainCredential
+                DependsOn = '[xWaitForCluster]WFC-sofs-cl'
+            }
+        }
     }
 }
