@@ -1,12 +1,12 @@
 variable "project" {
 }
 
-variable "region" {
-  default = "europe-west1"
+variable "regions" {
+  type = "list"
 }
 
-variable "zone" {
-  default = "europe-west1-c"
+variable "zones" {
+  type = "list"
 }
 
 variable "name-domain" {

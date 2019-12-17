@@ -5,12 +5,12 @@ $VerbosePreference = "SilentlyContinue";
 $DebugPreference = "SilentlyContinue";
 
 $nameHost = '${nameHost}';
-$nameDomain = '${nameDomain}';
 $nameConfiguration = '${nameConfiguration}';
 $uriMeta = '${uriMeta}';
 $uriConfigurations = '${uriConfigurations}';
 $password = '${password}';
 $passwordSecure = ConvertTo-SecureString -String $password -AsPlainText -Force;
+$parametersConfiguration = ConvertFrom-Json -InputObject '${parametersConfiguration}';
 
 # Enable administrator
 Set-LocalUser -Name Administrator -Password $passwordSecure;
@@ -21,6 +21,11 @@ New-NetFirewallRule -DisplayName "Windows Remote Management (HTTP-In)" -Enabled 
 winrm set winrm/config/service/Auth '@{Basic="true"}' | Out-Null;
 winrm set winrm/config/service '@{AllowUnencrypted="true"}' | Out-Null;
 winrm set winrm/config/winrs '@{MaxMemoryPerShellMB="1024"}' | Out-Null;
+
+# Fix issues with downloading from GitHub due to deprecation of TLS 1.0 and 1.1
+# https://github.com/PowerShell/xPSDesiredStateConfiguration/issues/405#issuecomment-379932793
+New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\.NETFramework\v4.0.30319" -Name "SchUseStrongCrypto" -Value 1 | Out-Null;
+New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NETFramework\v4.0.30319" -Name "SchUseStrongCrypto" -Value 1 | Out-Null;
 
 # Install required PowerShell modules
 # Using PowerShellGet in specialize does not work as PSGallery PackageSource can't be registered
@@ -90,8 +95,8 @@ ConfigurationMeta `
 
 ConfigurationWorkload `
     -ComputerName $nameHost `
-    -DomainName $nameDomain `
     -Password $passwordSecure `
+    -Parameters $parametersConfiguration `
     -ConfigurationData @{AllNodes = @(@{NodeName = "$nameHost"; PSDscAllowPlainTextPassword = $true; PSDscAllowDomainUser = $true})} `
     -OutputPath $pathDscConfigurationOutput | Out-Null;
 
