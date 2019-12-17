@@ -73,7 +73,8 @@ configuration ConfigurationWorkload
         @{Name = "Remote Management Users"; Members =@("g-RemoteManagementUsers")}
     );
     
-    $domainCredential = New-Object System.Management.Automation.PSCredential ("Administrator", $Password);
+    $credentialAdmin = New-Object System.Management.Automation.PSCredential ("Administrator", $Password);
+    $cfedentialAdminDomain = New-Object System.Management.Automation.PSCredential ("$($Parameters.domainName)\Administrator", $Password);
 
     Node $ComputerName
     {
@@ -105,15 +106,15 @@ configuration ConfigurationWorkload
             xADDomain "AD-CreateDomain"
             {
                 DomainName = $Parameters.domainName
-                DomainAdministratorCredential = $domainCredential
-                SafemodeAdministratorPassword = $domainCredential
+                DomainAdministratorCredential = $credentialAdmin
+                SafemodeAdministratorPassword = $credentialAdmin
                 DependsOn = "[WindowsFeature]WF-AD-Domain-Services"
             }
 
             xWaitForADDomain "WFAD-CreateDomain"
             {
                 DomainName = $Parameters.domainName
-                DomainUserCredential = $domainCredential
+                DomainUserCredential = $credentialAdminDomain
                 RetryCount = 30
                 RetryIntervalSec = 10
                 DependsOn = "[xADDomain]AD-CreateDomain"
@@ -150,9 +151,9 @@ configuration ConfigurationWorkload
                 {
                     DomainName = $Parameters.domainName
                     UserPrincipalName = "$($_.Name)@$($Parameters.domainName)"
-                    DomainAdministratorCredential = $domainCredential
+                    DomainAdministratorCredential = $credentialAdminDomain
                     UserName = $_.Name
-                    Password = $domainCredential
+                    Password = $credentialAdmin
                     PasswordNeverExpires = $true
                     Ensure = "Present"
                     Path = $_.Path
@@ -202,7 +203,7 @@ configuration ConfigurationWorkload
             xWaitForADDomain "WFAD-CreateDomain"
             {
                 DomainName = $Parameters.domainName
-                DomainUserCredential = $domainCredential
+                DomainUserCredential = $credentialAdminDomain
                 RetryCount = 30
                 RetryIntervalSec = 10
             }
@@ -210,8 +211,8 @@ configuration ConfigurationWorkload
             xADDomainController 'ADC-DC'
             {
                 DomainName = $Parameters.domainName
-                DomainAdministratorCredential = $domainCredential
-                SafemodeAdministratorPassword = $domainCredential
+                DomainAdministratorCredential = $credentialAdminDomain
+                SafemodeAdministratorPassword = $credentialAdminDomain
                 DependsOn = "[xWaitForADDomain]WFAD-CreateDomain"
             }
 
