@@ -34,7 +34,7 @@ resource "google_compute_network" "network" {
 }
 
 resource "google_compute_subnetwork" "subnets" {
-  count = length(var.zones)
+  count = length(var.regions)
   region = var.regions[count.index]
   name = var.regions[count.index]
   ip_cidr_range = local.network-ranges[count.index]
