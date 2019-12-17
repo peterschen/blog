@@ -74,7 +74,7 @@ configuration ConfigurationWorkload
     );
     
     $credentialAdmin = New-Object System.Management.Automation.PSCredential ("Administrator", $Password);
-    $cfedentialAdminDomain = New-Object System.Management.Automation.PSCredential ("$($Parameters.domainName)\Administrator", $Password);
+    $credentialAdminDomain = New-Object System.Management.Automation.PSCredential ("$($Parameters.domainName)\Administrator", $Password);
 
     Node $ComputerName
     {
