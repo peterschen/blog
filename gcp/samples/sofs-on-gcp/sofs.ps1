@@ -67,7 +67,6 @@ configuration ConfigurationWorkload
         {
             Name = "GceClusterHelper"
             DisplayName = "GCE Cluster helper"
-            Group = "sofs-on-ad"
             Ensure = "Present"
             Enabled = "True"
             Direction = "InBound"
