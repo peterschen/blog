@@ -17,8 +17,6 @@ locals {
   ip-dcs = ["${local.network-prefixes[0]}.2", "${local.network-prefixes[1]}.2"]
 }
 
-data "google_client_config" "current" {}
-
 resource "google_project_service" "apis" {
   count = length(local.apis)
   
@@ -44,8 +42,8 @@ resource "google_compute_subnetwork" "subnets" {
 
 resource "google_compute_router" "router" {
   count = length(var.regions)
-  name = "router-${var.regions[count.index]}"
   region = var.regions[count.index]
+  name = "router-${var.regions[count.index]}"
   network = google_compute_network.network.self_link
 }
 
@@ -111,8 +109,8 @@ resource "google_compute_firewall" "allow-rdp-gcp" {
 
 resource "google_dns_managed_zone" "ad-dns-forward" {
   provider = "google-beta"
-  name        = "ad-dns-forward"
-  dns_name    = "${var.name-domain}."
+  name = "ad-dns-forward"
+  dns_name = "${var.name-domain}."
 
   visibility = "private"
 
