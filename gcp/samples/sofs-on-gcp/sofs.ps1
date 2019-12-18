@@ -63,6 +63,19 @@ configuration ConfigurationWorkload
             }
         }
 
+        Firewall "F-GceClusterHelper"
+        {
+            Name = "GceClusterHelper"
+            DisplayName = "GCE Cluster helper"
+            Group = "sofs-on-ad"
+            Ensure = "Present"
+            Enabled = "True"
+            Direction = "InBound"
+            LocalPort = ("59998")
+            Protocol = "TCP"
+            Description = "Enables GCP Internal Load Balancer to check which node in the cluster is active to route traffic to the cluster IP."
+        }
+
         xWaitForADDomain "WFAD"
         {
             DomainName  = $($Parameters.domainName)
