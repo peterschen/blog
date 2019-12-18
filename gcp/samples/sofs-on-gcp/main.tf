@@ -24,7 +24,7 @@ module "ad-on-gcp" {
 
 resource "google_compute_instance" "sofs" {
   count = local.count-instances
-  zone = "${var.regions[0]}-${var.zones[count.index]}"
+  zone = "${var.regions[0]}-${var.zones[0][count.index]}"
   name = "sofs-${count.index}"
   machine_type = "n1-standard-2"
 
