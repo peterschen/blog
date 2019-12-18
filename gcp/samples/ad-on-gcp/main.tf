@@ -134,7 +134,7 @@ resource "google_dns_managed_zone" "ad-dns-forward" {
 
 resource "google_compute_instance" "dc" {
   count = length(var.regions)
-  zone = "${var.regions[count.index]}-${var.zones[count.index]}"
+  zone = "${var.regions[count.index]}-${var.zones[count.index][0]}"
   name = "dc-${count.index}"
   machine_type = "n1-standard-1"
 
@@ -163,7 +163,7 @@ resource "google_compute_instance" "dc" {
         password = var.password,
         parametersConfiguration = jsonencode({
           domainName = var.name-domain,
-          zone = "${var.regions[count.index]}-${var.zones[count.index]}"
+          zone = "${var.regions[count.index]}-${var.zones[count.index][0]}"
           networkRange = local.network-ranges[count.index]
           isFirst = (count.index == 0)
         })
@@ -175,7 +175,7 @@ resource "google_compute_instance" "dc" {
 
 resource "google_compute_instance" "jumpy" {
   name = "jumpy"
-  zone = "${var.regions[0]}-${var.zones[0]}"
+  zone = "${var.regions[0]}-${var.zones[0][0]}"
   machine_type = "n1-standard-2"
 
   tags = ["sample-${local.name-sample}-jumpy", "rdp"]
