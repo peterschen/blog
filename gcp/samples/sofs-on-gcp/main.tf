@@ -10,10 +10,8 @@ provider "google-beta" {
 
 locals {
   name-sample = "sofs-on-gcp"
-  #count-instances = 3
+  count-instances = 3
 }
-
-data "google_client_config" "current" {}
 
 module "ad-on-gcp" {
   source = "github.com/peterschen/blog/gcp/samples/ad-on-gcp"
@@ -25,7 +23,7 @@ module "ad-on-gcp" {
 }
 
 resource "google_compute_instance" "sofs" {
-  count = 3
+  count = local.count-instances
   zone = "${var.regions[0]}-${var.zones[count.index]}"
   name = "sofs-${count.index}"
   machine_type = "n1-standard-2"
