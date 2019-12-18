@@ -27,6 +27,7 @@ resource "google_compute_address" "sofs-cl" {
   name = "sofs-cl"
   address_type = "INTERNAL"
   subnetwork = module.ad-on-gcp.subnets[0]
+  depends_on = [module.ad-on-gcp]
 }
 
 resource "google_compute_instance" "sofs" {
