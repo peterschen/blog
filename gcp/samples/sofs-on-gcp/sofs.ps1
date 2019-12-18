@@ -18,7 +18,9 @@ configuration ConfigurationWorkload
     $features = @(
         "Failover-clustering",
         "FS-FileServer",
-        "Storage-Replica"
+        "Storage-Replica",
+        "RSAT-Clustering-PowerShell",
+        "RSAT-Storage-Replica"
     );
 
     $rules = @(
