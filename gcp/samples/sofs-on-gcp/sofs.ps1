@@ -109,6 +109,7 @@ configuration ConfigurationWorkload
             {
                 Name = 'sofs-cl'
                 DomainAdministratorCredential = $credentialAdminDomain
+                StaticIPAddress = $Parameters.ipCluster
                 DependsOn = '[WindowsFeature]WF-Failover-clustering'
             }
         }
