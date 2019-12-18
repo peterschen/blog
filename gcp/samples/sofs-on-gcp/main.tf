@@ -22,6 +22,13 @@ module "ad-on-gcp" {
   password = var.password
 }
 
+resource "google_compute_address" "sofs-cl" {
+  region = var.regions[0]
+  name = "sofs-cl"
+  address_type = "INTERNAL"
+  subnetwork = module.ad-on-gcp.subnets[0]
+}
+
 resource "google_compute_instance" "sofs" {
   count = local.count-instances
   zone = "${var.regions[0]}-${var.zones[0][count.index]}"
@@ -52,8 +59,55 @@ resource "google_compute_instance" "sofs" {
         password = var.password,
         parametersConfiguration = jsonencode({
           domainName = var.name-domain,
+          ipCluster = google_compute_address.sofs-cl.address,
           isFirst = (count.index == 0)
         })
       })
   }
+}
+
+resource "google_compute_instance_group" "sofs" {
+  count = local.count-instances
+  zone = "${var.regions[0]}-${var.zones[0][count.index]}"
+  name = "sofs-${count.index}"
+  instances = [google_compute_instance.sofs[count.index].self_link]
+  network = module.ad-on-gcp.network
+}
+
+resource "google_compute_health_check" "sofs" {
+  name = "sofs"
+  timeout_sec = 1
+  check_interval_sec = 2
+
+  tcp_health_check {
+    port = 59998
+    request = google_compute_address.sofs-cl.address
+    response = "1"
+  }
+}
+
+resource "google_compute_region_backend_service" "sofs" {
+  region = var.regions[0]
+  name = "sofs"
+  health_checks = [google_compute_health_check.sofs.self_link]
+
+  dynamic "backend" {
+    for_each = google_compute_instance_group.sofs
+    content {
+      group = backend.value.self_link
+    }
+  }
+}
+
+resource "google_compute_forwarding_rule" "sofs" {
+  provider = "google-beta"
+  region = var.regions[0]
+  name = "sofs"
+  ip_address = google_compute_address.sofs-cl.address
+  load_balancing_scheme = "INTERNAL"
+  all_ports = true
+  allow_global_access = true
+  network = module.ad-on-gcp.network
+  subnetwork = module.ad-on-gcp.subnets[0]
+  backend_service = google_compute_region_backend_service.sofs.self_link
 }
