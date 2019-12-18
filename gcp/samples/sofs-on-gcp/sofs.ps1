@@ -13,7 +13,7 @@ configuration ConfigurationWorkload
     );
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration, 
-        ComputerManagementDsc, xActiveDirectory, xFailOverCluster;
+        ComputerManagementDsc, xActiveDirectory, NetworkingDsc, xFailOverCluster;
 
     $features = @(
         "Failover-clustering",
