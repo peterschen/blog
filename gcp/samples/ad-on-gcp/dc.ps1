@@ -151,7 +151,7 @@ configuration ConfigurationWorkload
                 {
                     DomainName = $Parameters.domainName
                     UserPrincipalName = "$($_.Name)@$($Parameters.domainName)"
-                    DomainAdministratorCredential = $credentialAdminDomain
+                    Credential = $credentialAdminDomain
                     UserName = $_.Name
                     Password = $credentialAdmin
                     PasswordNeverExpires = $true
