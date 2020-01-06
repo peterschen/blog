@@ -13,7 +13,7 @@ configuration ConfigurationWorkload
     );
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration, 
-        ComputerManagementDsc, xActiveDirectory, NetworkingDsc, xFailOverCluster;
+        ComputerManagementDsc, ActiveDirectoryDsc, NetworkingDsc, xFailOverCluster;
 
     $features = @(
         "Failover-clustering",
@@ -77,12 +77,11 @@ configuration ConfigurationWorkload
             Description = "Enables GCP Internal Load Balancer to check which node in the cluster is active to route traffic to the cluster IP."
         }
 
-        xWaitForADDomain "WFAD"
+        WaitForADDomain "WFAD"
         {
             DomainName  = $($Parameters.domainName)
-            RetryIntervalSec = 300
-            RebootRetryCount = 2
-            DomainUserCredential = $credentialAdminDomain
+            Credential = $credentialAdminDomain
+            RestartCount = 2
         }
 
         Computer "JoinDomain"
@@ -90,7 +89,7 @@ configuration ConfigurationWorkload
             Name = $Node.NodeName
             DomainName = $($Parameters.domainName)
             Credential = $credentialAdminDomain
-            DependsOn = "[xWaitForADDomain]WFAD"
+            DependsOn = "[WaitForADDomain]WFAD"
         }
 
         Group "G-Administrators"
