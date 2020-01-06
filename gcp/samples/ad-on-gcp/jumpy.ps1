@@ -66,7 +66,7 @@ configuration ConfigurationWorkload
             }
         }
 
-        xWaitForADDomain "WFAD"
+        WaitForADDomain "WFAD"
         {
             DomainName  = $Parameters.domainName
             RetryIntervalSec = 300
@@ -79,7 +79,7 @@ configuration ConfigurationWorkload
             Name = $Node.NodeName
             DomainName = $Parameters.domainName
             Credential = $domainCredential
-            DependsOn = "[xWaitForADDomain]WFAD"
+            DependsOn = "[WaitForADDomain]WFAD"
         }
 
         Group "G-Administrators"
