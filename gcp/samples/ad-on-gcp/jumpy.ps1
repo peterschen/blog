@@ -69,9 +69,8 @@ configuration ConfigurationWorkload
         WaitForADDomain "WFAD"
         {
             DomainName  = $Parameters.domainName
-            RetryIntervalSec = 300
-            RebootRetryCount = 2
-            DomainUserCredential = $domainCredential
+            Credential = $domainCredential
+            RestartCount = 2
         }
 
         Computer "JoinDomain"

@@ -114,9 +114,7 @@ configuration ConfigurationWorkload
             WaitForADDomain "WFAD-CreateDomain"
             {
                 DomainName = $Parameters.domainName
-                DomainUserCredential = $credentialAdminDomain
-                RetryCount = 30
-                RetryIntervalSec = 10
+                Credential = $credentialAdminDomain
                 DependsOn = "[ADDomain]AD-CreateDomain"
             }
 
@@ -203,9 +201,8 @@ configuration ConfigurationWorkload
             WaitForADDomain "WFAD-CreateDomain"
             {
                 DomainName = $Parameters.domainName
-                DomainUserCredential = $credentialAdminDomain
-                RetryCount = 30
-                RetryIntervalSec = 10
+                Credential = $credentialAdminDomain
+                RestartCount = 2
             }
 
             ADDomainController 'ADC-DC'
@@ -220,7 +217,7 @@ configuration ConfigurationWorkload
             {
                 Ensure = "Present"
                 Name = "$($Parameters.zone)"
-                RenameDefaultFirstSiteName = $false
+                RenameDefaultFirstSiteName = $Parameters.isFirst
                 DependsOn = "[ADDomainController]ADC-DC"
             }
 
