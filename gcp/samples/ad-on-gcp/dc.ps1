@@ -13,7 +13,7 @@ configuration ConfigurationWorkload
     );
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration, 
-        xActiveDirectory, xPSDesiredStateConfiguration, NetworkingDsc, xDnsServer;
+        ActiveDirectoryDsc, xPSDesiredStateConfiguration, NetworkingDsc, xDnsServer;
 
     $features = @(
         "AD-Domain-Services"
@@ -103,51 +103,51 @@ configuration ConfigurationWorkload
             # in the domain and will setup the AD, add some
             # user groups
 
-            xADDomain "AD-CreateDomain"
+            ADDomain "AD-CreateDomain"
             {
                 DomainName = $Parameters.domainName
-                DomainAdministratorCredential = $credentialAdmin
+                Credential = $credentialAdmin
                 SafemodeAdministratorPassword = $credentialAdmin
                 DependsOn = "[WindowsFeature]WF-AD-Domain-Services"
             }
 
-            xWaitForADDomain "WFAD-CreateDomain"
+            WaitForADDomain "WFAD-CreateDomain"
             {
                 DomainName = $Parameters.domainName
                 DomainUserCredential = $credentialAdminDomain
                 RetryCount = 30
                 RetryIntervalSec = 10
-                DependsOn = "[xADDomain]AD-CreateDomain"
+                DependsOn = "[ADDomain]AD-CreateDomain"
             }
 
-            xADReplicationSite "ReplicationSite-$($Parameters.zone)"
+            ADReplicationSite "ReplicationSite-$($Parameters.zone)"
             {
                 Ensure = "Present"
                 Name = "$($Parameters.zone)"
                 RenameDefaultFirstSiteName = $false
-                DependsOn = "[xWaitForADDomain]WFAD-CreateDomain"
+                DependsOn = "[WaitForADDomain]WFAD-CreateDomain"
             }
 
-            xADReplicationSubnet "ReplicationSubnet-$($Parameters.networkRange)"
+            ADReplicationSubnet "ReplicationSubnet-$($Parameters.networkRange)"
             {
                 Name = "$($Parameters.networkRange)"
                 Site = $Parameters.zone
                 Location = "GCP"
-                DependsOn = "[xADReplicationSite]ReplicationSite-$($Parameters.zone)"
+                DependsOn = "[ADReplicationSite]ReplicationSite-$($Parameters.zone)"
             }
 
             $ous | ForEach-Object {
-                xADOrganizationalUnit "ADOU-$($_.Name)"
+                ADOrganizationalUnit "ADOU-$($_.Name)"
                 {
                     Name = $_.Name
                     Path = $_.Path
                     Ensure = "Present"
-                    DependsOn = "[xWaitForADDomain]WFAD-CreateDomain"
+                    DependsOn = "[WaitForADDomain]WFAD-CreateDomain"
                 }
             }
 
             $users | ForEach-Object {
-                xADUser "ADU-$($_.Name)"
+                ADUser "ADU-$($_.Name)"
                 {
                     DomainName = $Parameters.domainName
                     UserPrincipalName = "$($_.Name)@$($Parameters.domainName)"
@@ -157,12 +157,12 @@ configuration ConfigurationWorkload
                     PasswordNeverExpires = $true
                     Ensure = "Present"
                     Path = $_.Path
-                    DependsOn = "[xADOrganizationalUnit]ADOU-Services","[xADOrganizationalUnit]ADOU-Users"
+                    DependsOn = "[ADOrganizationalUnit]ADOU-Services","[ADOrganizationalUnit]ADOU-Users"
                 }
             }
     
             $groups | ForEach-Object {
-                xADGroup "ADG-$($_.Name)"
+                ADGroup "ADG-$($_.Name)"
                 {
                     GroupName = $_.Name
                     GroupScope = "Global"
@@ -170,12 +170,12 @@ configuration ConfigurationWorkload
                     Path = $_.Path
                     MembersToInclude = $_.Members
                     DomainController = "$($Node.NodeName).$($Parameters.domainName)"
-                    DependsOn = "[xADUser]ADU-johndoe"
+                    DependsOn = "[ADUser]ADU-johndoe"
                 }
             }
 
             $builtinGroups | ForEach-Object {
-                xADGroup "ADG-dc-0-$($_.Name)"
+                ADGroup "ADG-dc-0-$($_.Name)"
                 {
                     GroupName = $_.Name
                     GroupScope = "DomainLocal"
@@ -183,7 +183,7 @@ configuration ConfigurationWorkload
                     Path = $_.Path
                     MembersToInclude = $_.Members
                     DomainController = "$($Node.NodeName).$($Parameters.domainName)"
-                    DependsOn = "[xADGroup]ADG-g-LocalAdmins", "[xADGroup]ADG-g-RemoteDesktopUsers", "[xADGroup]ADG-g-RemoteManagementUsers"
+                    DependsOn = "[ADGroup]ADG-g-LocalAdmins", "[ADGroup]ADG-g-RemoteDesktopUsers", "[ADGroup]ADG-g-RemoteManagementUsers"
                 }
             }
 
@@ -191,7 +191,7 @@ configuration ConfigurationWorkload
             { 
                 Name = "dns-server-forwarders"
                 Forwarders = "8.8.8.8", "8.8.4.4"
-                DependsOn = "[xWaitForADDomain]WFAD-CreateDomain"
+                DependsOn = "[WaitForADDomain]WFAD-CreateDomain"
             }
         }
         else
@@ -200,7 +200,7 @@ configuration ConfigurationWorkload
             # and will wait until the domain is created before
             # adding an additional DC.
 
-            xWaitForADDomain "WFAD-CreateDomain"
+            WaitForADDomain "WFAD-CreateDomain"
             {
                 DomainName = $Parameters.domainName
                 DomainUserCredential = $credentialAdminDomain
@@ -208,32 +208,32 @@ configuration ConfigurationWorkload
                 RetryIntervalSec = 10
             }
 
-            xADDomainController 'ADC-DC'
+            ADDomainController 'ADC-DC'
             {
                 DomainName = $Parameters.domainName
-                DomainAdministratorCredential = $credentialAdminDomain
+                Credential = $credentialAdminDomain
                 SafemodeAdministratorPassword = $credentialAdminDomain
-                DependsOn = "[xWaitForADDomain]WFAD-CreateDomain"
+                DependsOn = "[WaitForADDomain]WFAD-CreateDomain"
             }
 
-            xADReplicationSite "ReplicationSite-$($Parameters.zone)"
+            ADReplicationSite "ReplicationSite-$($Parameters.zone)"
             {
                 Ensure = "Present"
                 Name = "$($Parameters.zone)"
                 RenameDefaultFirstSiteName = $false
-                DependsOn = "[xADDomainController]ADC-DC"
+                DependsOn = "[ADDomainController]ADC-DC"
             }
 
-            xADReplicationSubnet "ReplicationSubnet-$($Parameters.networkRange)"
+            ADReplicationSubnet "ReplicationSubnet-$($Parameters.networkRange)"
             {
                 Name = "$($Parameters.networkRange)"
                 Site = $Parameters.zone
                 Location = "GCP"
-                DependsOn = "[xADReplicationSite]ReplicationSite-$($Parameters.zone)"
+                DependsOn = "[ADReplicationSite]ReplicationSite-$($Parameters.zone)"
             }
 
             $builtinGroups | ForEach-Object {
-                xADGroup "ADG-$($_.Name)"
+                ADGroup "ADG-$($_.Name)"
                 {
                     GroupName = $_.Name
                     GroupScope = "DomainLocal"
@@ -241,7 +241,7 @@ configuration ConfigurationWorkload
                     Path = $_.Path
                     MembersToInclude = $_.Members
                     DomainController = "$($Node.NodeName).$($Parameters.domainName)"
-                    DependsOn = "[xADDomainController]ADC-DC"
+                    DependsOn = "[ADDomainController]ADC-DC"
                 }
             }
         }

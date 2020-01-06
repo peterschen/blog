@@ -13,7 +13,7 @@ configuration ConfigurationWorkload
     );
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration, 
-        ComputerManagementDsc, xActiveDirectory;
+        ComputerManagementDsc, ActiveDirectoryDsc;
 
     $features = @(
         "NET-Framework-Features",

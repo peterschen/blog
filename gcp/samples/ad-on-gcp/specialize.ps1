@@ -31,19 +31,19 @@ New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NETFramework\v4.0.
 # Using PowerShellGet in specialize does not work as PSGallery PackageSource can't be registered
 $modules = @(
     @{
-        Name = "xActiveDirectory"
-        Version = "3.0.0.0"
-        Uri = "https://github.com/dsccommunity/ActiveDirectoryDsc/archive/3.0.0.0-PSGallery.zip"
+        Name = "ActiveDirectoryDsc"
+        Version = "4.2.0.0"
+        Uri = "https://github.com/dsccommunity/ActiveDirectoryDsc/archive/4.2.0.0.zip"
     },
     @{
         Name = "xPSDesiredStateConfiguration"
-        Version = "8.8.0.0"
-        Uri = "https://github.com/dsccommunity/xPSDesiredStateConfiguration/archive/8.8.0.0-PSGallery.zip"
+        Version = "8.10.0.0"
+        Uri = "https://github.com/dsccommunity/xPSDesiredStateConfiguration/archive/8.10.0.0.zip"
     },
     @{
         Name = "NetworkingDsc"
-        Version = "7.3.0.0"
-        Uri = "https://github.com/dsccommunity/NetworkingDsc/archive/7.3.0.0-PSGallery.zip"
+        Version = "7.4.0.0"
+        Uri = "https://github.com/dsccommunity/NetworkingDsc/archive/7.4.0.0.zip"
     },
     @{
         Name = "ComputerManagementDsc"
