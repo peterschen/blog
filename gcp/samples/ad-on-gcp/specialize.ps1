@@ -31,19 +31,19 @@ New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NETFramework\v4.0.
 # Using PowerShellGet in specialize does not work as PSGallery PackageSource can't be registered
 $modules = @(
     @{
-        Name = "xActiveDirectory"
-        Version = "3.0.0.0"
-        Uri = "https://github.com/dsccommunity/ActiveDirectoryDsc/archive/3.0.0.0-PSGallery.zip"
+        Name = "ActiveDirectoryDsc"
+        Version = "4.2.0.0"
+        Uri = "https://github.com/dsccommunity/ActiveDirectoryDsc/archive/v4.2.0.zip"
     },
     @{
         Name = "xPSDesiredStateConfiguration"
-        Version = "8.8.0.0"
-        Uri = "https://github.com/dsccommunity/xPSDesiredStateConfiguration/archive/8.8.0.0-PSGallery.zip"
+        Version = "8.10.0.0"
+        Uri = "https://github.com/dsccommunity/xPSDesiredStateConfiguration/archive/v8.10.0.zip"
     },
     @{
         Name = "NetworkingDsc"
-        Version = "7.3.0.0"
-        Uri = "https://github.com/dsccommunity/NetworkingDsc/archive/7.3.0.0-PSGallery.zip"
+        Version = "7.4.0.0"
+        Uri = "https://github.com/dsccommunity/NetworkingDsc/archive/v7.4.0.zip"
     },
     @{
         Name = "ComputerManagementDsc"
@@ -72,7 +72,7 @@ foreach($module in $modules)
     New-Item -Type Directory -Path $pathPsModule | Out-Null;
     Invoke-WebRequest -Uri $module.Uri -OutFile $pathPsModuleZip;
     Expand-Archive -Path $pathPsModuleZip -DestinationPath $pathPsModuleStaging;
-    Rename-Item -Path (Get-Item -Path (Join-Path -Path $pathPsModuleStaging -ChildPath "*-PSGallery")).FullName -NewName $module.Version;
+    Rename-Item -Path (Get-Item -Path (Join-Path -Path $pathPsModuleStaging -ChildPath "*")).FullName -NewName $module.Version;
     Move-Item -Path (Join-Path -Path $pathPsModuleStaging -ChildPath $module.Version) -Destination $pathPsModule;
 }
 
