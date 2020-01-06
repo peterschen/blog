@@ -131,6 +131,7 @@ configuration ConfigurationWorkload
             xWaitForCluster "WFC-sofs-cl"
             {
                 Name = "sofs-cl"
+                DomainAdministratorCredential = $credentialAdminDomain
                 RetryIntervalSec = 10
                 RetryCount = 60
                 DependsOn = '[WindowsFeature]WF-Failover-clustering'
