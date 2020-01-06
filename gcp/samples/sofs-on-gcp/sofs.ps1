@@ -131,7 +131,6 @@ configuration ConfigurationWorkload
             xWaitForCluster "WFC-sofs-cl"
             {
                 Name = "sofs-cl"
-                DomainAdministratorCredential = $credentialAdminDomain
                 RetryIntervalSec = 10
                 RetryCount = 60
                 DependsOn = '[WindowsFeature]WF-Failover-clustering'
@@ -140,7 +139,7 @@ configuration ConfigurationWorkload
             xCluster JoinSecondNodeToCluster
             {
                 Name = "sofs-cl"
-                DomainAdministratorCredential = $domainCredential
+                DomainAdministratorCredential = $credentialAdminDomain
                 DependsOn = '[xWaitForCluster]WFC-sofs-cl'
             }
         }
