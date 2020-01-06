@@ -33,17 +33,17 @@ $modules = @(
     @{
         Name = "ActiveDirectoryDsc"
         Version = "4.2.0.0"
-        Uri = "https://github.com/dsccommunity/ActiveDirectoryDsc/archive/4.2.0.0.zip"
+        Uri = "https://github.com/dsccommunity/ActiveDirectoryDsc/archive/v4.2.0.zip"
     },
     @{
         Name = "xPSDesiredStateConfiguration"
         Version = "8.10.0.0"
-        Uri = "https://github.com/dsccommunity/xPSDesiredStateConfiguration/archive/8.10.0.0.zip"
+        Uri = "https://github.com/dsccommunity/xPSDesiredStateConfiguration/archive/v8.10.0.zip"
     },
     @{
         Name = "NetworkingDsc"
         Version = "7.4.0.0"
-        Uri = "https://github.com/dsccommunity/NetworkingDsc/archive/7.4.0.0.zip"
+        Uri = "https://github.com/dsccommunity/NetworkingDsc/archive/v7.4.0.zip"
     },
     @{
         Name = "ComputerManagementDsc"
