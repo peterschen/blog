@@ -13,7 +13,7 @@ configuration ConfigurationWorkload
     );
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration, 
-        ComputerManagementDsc, xActiveDirectory;
+        ComputerManagementDsc, ActiveDirectoryDsc;
 
     $features = @(
         "NET-Framework-Features",
@@ -66,12 +66,11 @@ configuration ConfigurationWorkload
             }
         }
 
-        xWaitForADDomain "WFAD"
+        WaitForADDomain "WFAD"
         {
             DomainName  = $Parameters.domainName
-            RetryIntervalSec = 300
-            RebootRetryCount = 2
-            DomainUserCredential = $domainCredential
+            Credential = $domainCredential
+            RestartCount = 2
         }
 
         Computer "JoinDomain"
@@ -79,7 +78,7 @@ configuration ConfigurationWorkload
             Name = $Node.NodeName
             DomainName = $Parameters.domainName
             Credential = $domainCredential
-            DependsOn = "[xWaitForADDomain]WFAD"
+            DependsOn = "[WaitForADDomain]WFAD"
         }
 
         Group "G-Administrators"
