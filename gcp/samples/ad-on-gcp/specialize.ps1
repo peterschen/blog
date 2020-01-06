@@ -72,7 +72,7 @@ foreach($module in $modules)
     New-Item -Type Directory -Path $pathPsModule | Out-Null;
     Invoke-WebRequest -Uri $module.Uri -OutFile $pathPsModuleZip;
     Expand-Archive -Path $pathPsModuleZip -DestinationPath $pathPsModuleStaging;
-    Rename-Item -Path (Get-Item -Path (Join-Path -Path $pathPsModuleStaging -ChildPath "*-PSGallery")).FullName -NewName $module.Version;
+    Rename-Item -Path (Get-Item -Path (Join-Path -Path $pathPsModuleStaging -ChildPath "*")).FullName -NewName $module.Version;
     Move-Item -Path (Join-Path -Path $pathPsModuleStaging -ChildPath $module.Version) -Destination $pathPsModule;
 }
 
