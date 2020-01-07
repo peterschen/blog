@@ -22,6 +22,21 @@ module "ad-on-gcp" {
   password = var.password
 }
 
+resource "google_compute_firewall" "allow-lbhealthcheck-gcp" {
+  name    = "allow-lbhealthcheck-gcp"
+  network = module.ad-on-gcp.network
+  priority = 5000
+
+  allow {
+    protocol = "tcp"
+    ports    = ["59998"]
+  }
+
+  direction = "INGRESS"
+
+  source_ranges = ["35.191.0.0/16", "130.211.0.0/22"]
+}
+
 resource "google_compute_address" "sofs-cl" {
   region = var.regions[0]
   name = "sofs-cl"
@@ -52,6 +67,7 @@ resource "google_compute_instance" "sofs" {
   metadata = {
     sample = local.name-sample
     type = "sofs"
+    enable-wsfc = "true"
     sysprep-specialize-script-ps1 = templatefile("${module.ad-on-gcp.path-module}/specialize.ps1", { 
         nameHost = "sofs-${count.index}", 
         nameConfiguration = "sofs",
