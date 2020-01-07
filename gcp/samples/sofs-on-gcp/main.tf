@@ -11,6 +11,8 @@ provider "google-beta" {
 locals {
   name-sample = "sofs-on-gcp"
   count-instances = 3
+  count-disks = 4
+  size-disks = 100
 }
 
 module "ad-on-gcp" {
@@ -81,6 +83,20 @@ resource "google_compute_instance" "sofs" {
         })
       })
   }
+}
+
+resource "google_compute_disk" "sofs-disks" {
+  count = local.count-instances * local.count-disks
+  zone = google_compute_instance.sofs[floor(count.index / local.count-disks)].zone
+  name = "sofs-disk-${count.index}"
+  type = "pd-ssd"
+  size = local.size-disks
+}
+
+resource "google_compute_attached_disk" "sofs-disks" {
+  count = local.count-instances * local.count-disks
+  disk = google_compute_disk.sofs-disks[count.index].self_link
+  instance = google_compute_instance.sofs[floor(count.index / local.count-disks)].self_link
 }
 
 resource "google_compute_instance_group" "sofs" {
