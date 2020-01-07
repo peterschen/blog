@@ -120,10 +120,17 @@ configuration ConfigurationWorkload
         {
             xCluster CreateCluster
             {
-                Name = 'sofs-cl'
+                Name = "sofs-cl"
                 DomainAdministratorCredential = $credentialAdminDomain
                 StaticIPAddress = $Parameters.ipCluster
-                DependsOn = '[WindowsFeature]WF-Failover-clustering'
+                DependsOn = "[WindowsFeature]WF-Failover-clustering"
+            }
+
+            xClusterQuorum Quorum
+            {
+                Type = "NodeMajority"
+                IsSingleInstance = "Yes"
+                DependsOn = "[xCluster]CreateCluster"
             }
         }
         else
@@ -133,14 +140,14 @@ configuration ConfigurationWorkload
                 Name = "sofs-cl"
                 RetryIntervalSec = 10
                 RetryCount = 60
-                DependsOn = '[WindowsFeature]WF-Failover-clustering'
+                DependsOn = "[WindowsFeature]WF-Failover-clustering"
             }
 
             xCluster JoinSecondNodeToCluster
             {
                 Name = "sofs-cl"
                 DomainAdministratorCredential = $credentialAdminDomain
-                DependsOn = '[xWaitForCluster]WFC-sofs-cl'
+                DependsOn = "[xWaitForCluster]WFC-sofs-cl"
             }
         }
     }
