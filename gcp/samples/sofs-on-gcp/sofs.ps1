@@ -118,7 +118,7 @@ configuration ConfigurationWorkload
 
         if($Parameters.isFirst)
         {
-            xCluster CreateCluster
+            xCluster "CreateCluster"
             {
                 Name = "sofs-cl"
                 DomainAdministratorCredential = $credentialAdminDomain
@@ -126,11 +126,42 @@ configuration ConfigurationWorkload
                 DependsOn = "[WindowsFeature]WF-Failover-clustering"
             }
 
-            xClusterQuorum Quorum
+            xClusterQuorum "Quorum"
             {
                 Type = "NodeMajority"
                 IsSingleInstance = "Yes"
                 DependsOn = "[xCluster]CreateCluster"
+            }
+
+            xClusterProperty "IncreaseClusterTimeouts"
+            {
+                SameSubnetDelay = 2000
+                SameSubnetThreshold = 15
+                CrossSubnetDelay = 3000
+                CrossSubnetThreshold = 15
+                DependsOn = "[xCluster]CreateCluster"
+            }
+
+            $nodes = @();
+            for($i = 1; $i -gt $Parameters.nodeCount; $i++) {
+                $nodes += "$($Parameters.nodePrefix)-$i";
+            };
+
+            WaitForAll "ClusterJoin"
+            {
+                ResourceName = "[xCluster]JoinNodeToCluster"
+                NodeName = $nodes
+                RetryIntervalSec = 20
+                RetryCount = 60
+                DependsOn = "[xCluster]CreateCluster"
+            }
+
+            Script EnableS2D
+            {
+                SetScript = "Enable-ClusterS2D -Confirm:0;"
+                TestScript = "(Get-ClusterS2D).S2DEnabled -eq 1"
+                GetScript = "@{Ensure = if ((Get-ClusterS2D).S2DEnabled -eq 1) {'Present'} else {'Absent'}}"
+                DependsOn = "[WaitForAll]ClusterJoin"
             }
         }
         else
@@ -143,7 +174,7 @@ configuration ConfigurationWorkload
                 DependsOn = "[WindowsFeature]WF-Failover-clustering"
             }
 
-            xCluster JoinSecondNodeToCluster
+            xCluster "JoinNodeToCluster"
             {
                 Name = "sofs-cl"
                 DomainAdministratorCredential = $credentialAdminDomain

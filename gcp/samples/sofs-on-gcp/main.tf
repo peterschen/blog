@@ -78,6 +78,8 @@ resource "google_compute_instance" "sofs" {
         password = var.password,
         parametersConfiguration = jsonencode({
           domainName = var.name-domain,
+          nodePrefix = "sofs"
+          nodeCount = local.count-instances
           ipCluster = google_compute_address.sofs-cl.address,
           isFirst = (count.index == 0)
         })
