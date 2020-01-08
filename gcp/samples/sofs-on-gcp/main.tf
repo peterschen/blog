@@ -70,7 +70,7 @@ resource "google_compute_instance" "sofs" {
     sample = local.name-sample
     type = "sofs"
     enable-wsfc = "true"
-    sysprep-specialize-script-ps1 = templatefile("${module.ad-on-gcp.path-module}/specialize.ps1", { 
+    sysprep-specialize-script-ps1 = templatefile(module.ad-on-gcp.path-specialize, { 
         nameHost = "sofs-${count.index}", 
         nameConfiguration = "sofs",
         uriMeta = var.uri-meta,
