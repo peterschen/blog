@@ -10,7 +10,7 @@ provider "google-beta" {
 
 locals {
   name-sample = "sofs-on-gcp"
-  count-instances = 3
+  count-nodes = 3
   count-disks = 4
   size-disks = 100
 }
@@ -48,7 +48,7 @@ resource "google_compute_address" "sofs-cl" {
 }
 
 resource "google_compute_instance" "sofs" {
-  count = local.count-instances
+  count = local.count-nodes
   zone = "${var.regions[0]}-${var.zones[0][count.index]}"
   name = "sofs-${count.index}"
   machine_type = "n1-standard-2"
@@ -77,9 +77,10 @@ resource "google_compute_instance" "sofs" {
         uriConfigurations = var.uri-configurations,
         password = var.password,
         parametersConfiguration = jsonencode({
+          provisionCluster = var.provision-cluster
           domainName = var.name-domain,
           nodePrefix = "sofs"
-          nodeCount = local.count-instances
+          nodeCount = local.count-nodes
           ipCluster = google_compute_address.sofs-cl.address,
           isFirst = (count.index == 0)
         })
@@ -88,7 +89,7 @@ resource "google_compute_instance" "sofs" {
 }
 
 resource "google_compute_disk" "sofs-disks" {
-  count = local.count-instances * local.count-disks
+  count = local.count-nodes * local.count-disks
   zone = google_compute_instance.sofs[floor(count.index / local.count-disks)].zone
   name = "sofs-disk-${count.index}"
   type = "pd-ssd"
@@ -96,13 +97,13 @@ resource "google_compute_disk" "sofs-disks" {
 }
 
 resource "google_compute_attached_disk" "sofs-disks" {
-  count = local.count-instances * local.count-disks
+  count = local.count-nodes * local.count-disks
   disk = google_compute_disk.sofs-disks[count.index].self_link
   instance = google_compute_instance.sofs[floor(count.index / local.count-disks)].self_link
 }
 
 resource "google_compute_instance_group" "sofs" {
-  count = local.count-instances
+  count = local.count-nodes
   zone = "${var.regions[0]}-${var.zones[0][count.index]}"
   name = "sofs-${count.index}"
   instances = [google_compute_instance.sofs[count.index].self_link]
