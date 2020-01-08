@@ -2,6 +2,10 @@ output "path-module" {
   value = path.module
 }
 
+output "path-specialize" {
+  value = "${path.module}/specialize.ps1"
+}
+
 output "network" {
   value = google_compute_network.network.self_link
 }
