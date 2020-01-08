@@ -116,69 +116,72 @@ configuration ConfigurationWorkload
             DependsOn = "[Computer]JoinDomain"
         }
 
-        if($Parameters.isFirst)
+        if($Parameters.provisionCluster -ne $false)
         {
-            xCluster "CreateCluster"
+            if($Parameters.isFirst)
             {
-                Name = "sofs-cl"
-                DomainAdministratorCredential = $credentialAdminDomain
-                StaticIPAddress = $Parameters.ipCluster
-                DependsOn = "[WindowsFeature]WF-Failover-clustering"
-            }
+                xCluster "CreateCluster"
+                {
+                    Name = "sofs-cl"
+                    DomainAdministratorCredential = $credentialAdminDomain
+                    StaticIPAddress = $Parameters.ipCluster
+                    DependsOn = "[WindowsFeature]WF-Failover-clustering"
+                }
 
-            xClusterQuorum "Quorum"
-            {
-                Type = "NodeMajority"
-                IsSingleInstance = "Yes"
-                DependsOn = "[xCluster]CreateCluster"
-            }
+                xClusterQuorum "Quorum"
+                {
+                    Type = "NodeMajority"
+                    IsSingleInstance = "Yes"
+                    DependsOn = "[xCluster]CreateCluster"
+                }
 
-            xClusterProperty "IncreaseClusterTimeouts"
-            {
-                SameSubnetDelay = 2000
-                SameSubnetThreshold = 15
-                CrossSubnetDelay = 3000
-                CrossSubnetThreshold = 15
-                DependsOn = "[xCluster]CreateCluster"
-            }
+                xClusterProperty "IncreaseClusterTimeouts"
+                {
+                    SameSubnetDelay = 2000
+                    SameSubnetThreshold = 15
+                    CrossSubnetDelay = 3000
+                    CrossSubnetThreshold = 15
+                    DependsOn = "[xCluster]CreateCluster"
+                }
 
-            $nodes = @();
-            for($i = 1; $i -gt $Parameters.nodeCount; $i++) {
-                $nodes += "$($Parameters.nodePrefix)-$i";
-            };
+                $nodes = @();
+                for($i = 1; $i -gt $Parameters.nodeCount; $i++) {
+                    $nodes += "$($Parameters.nodePrefix)-$i";
+                };
 
-            WaitForAll "ClusterJoin"
-            {
-                ResourceName = "[xCluster]JoinNodeToCluster"
-                NodeName = $nodes
-                RetryIntervalSec = 20
-                RetryCount = 60
-                DependsOn = "[xCluster]CreateCluster"
-            }
+                WaitForAll "ClusterJoin"
+                {
+                    ResourceName = "[xCluster]JoinNodeToCluster"
+                    NodeName = $nodes
+                    RetryIntervalSec = 20
+                    RetryCount = 60
+                    DependsOn = "[xCluster]CreateCluster"
+                }
 
-            Script EnableS2D
-            {
-                SetScript = "Enable-ClusterS2D -Confirm:0;"
-                TestScript = "(Get-ClusterS2D).S2DEnabled -eq 1"
-                GetScript = "@{Ensure = if ((Get-ClusterS2D).S2DEnabled -eq 1) {'Present'} else {'Absent'}}"
-                DependsOn = "[WaitForAll]ClusterJoin"
+                Script EnableS2D
+                {
+                    SetScript = "Enable-ClusterS2D -Confirm:0;"
+                    TestScript = "(Get-ClusterS2D).S2DEnabled -eq 1"
+                    GetScript = "@{Ensure = if ((Get-ClusterS2D).S2DEnabled -eq 1) {'Present'} else {'Absent'}}"
+                    DependsOn = "[WaitForAll]ClusterJoin"
+                }
             }
-        }
-        else
-        {
-            xWaitForCluster "WFC-sofs-cl"
+            else
             {
-                Name = "sofs-cl"
-                RetryIntervalSec = 10
-                RetryCount = 60
-                DependsOn = "[WindowsFeature]WF-Failover-clustering"
-            }
+                xWaitForCluster "WFC-sofs-cl"
+                {
+                    Name = "sofs-cl"
+                    RetryIntervalSec = 10
+                    RetryCount = 60
+                    DependsOn = "[WindowsFeature]WF-Failover-clustering"
+                }
 
-            xCluster "JoinNodeToCluster"
-            {
-                Name = "sofs-cl"
-                DomainAdministratorCredential = $credentialAdminDomain
-                DependsOn = "[xWaitForCluster]WFC-sofs-cl"
+                xCluster "JoinNodeToCluster"
+                {
+                    Name = "sofs-cl"
+                    DomainAdministratorCredential = $credentialAdminDomain
+                    DependsOn = "[xWaitForCluster]WFC-sofs-cl"
+                }
             }
         }
     }
