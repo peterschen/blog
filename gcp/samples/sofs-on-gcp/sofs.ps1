@@ -137,6 +137,7 @@ configuration ConfigurationWorkload
 
                 xClusterProperty "IncreaseClusterTimeouts"
                 {
+                    Name = "sofs-cl"
                     SameSubnetDelay = 2000
                     SameSubnetThreshold = 15
                     CrossSubnetDelay = 3000
