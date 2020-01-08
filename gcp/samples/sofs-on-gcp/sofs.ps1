@@ -13,12 +13,14 @@ configuration ConfigurationWorkload
     );
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration, 
-        ComputerManagementDsc, xActiveDirectory, xFailOverCluster;
+        ComputerManagementDsc, ActiveDirectoryDsc, NetworkingDsc, xFailOverCluster;
 
     $features = @(
         "Failover-clustering",
         "FS-FileServer",
-        "Storage-Replica"
+        "Storage-Replica",
+        "RSAT-Clustering-PowerShell",
+        "RSAT-Storage-Replica"
     );
 
     $rules = @(
@@ -63,12 +65,23 @@ configuration ConfigurationWorkload
             }
         }
 
-        xWaitForADDomain "WFAD"
+        Firewall "F-GceClusterHelper"
+        {
+            Name = "GceClusterHelper"
+            DisplayName = "GCE Cluster helper"
+            Ensure = "Present"
+            Enabled = "True"
+            Direction = "InBound"
+            LocalPort = ("59998")
+            Protocol = "TCP"
+            Description = "Enables GCP Internal Load Balancer to check which node in the cluster is active to route traffic to the cluster IP."
+        }
+
+        WaitForADDomain "WFAD"
         {
             DomainName  = $($Parameters.domainName)
-            RetryIntervalSec = 300
-            RebootRetryCount = 2
-            DomainUserCredential = $credentialAdminDomain
+            Credential = $credentialAdminDomain
+            RestartCount = 2
         }
 
         Computer "JoinDomain"
@@ -76,7 +89,7 @@ configuration ConfigurationWorkload
             Name = $Node.NodeName
             DomainName = $($Parameters.domainName)
             Credential = $credentialAdminDomain
-            DependsOn = "[xWaitForADDomain]WFAD"
+            DependsOn = "[WaitForADDomain]WFAD"
         }
 
         Group "G-Administrators"
@@ -103,30 +116,72 @@ configuration ConfigurationWorkload
             DependsOn = "[Computer]JoinDomain"
         }
 
-        if($Parameters.isFirst)
+        if($Parameters.provisionCluster -ne $false)
         {
-            xCluster CreateCluster
+            if($Parameters.isFirst)
             {
-                Name = 'sofs-cl'
-                DomainAdministratorCredential = $credentialAdminDomain
-                DependsOn = '[WindowsFeature]WF-Failover-clustering'
-            }
-        }
-        else
-        {
-            xWaitForCluster "WFC-sofs-cl"
-            {
-                Name = "sofs-cl"
-                RetryIntervalSec = 10
-                RetryCount = 60
-                DependsOn = '[WindowsFeature]WF-Failover-clustering'
-            }
+                xCluster "CreateCluster"
+                {
+                    Name = "sofs-cl"
+                    DomainAdministratorCredential = $credentialAdminDomain
+                    StaticIPAddress = $Parameters.ipCluster
+                    DependsOn = "[WindowsFeature]WF-Failover-clustering"
+                }
 
-            xCluster JoinSecondNodeToCluster
+                xClusterQuorum "Quorum"
+                {
+                    Type = "NodeMajority"
+                    IsSingleInstance = "Yes"
+                    DependsOn = "[xCluster]CreateCluster"
+                }
+
+                xClusterProperty "IncreaseClusterTimeouts"
+                {
+                    SameSubnetDelay = 2000
+                    SameSubnetThreshold = 15
+                    CrossSubnetDelay = 3000
+                    CrossSubnetThreshold = 15
+                    DependsOn = "[xCluster]CreateCluster"
+                }
+
+                $nodes = @();
+                for($i = 1; $i -gt $Parameters.nodeCount; $i++) {
+                    $nodes += "$($Parameters.nodePrefix)-$i";
+                };
+
+                WaitForAll "ClusterJoin"
+                {
+                    ResourceName = "[xCluster]JoinNodeToCluster"
+                    NodeName = $nodes
+                    RetryIntervalSec = 20
+                    RetryCount = 60
+                    DependsOn = "[xCluster]CreateCluster"
+                }
+
+                Script EnableS2D
+                {
+                    SetScript = "Enable-ClusterS2D -Confirm:0;"
+                    TestScript = "(Get-ClusterS2D).S2DEnabled -eq 1"
+                    GetScript = "@{Ensure = if ((Get-ClusterS2D).S2DEnabled -eq 1) {'Present'} else {'Absent'}}"
+                    DependsOn = "[WaitForAll]ClusterJoin"
+                }
+            }
+            else
             {
-                Name = "sofs-cl"
-                DomainAdministratorCredential = $domainCredential
-                DependsOn = '[xWaitForCluster]WFC-sofs-cl'
+                xWaitForCluster "WFC-sofs-cl"
+                {
+                    Name = "sofs-cl"
+                    RetryIntervalSec = 10
+                    RetryCount = 60
+                    DependsOn = "[WindowsFeature]WF-Failover-clustering"
+                }
+
+                xCluster "JoinNodeToCluster"
+                {
+                    Name = "sofs-cl"
+                    DomainAdministratorCredential = $credentialAdminDomain
+                    DependsOn = "[xWaitForCluster]WFC-sofs-cl"
+                }
             }
         }
     }
