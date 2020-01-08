@@ -19,6 +19,7 @@ configuration ConfigurationWorkload
         "Failover-clustering",
         "FS-FileServer",
         "Storage-Replica",
+        "RSAT-Clustering-Mgmt",
         "RSAT-Clustering-PowerShell",
         "RSAT-Storage-Replica"
     );
