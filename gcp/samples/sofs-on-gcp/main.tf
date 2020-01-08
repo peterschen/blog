@@ -86,6 +86,10 @@ resource "google_compute_instance" "sofs" {
         })
       })
   }
+
+  lifecycle {
+    ignore_changes = [attached_disk]
+  }
 }
 
 resource "google_compute_disk" "sofs-disks" {
