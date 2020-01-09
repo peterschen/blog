@@ -16,12 +16,6 @@ $parametersConfiguration = ConvertFrom-Json -InputObject '${parametersConfigurat
 Set-LocalUser -Name Administrator -Password $passwordSecure;
 Enable-LocalUser -Name Administrator;
 
-# Enable WinRM
-New-NetFirewallRule -DisplayName "Windows Remote Management (HTTP-In)" -Enabled True -Protocol "tcp" -LocalPort 5985 | Out-Null;
-winrm set winrm/config/service/Auth '@{Basic="true"}' | Out-Null;
-winrm set winrm/config/service '@{AllowUnencrypted="true"}' | Out-Null;
-winrm set winrm/config/winrs '@{MaxMemoryPerShellMB="1024"}' | Out-Null;
-
 # Fix issues with downloading from GitHub due to deprecation of TLS 1.0 and 1.1
 # https://github.com/PowerShell/xPSDesiredStateConfiguration/issues/405#issuecomment-379932793
 New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\.NETFramework\v4.0.30319" -Name "SchUseStrongCrypto" -Value 1 | Out-Null;
