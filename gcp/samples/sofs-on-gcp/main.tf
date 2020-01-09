@@ -80,10 +80,17 @@ resource "google_compute_instance" "sofs" {
         parametersConfiguration = jsonencode({
           provisionCluster = var.provision-cluster
           domainName = var.name-domain,
-          nodePrefix = "sofs"
-          nodeCount = local.count-nodes
+          nodePrefix = "sofs",
+          nodeCount = local.count-nodes,
           ipCluster = google_compute_address.sofs-cl.address,
-          isFirst = (count.index == 0)
+          isFirst = (count.index == 0),
+          modulesDsc = [
+            {
+              Name = "xFailOverCluster",
+              Version = "1.13.0.0"
+              Uri = "https://github.com/dsccommunity/xFailOverCluster/archive/v1.13.0.zip"
+            }
+          ]
         })
       })
   }

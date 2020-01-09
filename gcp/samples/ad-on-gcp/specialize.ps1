@@ -54,13 +54,16 @@ $modules = @(
         Name = "xDnsServer"
         Version = "1.13.0.0"
         Uri = "https://github.com/dsccommunity/xDnsServer/archive/1.13.0.0-PSGallery.zip"
-    },
-    @{
-        Name = "xFailOverCluster"
-        Version = "1.13.0.0"
-        Uri = "https://github.com/dsccommunity/xFailOverCluster/archive/v1.13.0.zip"
     }
 );
+
+if($parametersConfiguration.modulesDsc -ne $null)
+{
+    foreach($module in $parametersConfiguration.modulesDsc)
+    {
+        $modules += $module;
+    }
+}
 
 $pathPsBase = "C:\Program Files\WindowsPowerShell";
 foreach($module in $modules)
