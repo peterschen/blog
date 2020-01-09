@@ -4,7 +4,10 @@ configuration ConfigurationMeta
     param
     (
         [ValidateNotNullOrEmpty()] 
-        [string] $ComputerName
+        [string] $ComputerName,
+
+        [ValidateNotNullOrEmpty()] 
+        [string] $Thumbprint
     );
 
     Node $ComputerName
@@ -17,6 +20,7 @@ configuration ConfigurationMeta
             ActionAfterReboot = "ContinueConfiguration"
             RefreshMode = "Push"
             DebugMode = "All"
+            CertificateId = $Thumbprint
         }
     }
 }

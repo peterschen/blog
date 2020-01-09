@@ -76,6 +76,11 @@ foreach($module in $modules)
     Move-Item -Path (Join-Path -Path $pathPsModuleStaging -ChildPath $module.Version) -Destination $pathPsModule;
 }
 
+# Create certificate to encrypt mof
+$pathDscCertificate = (Join-Path -Path $env:TEMP -ChildPath "dsc.cer");
+$certificate = New-SelfSignedCertificate -Type DocumentEncryptionCertLegacyCsp -DnsName "DscEncryptionCertificate" -HashAlgorithm SHA256;
+Export-Certificate -Cert $certificate -FilePath $pathDscCertificate -Force | Out-Null;
+
 # Download DSC (meta) configuration
 $pathDscConfigrationDefinitionMeta = (Join-Path -Path $env:TEMP -ChildPath "meta.ps1");
 $pathDscConfigrationDefinition = (Join-Path -Path $env:TEMP -ChildPath "$nameConfiguration.ps1");
@@ -91,13 +96,14 @@ $pathDscConfigurationOutput = Join-Path -Path $env:TEMP -ChildPath "dsc";
 
 ConfigurationMeta `
     -ComputerName "localhost" `
+    -Thumbprint $certificate.Thumbprint `
     -OutputPath $pathDscConfigurationOutput | Out-Null;
 
 ConfigurationWorkload `
     -ComputerName $nameHost `
     -Password $passwordSecure `
     -Parameters $parametersConfiguration `
-    -ConfigurationData @{AllNodes = @(@{NodeName = "$nameHost"; PSDscAllowPlainTextPassword = $true; PSDscAllowDomainUser = $true})} `
+    -ConfigurationData @{AllNodes = @(@{NodeName = "$nameHost"; PSDscAllowDomainUser = $true; CertificateFile = $pathDscCertificate; Thumbprint = $certificate.Thumbprint})} `
     -OutputPath $pathDscConfigurationOutput | Out-Null;
 
 # Make DSC configuration pending
