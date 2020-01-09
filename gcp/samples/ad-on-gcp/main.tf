@@ -11,7 +11,7 @@ provider "google-beta" {
 locals {
   name-sample = "ad-on-gce"
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
-  scopes-default = ["storage-ro", "logging-write", "monitoring-write", "service-control", "service-management", "pubsub", "https://www.googleapis.com/auth/trace.append"]
+  scopes-default = ["https://www.googleapis.com/auth/cloud-platform"]
   network-prefixes = ["10.0.0", "10.1.0"]
   network-mask = "16"
   network-ranges = ["${local.network-prefixes[0]}.0/${local.network-mask}", "${local.network-prefixes[1]}.0/${local.network-mask}"]

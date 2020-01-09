@@ -10,7 +10,7 @@ provider "google-beta" {
 
 locals {
   name-sample = "sofs-on-gcp"
-  scopes-default = ["storage-ro", "logging-write", "monitoring-write", "service-control", "service-management", "pubsub", "https://www.googleapis.com/auth/trace.append"]
+  scopes-default = ["https://www.googleapis.com/auth/cloud-platform"]
   count-nodes = 3
   count-disks = 4
   size-disks = 100
