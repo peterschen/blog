@@ -11,6 +11,7 @@ provider "google-beta" {
 locals {
   name-sample = "ad-on-gce"
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
+  scopes-default = ["storage-ro", "logging-write", "monitoring-write", "service-control", "service-management", "pubsub", "https://www.googleapis.com/auth/trace.append"]
   network-prefixes = ["10.0.0", "10.1.0"]
   network-mask = "16"
   network-ranges = ["${local.network-prefixes[0]}.0/${local.network-mask}", "${local.network-prefixes[1]}.0/${local.network-mask}"]
@@ -170,6 +171,10 @@ resource "google_compute_instance" "dc" {
       })
   }
 
+  service_account {
+    scopes = local.scopes-default
+  }
+
   depends_on = ["google_project_service.apis"]
 }
 
@@ -205,6 +210,10 @@ resource "google_compute_instance" "jumpy" {
         domainName = var.name-domain
       })
     })
+  }
+
+  service_account {
+    scopes = local.scopes-default
   }
 
   depends_on = ["google_project_service.apis"]

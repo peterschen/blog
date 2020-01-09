@@ -10,6 +10,7 @@ provider "google-beta" {
 
 locals {
   name-sample = "sofs-on-gcp"
+  scopes-default = ["storage-ro", "logging-write", "monitoring-write", "service-control", "service-management", "pubsub", "https://www.googleapis.com/auth/trace.append"]
   count-nodes = 3
   count-disks = 4
   size-disks = 100
@@ -85,6 +86,10 @@ resource "google_compute_instance" "sofs" {
           isFirst = (count.index == 0)
         })
       })
+  }
+
+  service_account {
+    scopes = local.scopes-default
   }
 
   lifecycle {
