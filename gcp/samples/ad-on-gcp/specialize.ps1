@@ -62,6 +62,14 @@ $modules = @(
     }
 );
 
+if($parametersConfiguration.modulesDsc -ne $null)
+{
+    foreach($module in $parametersConfiguration.modulesDsc)
+    {
+        $modules += $module;
+    }
+}
+
 $pathPsBase = "C:\Program Files\WindowsPowerShell";
 foreach($module in $modules)
 {
