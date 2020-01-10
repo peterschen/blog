@@ -211,7 +211,7 @@ configuration ConfigurationWorkload
                 Script CreateSofs
                 {
                     GetScript = {
-                        if((Get-ClusterGroup -Name "sofs" | Where-Object { $_.GroupType -eq "ScaleoutFileServer" }) -ne $Null)
+                        if((Get-ClusterGroup -Name "sofs" -ErrorAction Ignore | Where-Object { $_.GroupType -eq "ScaleoutFileServer" }) -ne $Null)
                         {
                             $result = "Present";
                         }
