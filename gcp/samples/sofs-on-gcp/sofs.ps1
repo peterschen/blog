@@ -147,7 +147,7 @@ configuration ConfigurationWorkload
                 }
 
                 $nodes = @();
-                for($i = 1; $i -gt $Parameters.nodeCount; $i++) {
+                for($i = 1; $i -lt $Parameters.nodeCount; $i++) {
                     $nodes += "$($Parameters.nodePrefix)-$i";
                 };
 
