@@ -207,6 +207,31 @@ configuration ConfigurationWorkload
                     
                     DependsOn = "[WaitForAll]ClusterJoin"
                 }
+
+                Script CreateSofs
+                {
+                    GetScript = {
+                        if((Get-ClusterGroup -Name "sofs" | Where-Object { $_.GroupType -eq "ScaleoutFileServer" }) -ne $Null)
+                        {
+                            $result = "Present";
+                        }
+                        else
+                        {
+                            $result = "Absent";
+                        }
+
+                        return @{Ensure = $result};
+                    }
+                    TestScript = {
+                        $state = [scriptblock]::Create($GetScript).Invoke();
+                        return $state.Ensure -eq "Present";
+                    }
+                    SetScript = {
+                        Add-ClusterScaleOutFileServerRole -Name "sofs";
+                    }
+                    
+                    DependsOn = "[Script]EnableS2D"
+                }
             }
             else
             {
