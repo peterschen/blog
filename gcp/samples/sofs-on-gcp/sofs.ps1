@@ -230,6 +230,7 @@ configuration ConfigurationWorkload
                         Add-ClusterScaleOutFileServerRole -Name "sofs";
                     }
                     
+                    PsDscRunAsCredential = $credentialAdminDomain
                     DependsOn = "[Script]EnableS2D"
                 }
 
