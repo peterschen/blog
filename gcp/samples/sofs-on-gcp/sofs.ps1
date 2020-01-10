@@ -136,13 +136,36 @@ configuration ConfigurationWorkload
                     DependsOn = "[xCluster]CreateCluster"
                 }
 
-                xClusterProperty "IncreaseClusterTimeouts"
+                Script IncreaseClusterTimeouts
                 {
-                    Name = "sofs-cl"
-                    SameSubnetDelay = 2000
-                    SameSubnetThreshold = 15
-                    CrossSubnetDelay = 3000
-                    CrossSubnetThreshold = 15
+                    GetScript = {
+                        $cluster = Get-Cluster;
+                        if($cluster.SameSubnetDelay -eq 2000 -and `
+                            $cluster.SameSubnetThreshold -eq 15 -and `
+                            $cluster.CrossSubnetDelay -eq 3000 -and `
+                            $cluster.CrossSubnetThreshold -eq 15)
+                        {
+                            $result = "Present";
+                        }
+                        else
+                        {
+                            $result = "Absent";
+                        }
+
+                        return @{Ensure = $result};
+                    }
+                    TestScript = {
+                        $state = [scriptblock]::Create($GetScript).Invoke();
+                        return $state.Ensure -eq "Present";
+                    }
+                    SetScript = {
+                        $cluster = Get-Cluster;
+                        $cluster.SameSubnetDelay = 2000;
+                        $cluster.SameSubnetThreshold = 15;
+                        $cluster.CrossSubnetDelay = 3000;
+                        $cluster.CrossSubnetThreshold = 15;
+                    }
+                    
                     DependsOn = "[xCluster]CreateCluster"
                 }
 
@@ -162,10 +185,102 @@ configuration ConfigurationWorkload
 
                 Script EnableS2D
                 {
-                    SetScript = "Enable-ClusterS2D -Confirm:0;"
-                    TestScript = "(Get-ClusterS2D).S2DEnabled -eq 1"
-                    GetScript = "@{Ensure = if ((Get-ClusterS2D).S2DEnabled -eq 1) {'Present'} else {'Absent'}}"
+                    GetScript = {
+                        if((Get-ClusterS2D).State -eq "Enabled")
+                        {
+                            $result = "Present";
+                        }
+                        else
+                        {
+                            $result = "Absent";
+                        }
+
+                        return @{Ensure = $result};
+                    }
+                    TestScript = {
+                        $state = [scriptblock]::Create($GetScript).Invoke();
+                        return $state.Ensure -eq "Present";
+                    }
+                    SetScript = {
+                        Enable-ClusterS2D -CollectPerformanceHistory $false -Confirm:0;
+                    }
+                    
                     DependsOn = "[WaitForAll]ClusterJoin"
+                }
+
+                Script CreateSofs
+                {
+                    GetScript = {
+                        if((Get-ClusterGroup -Name "sofs" | Where-Object { $_.GroupType -eq "ScaleoutFileServer" }) -ne $Null)
+                        {
+                            $result = "Present";
+                        }
+                        else
+                        {
+                            $result = "Absent";
+                        }
+
+                        return @{Ensure = $result};
+                    }
+                    TestScript = {
+                        $state = [scriptblock]::Create($GetScript).Invoke();
+                        return $state.Ensure -eq "Present";
+                    }
+                    SetScript = {
+                        Add-ClusterScaleOutFileServerRole -Name "sofs";
+                    }
+                    
+                    DependsOn = "[Script]EnableS2D"
+                }
+
+                Script CreateVolume
+                {
+                    GetScript = {
+                        if((Get-Volume -FriendlyName "sofs" -ErrorAction Ignore) -ne $Null)
+                        {
+                            $result = "Present";
+                        }
+                        else
+                        {
+                            $result = "Absent";
+                        }
+
+                        return @{Ensure = $result};
+                    }
+                    TestScript = {
+                        $state = [scriptblock]::Create($GetScript).Invoke();
+                        return $state.Ensure -eq "Present";
+                    }
+                    SetScript = {
+                        New-Volume -FriendlyName "sofs" -StoragePoolFriendlyName "S2D on sofs-cl" -FileSystem CSVFS_ReFS -Size 50GB;
+                    }
+                    
+                    DependsOn = "[Script]EnableS2D"
+                }
+
+                Script CreateShare
+                {
+                    GetScript = {
+                        if((Get-SmbShare -Name "sofs" -ErrorAction Ignore) -ne $Null)
+                        {
+                            $result = "Present";
+                        }
+                        else
+                        {
+                            $result = "Absent";
+                        }
+
+                        return @{Ensure = $result};
+                    }
+                    TestScript = {
+                        $state = [scriptblock]::Create($GetScript).Invoke();
+                        return $state.Ensure -eq "Present";
+                    }
+                    SetScript = {
+                        New-SmbShare -Name "sofs" -Path "C:\ClusterStorage\sofs" -CachingMode None -FolderEnumerationMode Unrestricted -ContinuouslyAvailable $true -FullAccess "sofs.lab\Domain Admins","sofs.lab\johndoe";
+                    }
+                    
+                    DependsOn = "[Script]CreateVolume"
                 }
             }
             else
