@@ -280,7 +280,7 @@ configuration ConfigurationWorkload
                         New-SmbShare -Name "sofs" -Path "C:\ClusterStorage\sofs" -CachingMode None -FolderEnumerationMode Unrestricted -ContinuouslyAvailable $true -FullAccess "sofs.lab\Domain Admins","sofs.lab\johndoe";
                     }
                     
-                    DependsOn = "[Script]CreateVolume"
+                    DependsOn = "[Script]CreateVolume","[Script]CreateSofs"
                 }
             }
             else
