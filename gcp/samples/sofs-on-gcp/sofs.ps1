@@ -232,6 +232,56 @@ configuration ConfigurationWorkload
                     
                     DependsOn = "[Script]EnableS2D"
                 }
+
+                Script CreateVolume
+                {
+                    GetScript = {
+                        if((Get-Volume -FriendlyName "sofs" -ErrorAction Ignore) -ne $Null)
+                        {
+                            $result = "Present";
+                        }
+                        else
+                        {
+                            $result = "Absent";
+                        }
+
+                        return @{Ensure = $result};
+                    }
+                    TestScript = {
+                        $state = [scriptblock]::Create($GetScript).Invoke();
+                        return $state.Ensure -eq "Present";
+                    }
+                    SetScript = {
+                        New-Volume -FriendlyName "sofs" -StoragePoolFriendlyName "S2D on sofs-cl" -FileSystem CSVFS_ReFS -Size 50GB;
+                    }
+                    
+                    DependsOn = "[Script]EnableS2D"
+                }
+
+                Script CreateShare
+                {
+                    GetScript = {
+                        if((Get-SmbShare -Name "sofs" -ErrorAction Ignore) -ne $Null)
+                        {
+                            $result = "Present";
+                        }
+                        else
+                        {
+                            $result = "Absent";
+                        }
+
+                        return @{Ensure = $result};
+                    }
+                    TestScript = {
+                        $state = [scriptblock]::Create($GetScript).Invoke();
+                        return $state.Ensure -eq "Present";
+                    }
+                    SetScript = {
+                        New-SmbShare -Name "sofs" -Path "C:\ClusterStorage\sofs" -CachingMode None -FolderEnumerationMode Unrestricted -ContinuouslyAvailable $true -FullAccess "sofs.lab\Domain Admins","sofs.lab\johndoe";
+                    }
+                    
+                    DependsOn = "[Script]CreateVolume"
+                }
             }
             else
             {
