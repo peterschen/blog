@@ -185,9 +185,26 @@ configuration ConfigurationWorkload
 
                 Script EnableS2D
                 {
-                    SetScript = "Enable-ClusterS2D -Confirm:0;"
-                    TestScript = "(Get-ClusterS2D).S2DEnabled -eq 1"
-                    GetScript = "@{Ensure = if ((Get-ClusterS2D).S2DEnabled -eq 1) {'Present'} else {'Absent'}}"
+                    GetScript = {
+                        if((Get-ClusterS2D).State -eq "Enabled")
+                        {
+                            $result = "Present";
+                        }
+                        else
+                        {
+                            $result = "Absent";
+                        }
+
+                        return @{Ensure = $result};
+                    }
+                    TestScript = {
+                        $state = [scriptblock]::Create($GetScript).Invoke();
+                        return $state.Ensure -eq "Present";
+                    }
+                    SetScript = {
+                        Enable-ClusterS2D -CollectPerformanceHistory $false -Confirm:0;
+                    }
+                    
                     DependsOn = "[WaitForAll]ClusterJoin"
                 }
             }
