@@ -136,13 +136,36 @@ configuration ConfigurationWorkload
                     DependsOn = "[xCluster]CreateCluster"
                 }
 
-                xClusterProperty "IncreaseClusterTimeouts"
+                Script IncreaseClusterTimeouts
                 {
-                    Name = "sofs-cl"
-                    SameSubnetDelay = 2000
-                    SameSubnetThreshold = 15
-                    CrossSubnetDelay = 3000
-                    CrossSubnetThreshold = 15
+                    GetScript = {
+                        $cluster = Get-Cluster;
+                        if($cluster.SameSubnetDelay -eq 2000 -and `
+                            $cluster.SameSubnetThreshold -eq 15 -and `
+                            $cluster.CrossSubnetDelay -eq 3000 -and `
+                            $cluster.CrossSubnetThreshold -eq 15)
+                        {
+                            $result = "Present";
+                        }
+                        else
+                        {
+                            $result = "Absent";
+                        }
+
+                        return @{Ensure = $result};
+                    }
+                    TestScript = {
+                        $state = [scriptblock]::Create($GetScript).Invoke();
+                        return $state.Ensure -eq "Present";
+                    }
+                    SetScript = {
+                        $cluster = Get-Cluster;
+                        $cluster.SameSubnetDelay = 2000;
+                        $cluster.SameSubnetThreshold = 15;
+                        $cluster.CrossSubnetDelay = 3000;
+                        $cluster.CrossSubnetThreshold = 15;
+                    }
+                    
                     DependsOn = "[xCluster]CreateCluster"
                 }
 
