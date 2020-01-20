@@ -211,7 +211,7 @@ configuration ConfigurationWorkload
                 Script CreateSofs
                 {
                     GetScript = {
-                        if((Get-ClusterGroup -Name "sofs" | Where-Object { $_.GroupType -eq "ScaleoutFileServer" }) -ne $Null)
+                        if((Get-ClusterGroup -Name "sofs" -ErrorAction Ignore | Where-Object { $_.GroupType -eq "ScaleoutFileServer" }) -ne $Null)
                         {
                             $result = "Present";
                         }
@@ -230,6 +230,7 @@ configuration ConfigurationWorkload
                         Add-ClusterScaleOutFileServerRole -Name "sofs";
                     }
                     
+                    PsDscRunAsCredential = $credentialAdminDomain
                     DependsOn = "[Script]EnableS2D"
                 }
 
@@ -280,7 +281,7 @@ configuration ConfigurationWorkload
                         New-SmbShare -Name "sofs" -Path "C:\ClusterStorage\sofs" -CachingMode None -FolderEnumerationMode Unrestricted -ContinuouslyAvailable $true -FullAccess "sofs.lab\Domain Admins","sofs.lab\johndoe";
                     }
                     
-                    DependsOn = "[Script]CreateVolume"
+                    DependsOn = "[Script]CreateVolume","[Script]CreateSofs"
                 }
             }
             else
