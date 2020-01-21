@@ -26,7 +26,7 @@ resource "google_compute_instance" "bastion" {
 
   network_interface {
     network = var.network
-    subnetwork = var.subnet
+    subnetwork = var.subnetwork
   }
 
   metadata = {

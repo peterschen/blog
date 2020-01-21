@@ -1,7 +1,7 @@
 variable "network" {
 }
 
-variable "subnet" {
+variable "subnetwork" {
 }
 
 variable "password" {
