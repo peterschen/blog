@@ -1,3 +1,7 @@
+variable "project" {
+    default = ""
+}
+
 variable "network" {
 }
 

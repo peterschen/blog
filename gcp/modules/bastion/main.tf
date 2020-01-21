@@ -2,16 +2,22 @@ provider "google" {
   version = "~> 3.4"
 }
 
+locals {
+  project = var.project
+}
+
 module "sysprep" {
   source = "github.com/peterschen/blog/gcp/modules/sysprep"
 }
 
 module "apis" {
   source = "github.com/peterschen/blog/gcp/modules/apis"
+  project = local.project
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com"]
 }
 
 resource "google_compute_instance" "bastion" {
+  project = local.project
   name = "bastion"
   machine_type = "n1-standard-2"
 
