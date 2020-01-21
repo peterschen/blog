@@ -23,7 +23,8 @@ module "apis" {
 }
 
 resource "google_compute_firewall" "bastion-3389" {
-  name    = "bastion-3389"
+  project = local.project
+  name = "bastion-3389"
   network = local.network
   priority = 2500
 
