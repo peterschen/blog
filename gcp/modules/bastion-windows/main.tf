@@ -24,28 +24,28 @@ module "apis" {
 
 resource "google_compute_firewall" "bastion-3389" {
   project = local.project
-  name = "bastion-3389"
+  name = "bastion-windows-3389"
   network = local.network
   priority = 2500
 
   allow {
     protocol = "tcp"
-    ports    = ["3389"]
+    ports = ["3389"]
   }
 
   direction = "INGRESS"
 
   source_ranges = ["35.235.240.0/20"]
-  target_tags = ["bastion"]
+  target_tags = ["bastion-windows"]
 }
 
 resource "google_compute_instance" "bastion" {
   project = local.project
   zone = local.zone
-  name = "bastion"
+  name = "bastion-windows"
   machine_type = "n1-standard-2"
 
-  tags = ["bastion", "rdp"]
+  tags = ["bastion-windows"]
 
   boot_disk {
     initialize_params {
@@ -61,7 +61,7 @@ resource "google_compute_instance" "bastion" {
 
   metadata = {
     sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
-      nameHost = "bastion", 
+      nameHost = "bastion-windows", 
       nameConfiguration = "bastion",
       uriMeta = local.uri-meta,
       uriConfigurations = local.uri-configuration,
