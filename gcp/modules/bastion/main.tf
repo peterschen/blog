@@ -4,6 +4,7 @@ provider "google" {
 
 locals {
   project = var.project
+  zone = var.zone
 }
 
 module "sysprep" {
@@ -18,6 +19,7 @@ module "apis" {
 
 resource "google_compute_instance" "bastion" {
   project = local.project
+  zone = local.zone
   name = "bastion"
   machine_type = "n1-standard-2"
 
@@ -36,15 +38,15 @@ resource "google_compute_instance" "bastion" {
   }
 
   metadata = {
-    sample = local.name-sample
     sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
       nameHost = "bastion", 
       nameConfiguration = "bastion",
       uriMeta = var.uri-meta,
       uriConfigurations = var.uri-configuration,
-      password = var.password
+      password = var.password,
+      parametersConfiguration = jsonencode({})
     })
   }
 
-  depends_on = ["google_project_service.apis"]
+  depends_on = ["module.apis"]
 }
