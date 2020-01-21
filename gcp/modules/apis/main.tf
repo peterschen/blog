@@ -1,10 +1,13 @@
 provider "google" {
   version = "~> 3.4"
+}
+
+locals {
   project = var.project
-  zone = var.zone
 }
 
 resource "google_project_service" "apis" {
+  project = local.project
   count = length(var.apis)
   service = var.apis[count.index]
   disable_dependent_services = true
