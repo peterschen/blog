@@ -4,15 +4,13 @@ provider "google" {
   zone = var.zone
 }
 
-locals {
-  apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com"]
+module "sysprep" {
+  source = "github.com/peterschen/blog/gcp/modules/sysprep"
 }
 
-resource "google_project_service" "apis" {
-  count = length(local.apis)
-  service = local.apis[count.index]
-  disable_dependent_services = true
-  disable_on_destroy = false
+module "apis" {
+  source = "github.com/peterschen/blog/gcp/modules/apis"
+  apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com"]
 }
 
 resource "google_compute_instance" "bastion" {
@@ -35,8 +33,13 @@ resource "google_compute_instance" "bastion" {
 
   metadata = {
     sample = local.name-sample
-    type = "jumpy"
-    sysprep-specialize-script-ps1 = "$passwordSecure = ConvertTo-SecureString -String ${var.password} -AsPlainText -Force; Set-LocalUser -Name Administrator -Password $passwordSecure; Enable-LocalUser -Name Administrator;"
+    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
+      nameHost = "bastion", 
+      nameConfiguration = "bastion",
+      uriMeta = var.uri-meta,
+      uriConfigurations = var.uri-configuration,
+      password = var.password
+    })
   }
 
   depends_on = ["google_project_service.apis"]
