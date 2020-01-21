@@ -1,7 +1,5 @@
 provider "google" {
   version = "~> 3.4"
-  project = var.project
-  zone = var.zone
 }
 
 module "sysprep" {
