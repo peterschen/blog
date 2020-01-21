@@ -5,6 +5,11 @@ provider "google" {
 locals {
   project = var.project
   zone = var.zone
+  network = var.network
+  subnetwork = var.subnetwork
+  uri-meta = var.uri-meta
+  uri-configuration = var.uri-configuration
+  password = var.password
 }
 
 module "sysprep" {
@@ -15,6 +20,22 @@ module "apis" {
   source = "github.com/peterschen/blog/gcp/modules/apis"
   project = local.project
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com"]
+}
+
+resource "google_compute_firewall" "bastion-3389" {
+  name    = "bastion-3389"
+  network = local.network
+  priority = 2500
+
+  allow {
+    protocol = "tcp"
+    ports    = ["3389"]
+  }
+
+  direction = "INGRESS"
+
+  source_ranges = ["35.235.240.0/20"]
+  target_tags = ["bastion"]
 }
 
 resource "google_compute_instance" "bastion" {
@@ -33,17 +54,17 @@ resource "google_compute_instance" "bastion" {
   }
 
   network_interface {
-    network = var.network
-    subnetwork = var.subnetwork
+    network = local.network
+    subnetwork = local.subnetwork
   }
 
   metadata = {
     sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
       nameHost = "bastion", 
       nameConfiguration = "bastion",
-      uriMeta = var.uri-meta,
-      uriConfigurations = var.uri-configuration,
-      password = var.password,
+      uriMeta = local.uri-meta,
+      uriConfigurations = local.uri-configuration,
+      password = local.password,
       parametersConfiguration = jsonencode({})
     })
   }
