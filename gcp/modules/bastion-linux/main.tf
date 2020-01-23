@@ -43,7 +43,7 @@ resource "google_compute_instance" "bastion" {
   boot_disk {
     initialize_params {
       type = "pd-ssd"
-      image = "ubuntu-os-cloud/ubuntu-1904"
+      image = "ubuntu-os-cloud/ubuntu-1910"
     }
   }
 

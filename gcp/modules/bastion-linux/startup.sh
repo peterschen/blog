@@ -2,4 +2,4 @@
 set -ex
 
 apt-get update
-apt-get install chrome -y
+apt-get install firefox -y
