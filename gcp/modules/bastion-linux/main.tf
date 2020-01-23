@@ -53,9 +53,7 @@ resource "google_compute_instance" "bastion" {
   }
 
   metadata = {
-    startup-script = '#!/bin/bash
-    apt-get update
-    apt-get install chrome -y'
+    startup-script = templatefile("${path.module}/startup.sh", {})
   }
 
   depends_on = ["module.apis"]
