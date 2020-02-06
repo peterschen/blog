@@ -137,12 +137,13 @@ resource "google_compute_instance" "dc" {
   count = length(var.regions)
   zone = "${var.regions[count.index]}-${var.zones[count.index][0]}"
   name = "dc-${count.index}"
-  machine_type = "n1-standard-1"
+  machine_type = var.type-dc
 
   tags = ["rdp", "dns"]
 
   boot_disk {
     initialize_params {
+      type = "pd-ssd"
       image = "windows-cloud/windows-2019"
     }
   }
@@ -181,12 +182,13 @@ resource "google_compute_instance" "dc" {
 resource "google_compute_instance" "jumpy" {
   name = "jumpy"
   zone = "${var.regions[0]}-${var.zones[0][0]}"
-  machine_type = "n1-standard-2"
+  machine_type = var.type-jumpy
 
   tags = ["sample-${local.name-sample}-jumpy", "rdp"]
 
   boot_disk {
     initialize_params {
+      type = "pd-ssd"
       image = "windows-cloud/windows-2019"
     }
   }

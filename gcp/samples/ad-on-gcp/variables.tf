@@ -27,3 +27,11 @@ variable "uri-meta" {
 variable "uri-configurations" {
   default = "https://raw.githubusercontent.com/peterschen/blog/master/gcp/samples/ad-on-gcp"
 }
+
+variable "type-dc" {
+  default = "n1-standard-1"
+}
+
+variable "type-jumpy" {
+  default = "n1-standard-2"
+}
