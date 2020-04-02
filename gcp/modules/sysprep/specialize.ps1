@@ -36,8 +36,8 @@ $modules = @(
     },
     @{
         Name = "ComputerManagementDsc"
-        Version = "6.4.0.0"
-        Uri = "https://github.com/dsccommunity/ComputerManagementDsc/archive/6.4.0.0-PSGallery.zip"
+        Version = "8.1.0.0"
+        Uri = "https://github.com/dsccommunity/ComputerManagementDsc/archive/v8.1.0.zip"
     }
 );
 
