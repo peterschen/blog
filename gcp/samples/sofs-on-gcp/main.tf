@@ -17,7 +17,7 @@ locals {
 }
 
 module "ad-on-gcp" {
-  source = "github.com/peterschen/blog/gcp/samples/ad-on-gcp"
+  source = "github.com/peterschen/blog//gcp/samples/ad-on-gcp"
   project = var.project
   regions = var.regions
   zones = var.zones
