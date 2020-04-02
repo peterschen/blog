@@ -61,13 +61,17 @@ foreach($module in $modules)
     Expand-Archive -Path $pathPsModuleZip -DestinationPath $pathPsModuleStaging;
 
     $pathPsModuleStaging = Join-Path -Path $pathPsModuleStaging -ChildPath "$($module.Name)-$($module.Version)";
-    $pathPsModuleSource = Join-Path -Path $pathPsModuleStaging -ChildPath "source"
+    $pathPsModuleSource = Join-Path -Path $pathPsModuleStaging -ChildPath "source";
 
     # Check if expanded path contains a source/ directory
     # Newer versions of DSC modules tend to move to that
     if(Test-Path -Path $pathPsModuleSource)
     {
         $pathPsModuleStaging = $pathPsModuleSource;
+        $pathPsModulePsd1 = Join-Path -Path $pathPsModuleStaging -ChildPath "$($module.Name).psd1";
+
+        # For whatever reason source release do not carry the correct module version in .psd1
+        (Get-Content -Path $pathPsModulePsd1 -Raw) -replace "0.0.1", $module.Version | Set-Content -Path $pathPsModulePsd1;
     }
     
     Move-Item -Path $pathPsModuleStaging -Destination (Join-Path -Path $pathPsModule -ChildPath $module.Version);
