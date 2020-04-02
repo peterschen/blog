@@ -30,7 +30,7 @@ variable "uri-configurations" {
 
 variable "provision-cluster" {
   type = bool
-  default = true
+  default = false
 }
 
 variable "provision-hdd" {
