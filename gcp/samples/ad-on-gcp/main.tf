@@ -1,11 +1,11 @@
 provider "google" {
   version = "~> 3.1"
-  project = "${var.project}"
+  project = var.project
 }
 
 provider "google-beta" {
   version = "~> 3.1"
-  project = "${var.project}"
+  project = var.project
 }
 
 locals {
@@ -13,15 +13,14 @@ locals {
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
   scopes-default = ["https://www.googleapis.com/auth/cloud-platform"]
   network-prefixes = ["10.0.0", "10.1.0"]
-  network-mask = "16"
+  network-mask = 16
   network-ranges = ["${local.network-prefixes[0]}.0/${local.network-mask}", "${local.network-prefixes[1]}.0/${local.network-mask}"]
   ip-dcs = ["${local.network-prefixes[0]}.2", "${local.network-prefixes[1]}.2"]
 }
 
 resource "google_project_service" "apis" {
   count = length(local.apis)
-  
-  service = "${local.apis[count.index]}"
+  service = local.apis[count.index]
   disable_dependent_services = true
   disable_on_destroy = false
 }
@@ -59,7 +58,7 @@ resource "google_compute_router_nat" "nat" {
 
 resource "google_compute_firewall" "allow-all-internal" {
   name    = "allow-all-internal"
-  network = "${google_compute_network.network.name}"
+  network = google_compute_network.network.name
   priority = 1000
 
   allow {
@@ -73,7 +72,7 @@ resource "google_compute_firewall" "allow-all-internal" {
 
 resource "google_compute_firewall" "allow-dns-gcp" {
   name    = "allow-dns-gcp"
-  network = "${google_compute_network.network.name}"
+  network = google_compute_network.network.name
   priority = 5000
 
   allow {
@@ -94,7 +93,7 @@ resource "google_compute_firewall" "allow-dns-gcp" {
 
 resource "google_compute_firewall" "allow-rdp-gcp" {
   name    = "allow-rdp-gcp"
-  network = "${google_compute_network.network.name}"
+  network = google_compute_network.network.name
   priority = 5000
 
   allow {
@@ -123,10 +122,10 @@ resource "google_dns_managed_zone" "ad-dns-forward" {
 
   forwarding_config {
     target_name_servers {
-      ipv4_address = "${local.ip-dcs[0]}"
+      ipv4_address = local.ip-dcs[0]
     }
     target_name_servers {
-      ipv4_address = "${local.ip-dcs[1]}"
+      ipv4_address = local.ip-dcs[1]
     }
   }
 

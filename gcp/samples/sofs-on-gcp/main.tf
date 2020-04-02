@@ -1,11 +1,11 @@
 provider "google" {
   version = "~> 3.1"
-  project = "${var.project}"
+  project = var.project
 }
 
 provider "google-beta" {
   version = "~> 3.1"
-  project = "${var.project}"
+  project = var.project
 }
 
 locals {
