@@ -3,7 +3,7 @@ output "path-module" {
 }
 
 output "path-specialize" {
-  value = "${path.module}/specialize.ps1"
+  value = module.sysprep.path-specialize
 }
 
 output "network" {

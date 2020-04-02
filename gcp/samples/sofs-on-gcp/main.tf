@@ -23,6 +23,8 @@ module "ad-on-gcp" {
   zones = var.zones
   name-domain = var.name-domain
   password = var.password
+  uri-meta = var.uri-meta
+  uri-configurations = var.uri-configurations
 }
 
 resource "google_compute_firewall" "allow-lbhealthcheck-gcp" {
