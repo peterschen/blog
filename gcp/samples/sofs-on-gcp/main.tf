@@ -87,8 +87,8 @@ resource "google_compute_instance" "sofs" {
           modulesDsc = [
             {
               Name = "xFailOverCluster",
-              Version = "1.13.0.0"
-              Uri = "https://github.com/dsccommunity/xFailOverCluster/archive/v1.13.0.zip"
+              Version = "1.14.1"
+              Uri = "https://github.com/dsccommunity/xFailOverCluster/archive/v1.14.1.zip"
             }
           ]
         })
