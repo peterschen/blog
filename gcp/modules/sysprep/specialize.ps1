@@ -38,6 +38,11 @@ $modules = @(
         Name = "ComputerManagementDsc"
         Version = "8.1.0"
         Uri = "https://github.com/dsccommunity/ComputerManagementDsc/archive/v8.1.0.zip"
+    },
+    @{
+        Name = "ActiveDirectoryDsc"
+        Version = "6.0.0"
+        Uri = "https://github.com/dsccommunity/ActiveDirectoryDsc/archive/v6.0.0.zip"
     }
 );
 
