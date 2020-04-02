@@ -23,6 +23,8 @@ module "ad-on-gcp" {
   zones = var.zones
   name-domain = var.name-domain
   password = var.password
+  uri-meta = var.uri-meta
+  uri-configurations = var.uri-configurations
 }
 
 resource "google_compute_firewall" "allow-lbhealthcheck-gcp" {
@@ -104,17 +106,31 @@ resource "google_compute_instance" "sofs" {
   }
 }
 
-resource "google_compute_disk" "sofs-disks" {
+resource "google_compute_disk" "sofs-hdd" {
+  count = var.provision-hdd ? local.count-nodes * local.count-disks : 0
+  zone = google_compute_instance.sofs[floor(count.index / local.count-disks)].zone
+  name = "sofs-hdd-${count.index}"
+  type = "pd-standard"
+  size = local.size-disks
+}
+
+resource "google_compute_attached_disk" "sofs-hdd" {
+  count = var.provision-hdd ? local.count-nodes * local.count-disks : 0
+  disk = google_compute_disk.sofs-hdd[count.index].self_link
+  instance = google_compute_instance.sofs[floor(count.index / local.count-disks)].self_link
+}
+
+resource "google_compute_disk" "sofs-ssd" {
   count = local.count-nodes * local.count-disks
   zone = google_compute_instance.sofs[floor(count.index / local.count-disks)].zone
-  name = "sofs-disk-${count.index}"
+  name = "sofs-ssd-${count.index}"
   type = "pd-ssd"
   size = local.size-disks
 }
 
-resource "google_compute_attached_disk" "sofs-disks" {
+resource "google_compute_attached_disk" "sofs-ssd" {
   count = local.count-nodes * local.count-disks
-  disk = google_compute_disk.sofs-disks[count.index].self_link
+  disk = google_compute_disk.sofs-ssd[count.index].self_link
   instance = google_compute_instance.sofs[floor(count.index / local.count-disks)].self_link
 }
 

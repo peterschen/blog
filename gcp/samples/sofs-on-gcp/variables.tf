@@ -32,3 +32,8 @@ variable "provision-cluster" {
   type = bool
   default = true
 }
+
+variable "provision-hdd" {
+  type = bool
+  default = false
+}
