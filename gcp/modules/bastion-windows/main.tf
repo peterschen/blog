@@ -70,5 +70,5 @@ resource "google_compute_instance" "bastion" {
     })
   }
 
-  depends_on = ["module.apis"]
+  depends_on = [module.apis]
 }

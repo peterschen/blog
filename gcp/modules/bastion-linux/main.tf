@@ -56,5 +56,5 @@ resource "google_compute_instance" "bastion" {
     startup-script = templatefile("${path.module}/startup.sh", {})
   }
 
-  depends_on = ["module.apis"]
+  depends_on = [module.apis]
 }

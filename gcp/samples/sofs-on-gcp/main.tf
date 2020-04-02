@@ -152,7 +152,7 @@ resource "google_compute_region_backend_service" "sofs" {
 }
 
 resource "google_compute_forwarding_rule" "sofs" {
-  provider = "google-beta"
+  provider = google-beta
   region = var.regions[0]
   name = "sofs"
   ip_address = google_compute_address.sofs-cl.address
