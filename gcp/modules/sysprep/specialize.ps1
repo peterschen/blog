@@ -18,8 +18,8 @@ Enable-LocalUser -Name Administrator;
 
 # Fix issues with downloading from GitHub due to deprecation of TLS 1.0 and 1.1
 # https://github.com/PowerShell/xPSDesiredStateConfiguration/issues/405#issuecomment-379932793
-New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\.NETFramework\v4.0.30319" -Name "SchUseStrongCrypto" -Value 1 | Out-Null;
-New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NETFramework\v4.0.30319" -Name "SchUseStrongCrypto" -Value 1 | Out-Null;
+New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\.NETFramework\v4.0.30319" -Name "SchUseStrongCrypto" -Value 1 -Force | Out-Null;
+New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NETFramework\v4.0.30319" -Name "SchUseStrongCrypto" -Value 1 -Force | Out-Null;
 
 # Install required PowerShell modules
 # Using PowerShellGet in specialize does not work as PSGallery PackageSource can't be registered
@@ -56,25 +56,28 @@ foreach($module in $modules)
     $pathPsModuleStaging = Join-Path -Path $pathPsBase -ChildPath "ModulesStaging";
     $pathPsModule = Join-Path -Path $pathPsBase -ChildPath "Modules\$($module.Name)";
 
-    New-Item -Type Directory -Path $pathPsModule | Out-Null;
-    Invoke-WebRequest -Uri $module.Uri -OutFile $pathPsModuleZip;
-    Expand-Archive -Path $pathPsModuleZip -DestinationPath $pathPsModuleStaging;
-
-    $pathPsModuleStaging = Join-Path -Path $pathPsModuleStaging -ChildPath "$($module.Name)-$($module.Version)";
-    $pathPsModuleSource = Join-Path -Path $pathPsModuleStaging -ChildPath "source";
-
-    # Check if expanded path contains a source/ directory
-    # Newer versions of DSC modules tend to move to that
-    if(Test-Path -Path $pathPsModuleSource)
+    if(-not (Test-Path -Path $pathPsModule))
     {
-        $pathPsModuleStaging = $pathPsModuleSource;
-        $pathPsModulePsd1 = Join-Path -Path $pathPsModuleStaging -ChildPath "$($module.Name).psd1";
+        New-Item -Type Directory -Path $pathPsModule | Out-Null;
+        Invoke-WebRequest -Uri $module.Uri -OutFile $pathPsModuleZip;
+        Expand-Archive -Path $pathPsModuleZip -DestinationPath $pathPsModuleStaging;
+
+        $pathPsModuleStaging = Join-Path -Path $pathPsModuleStaging -ChildPath "$($module.Name)-$($module.Version)";
+        $pathPsModuleSource = Join-Path -Path $pathPsModuleStaging -ChildPath "source";
+
+        # Check if expanded path contains a source/ directory
+        # Newer versions of DSC modules tend to move to that
+        if(Test-Path -Path $pathPsModuleSource)
+        {
+            $pathPsModuleStaging = $pathPsModuleSource;
+        }
 
         # For whatever reason source release do not carry the correct module version in .psd1
-        (Get-Content -Path $pathPsModulePsd1 -Raw) -replace "0.0.1", $module.Version | Set-Content -Path $pathPsModulePsd1;
-    }
+        $pathPsModulePsd1 = Join-Path -Path $pathPsModuleStaging -ChildPath "$($module.Name).psd1";
+        (Get-Content -Path $pathPsModulePsd1 -Raw) -replace "moduleVersion(.*)=(.*)'(.*)'", "moduleVersion = '$($module.Version)'" | Set-Content -Path $pathPsModulePsd1;
     
-    Move-Item -Path $pathPsModuleStaging -Destination (Join-Path -Path $pathPsModule -ChildPath $module.Version);
+        Move-Item -Path $pathPsModuleStaging -Destination (Join-Path -Path $pathPsModule -ChildPath $module.Version);
+    }
 }
 
 # Create certificate to encrypt mof
