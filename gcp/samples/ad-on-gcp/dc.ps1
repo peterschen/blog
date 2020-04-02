@@ -134,22 +134,6 @@ configuration ConfigurationWorkload
                 DependsOn = "[ADReplicationSite]ReplicationSite-$($Parameters.zone)"
             }
 
-            ADReplicationSite "ReplicationSite-$($Parameters.zone)"
-            {
-                Ensure = "Present"
-                Name = "$($Parameters.zone)"
-                RenameDefaultFirstSiteName = $false
-                DependsOn = "[WaitForADDomain]WFAD-CreateDomain"
-            }
-
-            ADReplicationSubnet "ReplicationSubnet-$($Parameters.networkRange)"
-            {
-                Name = "$($Parameters.networkRange)"
-                Site = $Parameters.zone
-                Location = "GCP"
-                DependsOn = "[ADReplicationSite]ReplicationSite-$($Parameters.zone)"
-            }
-
             $ous | ForEach-Object {
                 ADOrganizationalUnit "ADOU-$($_.Name)"
                 {

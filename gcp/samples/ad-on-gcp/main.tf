@@ -167,9 +167,21 @@ resource "google_compute_instance" "dc" {
         password = var.password,
         parametersConfiguration = jsonencode({
           domainName = var.name-domain,
-          zone = "${var.regions[count.index]}-${var.zones[count.index][0]}"
-          networkRange = local.network-ranges[count.index]
-          isFirst = (count.index == 0)
+          zone = "${var.regions[count.index]}-${var.zones[count.index][0]}",
+          networkRange = local.network-ranges[count.index],
+          isFirst = (count.index == 0),
+          modulesDsc = [
+            {
+              Name = "ActiveDirectoryDsc",
+              Version = "6.0.0"
+              Uri = "https://github.com/dsccommunity/ActiveDirectoryDsc/archive/v6.0.0.zip"
+            },
+            {
+              Name = "xDnsServer",
+              Version = "1.16.0"
+              Uri = "https://github.com/dsccommunity/xDnsServer/archive/v1.16.0.zip"
+            }
+          ]
         })
       })
   }
