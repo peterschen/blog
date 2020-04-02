@@ -26,17 +26,17 @@ New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NETFramework\v4.0.
 $modules = @(
     @{
         Name = "xPSDesiredStateConfiguration"
-        Version = "8.10.0.0"
+        Version = "8.10.0"
         Uri = "https://github.com/dsccommunity/xPSDesiredStateConfiguration/archive/v8.10.0.zip"
     },
     @{
         Name = "NetworkingDsc"
-        Version = "7.4.0.0"
+        Version = "7.4.0"
         Uri = "https://github.com/dsccommunity/NetworkingDsc/archive/v7.4.0.zip"
     },
     @{
         Name = "ComputerManagementDsc"
-        Version = "8.1.0.0"
+        Version = "8.1.0"
         Uri = "https://github.com/dsccommunity/ComputerManagementDsc/archive/v8.1.0.zip"
     }
 );
@@ -54,13 +54,23 @@ foreach($module in $modules)
 {
     $pathPsModuleZip = Join-Path -Path $pathPsBase -ChildPath "$($module.Name).zip";
     $pathPsModuleStaging = Join-Path -Path $pathPsBase -ChildPath "ModulesStaging";
-    $pathPsModule = Join-Path -Path $pathPsBase -ChildPath "Modules\$($module.Name)"
+    $pathPsModule = Join-Path -Path $pathPsBase -ChildPath "Modules\$($module.Name)";
 
     New-Item -Type Directory -Path $pathPsModule | Out-Null;
     Invoke-WebRequest -Uri $module.Uri -OutFile $pathPsModuleZip;
     Expand-Archive -Path $pathPsModuleZip -DestinationPath $pathPsModuleStaging;
-    Rename-Item -Path (Get-Item -Path (Join-Path -Path $pathPsModuleStaging -ChildPath "*")).FullName -NewName $module.Version;
-    Move-Item -Path (Join-Path -Path $pathPsModuleStaging -ChildPath $module.Version) -Destination $pathPsModule;
+
+    $pathPsModuleStaging = Join-Path -Path $pathPsModuleStaging -ChildPath "$($module.Name)-$($module.Version)";
+    $pathPsModuleSource = Join-Path -Path $pathPsModuleStaging -ChildPath "source"
+
+    # Check if expanded path contains a source/ directory
+    # Newer versions of DSC modules tend to move to that
+    if(Test-Path -Path $pathPsModuleSource)
+    {
+        $pathPsModuleStaging = $pathPsModuleSource;
+    }
+    
+    Move-Item -Path $pathPsModuleStaging -Destination (Join-Path -Path $pathPsModule -ChildPath $module.Version);
 }
 
 # Create certificate to encrypt mof
