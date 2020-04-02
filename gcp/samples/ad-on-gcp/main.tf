@@ -29,7 +29,7 @@ resource "google_project_service" "apis" {
 resource "google_compute_network" "network" {
   name = local.name-sample
   auto_create_subnetworks = false
-  depends_on = ["google_project_service.apis"]
+  depends_on = [google_project_service.apis]
 }
 
 resource "google_compute_subnetwork" "subnets" {
@@ -109,7 +109,7 @@ resource "google_compute_firewall" "allow-rdp-gcp" {
 }
 
 resource "google_dns_managed_zone" "ad-dns-forward" {
-  provider = "google-beta"
+  provider = google-beta
   name = "ad-dns-forward"
   dns_name = "${var.name-domain}."
 
@@ -130,7 +130,7 @@ resource "google_dns_managed_zone" "ad-dns-forward" {
     }
   }
 
-  depends_on = ["google_project_service.apis"]
+  depends_on = [google_project_service.apis]
 }
 
 resource "google_compute_instance" "dc" {
@@ -175,7 +175,7 @@ resource "google_compute_instance" "dc" {
     scopes = local.scopes-default
   }
 
-  depends_on = ["google_project_service.apis"]
+  depends_on = [google_project_service.apis]
 }
 
 resource "google_compute_instance" "jumpy" {
@@ -216,5 +216,5 @@ resource "google_compute_instance" "jumpy" {
     scopes = local.scopes-default
   }
 
-  depends_on = ["google_project_service.apis"]
+  depends_on = [google_project_service.apis]
 }
