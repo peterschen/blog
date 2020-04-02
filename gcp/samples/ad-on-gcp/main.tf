@@ -18,6 +18,10 @@ locals {
   ip-dcs = ["${local.network-prefixes[0]}.2", "${local.network-prefixes[1]}.2"]
 }
 
+module "sysprep" {
+  source = "github.com/peterschen/blog/gcp/modules/sysprep"
+}
+
 resource "google_project_service" "apis" {
   count = length(local.apis)
   service = local.apis[count.index]
@@ -155,7 +159,7 @@ resource "google_compute_instance" "dc" {
   metadata = {
     sample = local.name-sample
     type = "dc"
-    sysprep-specialize-script-ps1 = templatefile("${path.module}/specialize.ps1", { 
+    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
         nameHost = "dc-${count.index}", 
         nameConfiguration = "dc",
         uriMeta = var.uri-meta,
@@ -199,7 +203,7 @@ resource "google_compute_instance" "jumpy" {
   metadata = {
     sample = local.name-sample
     type = "jumpy"
-    sysprep-specialize-script-ps1 = templatefile("${path.module}/specialize.ps1", { 
+    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
       nameHost = "jumpy", 
       nameConfiguration = "jumpy",
       uriMeta = var.uri-meta,
