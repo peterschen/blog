@@ -172,11 +172,6 @@ resource "google_compute_instance" "dc" {
           isFirst = (count.index == 0),
           modulesDsc = [
             {
-              Name = "ActiveDirectoryDsc",
-              Version = "6.0.0"
-              Uri = "https://github.com/dsccommunity/ActiveDirectoryDsc/archive/v6.0.0.zip"
-            },
-            {
               Name = "xDnsServer",
               Version = "1.16.0"
               Uri = "https://github.com/dsccommunity/xDnsServer/archive/v1.16.0.zip"
