@@ -65,7 +65,7 @@ configuration ConfigurationWorkload
         @{Name = "g-LocalAdmins"; Path = "ou=Groups,$ou"; Members = @("$($userJohndoe.Name)")}
         @{Name = "g-RemoteDesktopUsers"; Path = "ou=Groups,$ou"; Members = @("$($userJohndoe.Name)")}
         @{Name = "g-RemoteManagementUsers"; Path = "ou=Groups,$ou"; Members = @("$($userJohndoe.Name)")}
-        @{Name = "g-ClusterResources"; Path = "ou=Groups,$ou"; Members = @())}
+        @{Name = "g-ClusterResources"; Path = "ou=Groups,$ou"; Members = @()}
     );
 
     $builtinGroups = @(
