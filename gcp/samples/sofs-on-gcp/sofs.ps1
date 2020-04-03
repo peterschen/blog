@@ -21,7 +21,8 @@ configuration ConfigurationWorkload
         "Storage-Replica",
         "RSAT-Clustering-Mgmt",
         "RSAT-Clustering-PowerShell",
-        "RSAT-Storage-Replica"
+        "RSAT-Storage-Replica",
+        "RSAT-AD-PowerShell"
     );
 
     $rules = @(
@@ -38,6 +39,19 @@ configuration ConfigurationWorkload
         "RemoteSvcAdmin-NP-In-TCP",
         "RemoteSvcAdmin-RPCSS-In-TCP"
     );
+
+    $components = $Parameters.domainName.Split(".");
+    $dc = "";
+    foreach($component in $components)
+    {
+        if(-not [string]::IsNullOrEmpty($dc))
+        {
+            $dc += ",";
+        }
+
+        $dc += "dc=$component";
+    }
+    $ou = "ou=$($Parameters.domainName),$dc"
 
     $admins = @(
         "$($Parameters.domainName)\g-LocalAdmins"
@@ -121,12 +135,31 @@ configuration ConfigurationWorkload
         {
             if($Parameters.isFirst)
             {
+                ADComputer "PrestageClusterResource"
+                {
+                    ComputerName = "$($Parameters.nodePrefix)-cl"
+                    EnabledOnCreation = $false
+                    PsDscRunAsCredential = $credentialAdminDomain
+                    DependsOn = "[Computer]JoinDomain"
+                }
+
+                ADGroup "AddClusterResourceToGroup"
+                {
+                    GroupName = "g-ClusterResources"
+                    GroupScope = "Global"
+                    Ensure = "Present"
+                    Path = "ou=Groups,$ou"
+                    MembersToInclude = "$($Parameters.nodePrefix)-cl`$"
+                    PsDscRunAsCredential = $credentialAdminDomain
+                    DependsOn = "[ADComputer]PrestageClusterResource"
+                }
+                
                 xCluster "CreateCluster"
                 {
                     Name = "sofs-cl"
                     DomainAdministratorCredential = $credentialAdminDomain
                     StaticIPAddress = $Parameters.ipCluster
-                    DependsOn = "[WindowsFeature]WF-Failover-clustering"
+                    DependsOn = "[WindowsFeature]WF-Failover-clustering","[ADGroup]AddClusterResourceToGroup"
                 }
 
                 xClusterQuorum "Quorum"
