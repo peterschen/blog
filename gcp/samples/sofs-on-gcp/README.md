@@ -10,6 +10,14 @@ export SA_KEY_FILE=~configs/sa/terraform@cbp-sofs.json # Set to the Service Acco
 export PASSWORD="Admin123Admin123" # Set to the desired password
 export DOMAIN="sofs.lab" # Set to the desired domain name
 
+# By default only SSD Persistent Disks are deployed with the machine. 
+# You can enable the deployment of Standard Persistent Disks as well which will enable tiering in Scale-out File Server.
+export PROVISION_HDD=false
+
+# By default Windows Server Failover Clustering (WSFC) will not be provisioned automatically.
+# You can enable automatic deployment which will enable WSFC, S2D and SOFS
+export PROVISION_CLUSTER=false
+
 export GOOGLE_APPLICATION_CREDENTIALS=$SA_KEY_FILE
 gcloud auth activate-service-account --key-file=$SA_KEY_FILE
 gcloud config set project $PROJECT
@@ -20,13 +28,14 @@ terraform get -update
 
 ## Deploy resource ##
 ```
-terraform apply -var="project=$PROJECT" -var="name-domain=$DOMAIN" -var="password=$PASSWORD"
+terraform apply -var "project=$PROJECT" -var "name-domain=$DOMAIN" -var "password=$PASSWORD" -var "provision-hdd=$PROVISION_HDD" -var "provision-cluster=$PROVISION_CLUSTER"
 ```
 
 ## Destroy resources ##
 ```
 terraform destroy -var="project=$PROJECT" -var="name-domain=$DOMAIN" -var="password=$PASSWORD"
 ```
+
 ## Redeploy ##
 If you need to redeploy the VM instances you need to taint them first. You may need to do this if you have changed the DSC configuration which does not invalidate the Terraform state.
 
