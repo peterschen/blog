@@ -1,5 +1,5 @@
 # SOFS on GCP #
-This sample deploys a Scale-out File Server on Google Cloud. It relies on the `ad-on-gcp` sample. This sample is very opinionated and only leaves a few parameters to configure. It is meant for rapid deployment for development environments to validate capabilities or test things out.
+This sample deploys a Scale-out File Server on Google Cloud. It relies on the [`ad-on-gcp`](../ad-on-gcp/) sample. This sample is very opinionated and only leaves a few parameters to configure. It is meant for rapid deployment for development environments to validate capabilities or test things out.
 
 ## Configure environment ##
 These instructions work for Linux, macOS and Cloud Shell. For Windows you may need to adapt these instructions.
