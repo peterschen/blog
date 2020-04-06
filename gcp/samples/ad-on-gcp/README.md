@@ -1,4 +1,4 @@
-# SOFS on GCP #
+# AD on GCP #
 This sample deploys Active Directory on Google Cloud based on the [published reference solution on how to deploy a fault-tolerant Active Directory environment](https://cloud.google.com/solutions/deploy-fault-tolerant-active-directory-environment). This sample is very opinionated and only leaves a few parameters to configure. It is meant for rapid deployment for development environments to validate capabilities or test things out.
 
 During deployment the following resources are deployed to the project you specified:
