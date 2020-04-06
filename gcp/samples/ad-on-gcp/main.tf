@@ -1,11 +1,11 @@
 provider "google" {
   version = "~> 3.1"
-  project = "${var.project}"
+  project = var.project
 }
 
 provider "google-beta" {
   version = "~> 3.1"
-  project = "${var.project}"
+  project = var.project
 }
 
 locals {
@@ -13,15 +13,18 @@ locals {
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
   scopes-default = ["https://www.googleapis.com/auth/cloud-platform"]
   network-prefixes = ["10.0.0", "10.1.0"]
-  network-mask = "16"
+  network-mask = 16
   network-ranges = ["${local.network-prefixes[0]}.0/${local.network-mask}", "${local.network-prefixes[1]}.0/${local.network-mask}"]
   ip-dcs = ["${local.network-prefixes[0]}.2", "${local.network-prefixes[1]}.2"]
 }
 
+module "sysprep" {
+  source = "github.com/peterschen/blog/gcp/modules/sysprep"
+}
+
 resource "google_project_service" "apis" {
   count = length(local.apis)
-  
-  service = "${local.apis[count.index]}"
+  service = local.apis[count.index]
   disable_dependent_services = true
   disable_on_destroy = false
 }
@@ -29,7 +32,7 @@ resource "google_project_service" "apis" {
 resource "google_compute_network" "network" {
   name = local.name-sample
   auto_create_subnetworks = false
-  depends_on = ["google_project_service.apis"]
+  depends_on = [google_project_service.apis]
 }
 
 resource "google_compute_subnetwork" "subnets" {
@@ -59,7 +62,7 @@ resource "google_compute_router_nat" "nat" {
 
 resource "google_compute_firewall" "allow-all-internal" {
   name    = "allow-all-internal"
-  network = "${google_compute_network.network.name}"
+  network = google_compute_network.network.name
   priority = 1000
 
   allow {
@@ -73,7 +76,7 @@ resource "google_compute_firewall" "allow-all-internal" {
 
 resource "google_compute_firewall" "allow-dns-gcp" {
   name    = "allow-dns-gcp"
-  network = "${google_compute_network.network.name}"
+  network = google_compute_network.network.name
   priority = 5000
 
   allow {
@@ -94,7 +97,7 @@ resource "google_compute_firewall" "allow-dns-gcp" {
 
 resource "google_compute_firewall" "allow-rdp-gcp" {
   name    = "allow-rdp-gcp"
-  network = "${google_compute_network.network.name}"
+  network = google_compute_network.network.name
   priority = 5000
 
   allow {
@@ -109,7 +112,7 @@ resource "google_compute_firewall" "allow-rdp-gcp" {
 }
 
 resource "google_dns_managed_zone" "ad-dns-forward" {
-  provider = "google-beta"
+  provider = google-beta
   name = "ad-dns-forward"
   dns_name = "${var.name-domain}."
 
@@ -123,14 +126,14 @@ resource "google_dns_managed_zone" "ad-dns-forward" {
 
   forwarding_config {
     target_name_servers {
-      ipv4_address = "${local.ip-dcs[0]}"
+      ipv4_address = local.ip-dcs[0]
     }
     target_name_servers {
-      ipv4_address = "${local.ip-dcs[1]}"
+      ipv4_address = local.ip-dcs[1]
     }
   }
 
-  depends_on = ["google_project_service.apis"]
+  depends_on = [google_project_service.apis]
 }
 
 resource "google_compute_instance" "dc" {
@@ -156,7 +159,7 @@ resource "google_compute_instance" "dc" {
   metadata = {
     sample = local.name-sample
     type = "dc"
-    sysprep-specialize-script-ps1 = templatefile("${path.module}/specialize.ps1", { 
+    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
         nameHost = "dc-${count.index}", 
         nameConfiguration = "dc",
         uriMeta = var.uri-meta,
@@ -164,9 +167,16 @@ resource "google_compute_instance" "dc" {
         password = var.password,
         parametersConfiguration = jsonencode({
           domainName = var.name-domain,
-          zone = "${var.regions[count.index]}-${var.zones[count.index][0]}"
-          networkRange = local.network-ranges[count.index]
-          isFirst = (count.index == 0)
+          zone = "${var.regions[count.index]}-${var.zones[count.index][0]}",
+          networkRange = local.network-ranges[count.index],
+          isFirst = (count.index == 0),
+          modulesDsc = [
+            {
+              Name = "xDnsServer",
+              Version = "1.16.0"
+              Uri = "https://github.com/dsccommunity/xDnsServer/archive/v1.16.0.zip"
+            }
+          ]
         })
       })
   }
@@ -175,7 +185,7 @@ resource "google_compute_instance" "dc" {
     scopes = local.scopes-default
   }
 
-  depends_on = ["google_project_service.apis"]
+  depends_on = [google_project_service.apis]
 }
 
 resource "google_compute_instance" "jumpy" {
@@ -200,7 +210,7 @@ resource "google_compute_instance" "jumpy" {
   metadata = {
     sample = local.name-sample
     type = "jumpy"
-    sysprep-specialize-script-ps1 = templatefile("${path.module}/specialize.ps1", { 
+    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
       nameHost = "jumpy", 
       nameConfiguration = "jumpy",
       uriMeta = var.uri-meta,
@@ -216,5 +226,5 @@ resource "google_compute_instance" "jumpy" {
     scopes = local.scopes-default
   }
 
-  depends_on = ["google_project_service.apis"]
+  depends_on = [google_project_service.apis]
 }

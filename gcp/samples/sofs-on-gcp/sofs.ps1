@@ -21,7 +21,8 @@ configuration ConfigurationWorkload
         "Storage-Replica",
         "RSAT-Clustering-Mgmt",
         "RSAT-Clustering-PowerShell",
-        "RSAT-Storage-Replica"
+        "RSAT-Storage-Replica",
+        "RSAT-AD-PowerShell"
     );
 
     $rules = @(
@@ -38,6 +39,19 @@ configuration ConfigurationWorkload
         "RemoteSvcAdmin-NP-In-TCP",
         "RemoteSvcAdmin-RPCSS-In-TCP"
     );
+
+    $components = $Parameters.domainName.Split(".");
+    $dc = "";
+    foreach($component in $components)
+    {
+        if(-not [string]::IsNullOrEmpty($dc))
+        {
+            $dc += ",";
+        }
+
+        $dc += "dc=$component";
+    }
+    $ou = "ou=$($Parameters.domainName),$dc"
 
     $admins = @(
         "$($Parameters.domainName)\g-LocalAdmins"
@@ -121,12 +135,31 @@ configuration ConfigurationWorkload
         {
             if($Parameters.isFirst)
             {
+                ADComputer "PrestageClusterResource"
+                {
+                    ComputerName = "$($Parameters.nodePrefix)-cl"
+                    EnabledOnCreation = $false
+                    PsDscRunAsCredential = $credentialAdminDomain
+                    DependsOn = "[Computer]JoinDomain"
+                }
+
+                ADGroup "AddClusterResourceToGroup"
+                {
+                    GroupName = "g-ClusterResources"
+                    GroupScope = "Global"
+                    Ensure = "Present"
+                    Path = "ou=Groups,$ou"
+                    MembersToInclude = "$($Parameters.nodePrefix)-cl`$"
+                    PsDscRunAsCredential = $credentialAdminDomain
+                    DependsOn = "[ADComputer]PrestageClusterResource"
+                }
+                
                 xCluster "CreateCluster"
                 {
-                    Name = "sofs-cl"
+                    Name = "$($Parameters.nodePrefix)-cl"
                     DomainAdministratorCredential = $credentialAdminDomain
                     StaticIPAddress = $Parameters.ipCluster
-                    DependsOn = "[WindowsFeature]WF-Failover-clustering"
+                    DependsOn = "[WindowsFeature]WF-Failover-clustering","[ADGroup]AddClusterResourceToGroup"
                 }
 
                 xClusterQuorum "Quorum"
@@ -178,8 +211,8 @@ configuration ConfigurationWorkload
                 {
                     ResourceName = "[xCluster]JoinNodeToCluster"
                     NodeName = $nodes
-                    RetryIntervalSec = 20
-                    RetryCount = 60
+                    RetryIntervalSec = 5
+                    RetryCount = 120
                     DependsOn = "[xCluster]CreateCluster"
                 }
 
@@ -211,7 +244,7 @@ configuration ConfigurationWorkload
                 Script CreateSofs
                 {
                     GetScript = {
-                        if((Get-ClusterGroup -Name "sofs" -ErrorAction Ignore | Where-Object { $_.GroupType -eq "ScaleoutFileServer" }) -ne $Null)
+                        if((Get-ClusterGroup -Name $using:Parameters.nodePrefix -ErrorAction Ignore | Where-Object { $_.GroupType -eq "ScaleoutFileServer" }) -ne $Null)
                         {
                             $result = "Present";
                         }
@@ -227,7 +260,7 @@ configuration ConfigurationWorkload
                         return $state.Ensure -eq "Present";
                     }
                     SetScript = {
-                        Add-ClusterScaleOutFileServerRole -Name "sofs";
+                        Add-ClusterScaleOutFileServerRole -Name $using:Parameters.nodePrefix;
                     }
                     
                     PsDscRunAsCredential = $credentialAdminDomain
@@ -237,7 +270,7 @@ configuration ConfigurationWorkload
                 Script CreateVolume
                 {
                     GetScript = {
-                        if((Get-Volume -FriendlyName "sofs" -ErrorAction Ignore) -ne $Null)
+                        if((Get-Volume -FriendlyName $using:Parameters.nodePrefix -ErrorAction Ignore) -ne $Null)
                         {
                             $result = "Present";
                         }
@@ -253,7 +286,7 @@ configuration ConfigurationWorkload
                         return $state.Ensure -eq "Present";
                     }
                     SetScript = {
-                        New-Volume -FriendlyName "sofs" -StoragePoolFriendlyName "S2D on sofs-cl" -FileSystem CSVFS_ReFS -Size 50GB;
+                        New-Volume -FriendlyName $using:Parameters.nodePrefix -StoragePoolFriendlyName "S2D on $($using:Parameters.nodePrefix)-cl" -FileSystem CSVFS_ReFS -Size 50GB;
                     }
                     
                     DependsOn = "[Script]EnableS2D"
@@ -262,7 +295,7 @@ configuration ConfigurationWorkload
                 Script CreateShare
                 {
                     GetScript = {
-                        if((Get-SmbShare -Name "sofs" -ErrorAction Ignore) -ne $Null)
+                        if((Get-SmbShare -Name $using:Parameters.nodePrefix -ErrorAction Ignore) -ne $Null)
                         {
                             $result = "Present";
                         }
@@ -278,7 +311,7 @@ configuration ConfigurationWorkload
                         return $state.Ensure -eq "Present";
                     }
                     SetScript = {
-                        New-SmbShare -Name "sofs" -Path "C:\ClusterStorage\sofs" -CachingMode None -FolderEnumerationMode Unrestricted -ContinuouslyAvailable $true -FullAccess "sofs.lab\Domain Admins","sofs.lab\johndoe";
+                        New-SmbShare -Name $using:Parameters.nodePrefix -Path "C:\ClusterStorage\$($using:Parameters.nodePrefix)" -CachingMode None -FolderEnumerationMode Unrestricted -ContinuouslyAvailable $true -FullAccess "$($using:Parameters.domainName)\Domain Admins","$($using:Parameters.domainName)\johndoe";
                     }
                     
                     DependsOn = "[Script]CreateVolume","[Script]CreateSofs"
@@ -286,17 +319,18 @@ configuration ConfigurationWorkload
             }
             else
             {
-                xWaitForCluster "WFC-sofs-cl"
+                WaitForAll "WaitForCluster"
                 {
-                    Name = "sofs-cl"
-                    RetryIntervalSec = 10
-                    RetryCount = 60
-                    DependsOn = "[WindowsFeature]WF-Failover-clustering"
+                    ResourceName = "[xCluster]CreateCluster"
+                    NodeName = "$($Parameters.nodePrefix)-0"
+                    RetryIntervalSec = 5
+                    RetryCount = 120
+                    PsDscRunAsCredential = $credentialAdminDomain
                 }
 
                 xCluster "JoinNodeToCluster"
                 {
-                    Name = "sofs-cl"
+                    Name = "$($Parameters.nodePrefix)-cl"
                     DomainAdministratorCredential = $credentialAdminDomain
                     DependsOn = "[xWaitForCluster]WFC-sofs-cl"
                 }

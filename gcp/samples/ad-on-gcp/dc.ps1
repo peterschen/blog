@@ -65,6 +65,7 @@ configuration ConfigurationWorkload
         @{Name = "g-LocalAdmins"; Path = "ou=Groups,$ou"; Members = @("$($userJohndoe.Name)")}
         @{Name = "g-RemoteDesktopUsers"; Path = "ou=Groups,$ou"; Members = @("$($userJohndoe.Name)")}
         @{Name = "g-RemoteManagementUsers"; Path = "ou=Groups,$ou"; Members = @("$($userJohndoe.Name)")}
+        @{Name = "g-ClusterResources"; Path = "ou=Groups,$ou"; Members = @()}
     );
 
     $builtinGroups = @(
@@ -122,7 +123,7 @@ configuration ConfigurationWorkload
             {
                 Ensure = "Present"
                 Name = "$($Parameters.zone)"
-                RenameDefaultFirstSiteName = $false
+                RenameDefaultFirstSiteName = $Parameters.isFirst
                 DependsOn = "[WaitForADDomain]WFAD-CreateDomain"
             }
 
@@ -183,6 +184,19 @@ configuration ConfigurationWorkload
                     DomainController = "$($Node.NodeName).$($Parameters.domainName)"
                     DependsOn = "[ADGroup]ADG-g-LocalAdmins", "[ADGroup]ADG-g-RemoteDesktopUsers", "[ADGroup]ADG-g-RemoteManagementUsers"
                 }
+            }
+
+            ADObjectPermissionEntry "ClusterGroupPermissions"
+            {
+                Path = "ou=Groups,$ou"
+                IdentityReference = "g-ClusterResources"
+                ActiveDirectoryRights = "GenericRead", "CreateChild", "DeleteChild"
+                AccessControlType = "Allow"
+                ObjectType = "bf967a86-0de6-11d0-a285-00aa003049e2"
+                ActiveDirectorySecurityInheritance = "All"
+                InheritedObjectType = "00000000-0000-0000-0000-000000000000"
+                PsDscRunAsCredential = $credentialAdminDomain
+                DependsOn = "[ADGroup]ADG-g-ClusterResources"
             }
 
             xDnsServerSetting "DSS-DnsConfiguration"

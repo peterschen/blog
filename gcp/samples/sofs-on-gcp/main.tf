@@ -1,11 +1,11 @@
 provider "google" {
   version = "~> 3.1"
-  project = "${var.project}"
+  project = var.project
 }
 
 provider "google-beta" {
   version = "~> 3.1"
-  project = "${var.project}"
+  project = var.project
 }
 
 locals {
@@ -17,7 +17,7 @@ locals {
 }
 
 module "ad-on-gcp" {
-  source = "github.com/peterschen/blog/gcp/samples/ad-on-gcp"
+  source = "github.com/peterschen/blog//gcp/samples/ad-on-gcp"
   project = var.project
   regions = var.regions
   zones = var.zones
@@ -87,8 +87,8 @@ resource "google_compute_instance" "sofs" {
           modulesDsc = [
             {
               Name = "xFailOverCluster",
-              Version = "1.13.0.0"
-              Uri = "https://github.com/dsccommunity/xFailOverCluster/archive/v1.13.0.zip"
+              Version = "1.14.1"
+              Uri = "https://github.com/dsccommunity/xFailOverCluster/archive/v1.14.1.zip"
             }
           ]
         })
@@ -104,17 +104,31 @@ resource "google_compute_instance" "sofs" {
   }
 }
 
-resource "google_compute_disk" "sofs-disks" {
+resource "google_compute_disk" "sofs-hdd" {
+  count = var.provision-hdd ? local.count-nodes * local.count-disks : 0
+  zone = google_compute_instance.sofs[floor(count.index / local.count-disks)].zone
+  name = "sofs-hdd-${count.index}"
+  type = "pd-standard"
+  size = local.size-disks
+}
+
+resource "google_compute_attached_disk" "sofs-hdd" {
+  count = var.provision-hdd ? local.count-nodes * local.count-disks : 0
+  disk = google_compute_disk.sofs-hdd[count.index].self_link
+  instance = google_compute_instance.sofs[floor(count.index / local.count-disks)].self_link
+}
+
+resource "google_compute_disk" "sofs-ssd" {
   count = local.count-nodes * local.count-disks
   zone = google_compute_instance.sofs[floor(count.index / local.count-disks)].zone
-  name = "sofs-disk-${count.index}"
+  name = "sofs-ssd-${count.index}"
   type = "pd-ssd"
   size = local.size-disks
 }
 
-resource "google_compute_attached_disk" "sofs-disks" {
+resource "google_compute_attached_disk" "sofs-ssd" {
   count = local.count-nodes * local.count-disks
-  disk = google_compute_disk.sofs-disks[count.index].self_link
+  disk = google_compute_disk.sofs-ssd[count.index].self_link
   instance = google_compute_instance.sofs[floor(count.index / local.count-disks)].self_link
 }
 
@@ -152,7 +166,7 @@ resource "google_compute_region_backend_service" "sofs" {
 }
 
 resource "google_compute_forwarding_rule" "sofs" {
-  provider = "google-beta"
+  provider = google-beta
   region = var.regions[0]
   name = "sofs"
   ip_address = google_compute_address.sofs-cl.address
