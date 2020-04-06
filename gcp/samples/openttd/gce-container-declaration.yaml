@@ -1,0 +1,20 @@
+spec:
+  containers:
+    - name: openttd
+      image: gcr.io/${project}/openttd:latest
+      env:
+        - name: SERVER_PASWORD
+          value: ${serverPassword}
+        - name: ADMIN_PASSWORD
+          value: ${adminPassword}
+        - name: RCON_PASSWORD
+          value: ${rconPassword}
+        - name: GENERATION_SEED
+          value: ${generationSeed}
+        - name: MAP_X
+          value: ${mapX}
+        - name: MAP_Y
+          value: ${mapY}
+      stdin: false
+      tty: false
+      restartPolicy: Always
