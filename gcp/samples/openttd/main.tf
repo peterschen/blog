@@ -120,11 +120,31 @@ resource "google_compute_address" "ip" {
   name = "openttd"
 }
 
+resource "google_compute_firewall" "allow-ssh-iap" {
+  name    = "allow-ssh-iap"
+  network = google_compute_network.network.name
+  priority = 5000
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  direction = "INGRESS"
+
+  source_ranges = ["35.235.240.0/20"]
+  target_tags = ["ssh"]
+}
+
+resource "google_compute_address" "ip" {
+  name = "openttd"
+}
+
 resource "google_compute_instance" "openttd" {
   name = "openttd"
   machine_type = "n1-standard-2"
 
-  tags = ["openttd"]
+  tags = ["ssh", "openttd"]
 
   boot_disk {
     initialize_params {
