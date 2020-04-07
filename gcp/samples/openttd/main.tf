@@ -42,6 +42,8 @@ resource "google_container_registry" "registry" {
 
 resource "google_cloudbuild_trigger" "master" {
   provider = google-beta
+  name = "build-master"
+  included_files = ["/gcp/samples/openttd/**"]
 
   github {
     owner = "peterschen"
@@ -52,15 +54,29 @@ resource "google_cloudbuild_trigger" "master" {
     }
   }
 
-  # filename = "/gcp/samples/openttd/cloudbuild.yaml"
-
   build {
     step {
       name = "gcr.io/cloud-builders/docker"
-      args = ["build", "-t", "gcr.io/${local.project}/openttd:$SHORT_SHA", "."]
+      args = ["build", "-t", "gcr.io/$PROJECT_ID/openttd:$SHORT_SHA", "-t", "gcr.io/$PROJECT_ID/openttd:latest", "."]
+      dir = "gcp/samples/openttd"
     }
 
-    images = ["gcr.io/${local.project}/openttd:$SHORT_SHA", "gcr.io/${local.project}/openttd:latest"]
+    step {
+      name = "gcr.io/cloud-builders/docker"
+      args = ["push", "gcr.io/$PROJECT_ID/openttd:latest"]
+    }
+
+    step {
+      name = "gcr.io/cloud-builders/gcloud"
+      args = ["compute", "instances", "stop", "${google_compute_instance.openttd.name}", "--zone", "${google_compute_instance.openttd.zone}"]
+    }
+
+    step {
+      name = "gcr.io/cloud-builders/gcloud"
+      args = ["compute", "instances", "start", "${google_compute_instance.openttd.name}", "--zone", "${google_compute_instance.openttd.zone}"]
+    }
+
+    images = ["gcr.io/$PROJECT_ID/openttd:$SHORT_SHA"]
   }
 
   depends_on = [google_container_registry.registry]
