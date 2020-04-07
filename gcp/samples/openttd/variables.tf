@@ -12,6 +12,11 @@ variable "zone" {
   default = "europe-west1-b"
 }
 
+variable "serverName" {
+  type = string
+  default = "OpenTTD on Google Cloud sample"
+}
+
 variable "serverPassword" {
   type = string
   default = ""
@@ -29,7 +34,7 @@ variable "rconPassword" {
 
 variable "generationSeed" {
   type = number
-  default = 761267215162
+  default = 658464965
 }
 
 variable "mapX" {
