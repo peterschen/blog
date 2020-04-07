@@ -116,10 +116,6 @@ resource "google_compute_firewall" "allow-openttd" {
   target_tags = ["openttd"]
 }
 
-resource "google_compute_address" "ip" {
-  name = "openttd"
-}
-
 resource "google_compute_firewall" "allow-ssh-iap" {
   name    = "allow-ssh-iap"
   network = google_compute_network.network.name
