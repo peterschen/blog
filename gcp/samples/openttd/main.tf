@@ -18,6 +18,7 @@ locals {
   zone = var.zone
   name-sample = "openttd"
   network-range = "10.0.2.0/24"
+  serverName = var.serverName
   serverPassword = var.serverPassword
   adminPassword = var.adminPassword
   rconPassword = var.rconPassword
@@ -143,6 +144,7 @@ resource "google_compute_instance" "openttd" {
     sample = local.name-sample
     gce-container-declaration = templatefile("gce-container-declaration.yaml", {
       project = local.project,
+      serverName = local.serverName,
       serverPassword = local.serverPassword,
       adminPassword = local.adminPassword,
       rconPassword = local.rconPassword,
