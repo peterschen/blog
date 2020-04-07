@@ -3,7 +3,9 @@ spec:
     - name: openttd
       image: gcr.io/${project}/openttd:latest
       env:
-        - name: SERVER_PASWORD
+        - name: SERVER_NAME
+          value: ${serverName}
+        - name: SERVER_PASSWORD
           value: ${serverPassword}
         - name: ADMIN_PASSWORD
           value: ${adminPassword}
