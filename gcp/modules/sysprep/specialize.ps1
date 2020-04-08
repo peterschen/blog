@@ -104,7 +104,7 @@ if([string]::IsNullOrEmpty($inlineConfiguration))
 }
 else
 {
-    Set-Content -Path $pathDscConfigurationDefinition -Value $inlineConfiguration;
+    [IO.File]::WriteAllBytes($pathDscConfigurationDefinition, [Convert]::FromBase64String($inlineConfiguration));
 }
 
 # Source DSC (meta) configuration
