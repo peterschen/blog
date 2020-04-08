@@ -4,7 +4,6 @@ provider "google" {
 
 locals {
   project = var.project
-  region = var.region
   network = var.network
   enable-rdp = var.enable-rdp
   enable-ssh = var.enable-ssh
