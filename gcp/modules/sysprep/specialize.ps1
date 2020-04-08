@@ -12,6 +12,10 @@ $password = '${password}';
 $passwordSecure = ConvertTo-SecureString -String $password -AsPlainText -Force;
 $parametersConfiguration = ConvertFrom-Json -InputObject '${parametersConfiguration}';
 
+# Inline configuration passed through parametersConfiguration
+# to not break configurations with dependency on sysprep
+$inlineConfiguration = $parametersConfiguration.inlineConfiguration;
+
 # Enable administrator
 Set-LocalUser -Name Administrator -Password $passwordSecure;
 Enable-LocalUser -Name Administrator;
@@ -91,14 +95,21 @@ $certificate = New-SelfSignedCertificate -Type DocumentEncryptionCertLegacyCsp -
 Export-Certificate -Cert $certificate -FilePath $pathDscCertificate -Force | Out-Null;
 
 # Download DSC (meta) configuration
-$pathDscConfigrationDefinitionMeta = (Join-Path -Path $env:TEMP -ChildPath "meta.ps1");
-$pathDscConfigrationDefinition = (Join-Path -Path $env:TEMP -ChildPath "$nameConfiguration.ps1");
-Invoke-WebRequest -Uri "$uriMeta/meta.ps1" -OutFile $pathDscConfigrationDefinitionMeta;
-Invoke-WebRequest -Uri "$uriConfigurations/$nameConfiguration.ps1" -OutFile $pathDscConfigrationDefinition;
+$pathDscConfigurationDefinitionMeta = (Join-Path -Path $env:TEMP -ChildPath "meta.ps1");
+$pathDscConfigurationDefinition = (Join-Path -Path $env:TEMP -ChildPath "$nameConfiguration.ps1");
+Invoke-WebRequest -Uri "$uriMeta/meta.ps1" -OutFile $pathDscConfigurationDefinitionMeta;
+if([string]::IsNullOrEmpty($inlineConfiguration))
+{
+    Invoke-WebRequest -Uri "$uriConfigurations/$nameConfiguration.ps1" -OutFile $pathDscConfigurationDefinition;
+}
+else
+{
+    Set-Content -Path $pathDscConfigurationDefinition -Value $inlineConfiguration;
+}
 
 # Source DSC (meta) configuration
-. $pathDscConfigrationDefinitionMeta;
-. $pathDscConfigrationDefinition;
+. $pathDscConfigurationDefinitionMeta;
+. $pathDscConfigurationDefinition;
 
 # Build DSC (meta) configuration
 $pathDscConfigurationOutput = Join-Path -Path $env:TEMP -ChildPath "dsc";
