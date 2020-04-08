@@ -1,6 +1,9 @@
+variable "project" {
+    type = string
+}
+
 variable "region" {
     type = string
-    default = ""
 }
 
 variable "network" {
