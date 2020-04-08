@@ -13,7 +13,6 @@ locals {
 resource "google_compute_firewall" "allow-rdp-iap" {
   count = local.enable-rdp ? 1 : 0
   project = local.project
-  region = local.region
 
   name    = "allow-rdp-iap"
   network = local.network.name
@@ -34,7 +33,6 @@ resource "google_compute_firewall" "allow-rdp-iap" {
 resource "google_compute_firewall" "allow-ssh-iap" {
   count = local.enable-ssh ? 1 : 0
   project = local.project
-  region = local.region
   
   name    = "allow-ssh-iap"
   network = local.network.name
