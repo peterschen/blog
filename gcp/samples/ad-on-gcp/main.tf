@@ -20,11 +20,11 @@ locals {
 }
 
 module "sysprep" {
-  source = "github.com/peterschen/blog/gcp/modules/sysprep"
+  source = "github.com/peterschen/blog//gcp/modules/sysprep"
 }
 
 module "firewall-iap" {
-  source = "github.com/peterschen/blog/gcp/modules/firewall-iap"
+  source = "github.com/peterschen/blog//gcp/modules/firewall-iap"
   project = local.project
   network = google_compute_network.network
   enable-ssh = false
@@ -154,15 +154,14 @@ resource "google_compute_instance" "dc" {
     type = "dc"
     sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
         nameHost = "dc-${count.index}", 
-        nameConfiguration = "dc",
         uriMeta = var.uri-meta,
-        uriConfigurations = var.uri-configurations,
         password = var.password,
         parametersConfiguration = jsonencode({
           domainName = var.name-domain,
           zone = "${var.regions[count.index]}-${var.zones[count.index][0]}",
           networkRange = local.network-ranges[count.index],
           isFirst = (count.index == 0),
+          inlineConfiguration = filebase64("${path.module}/dc.ps1"),
           modulesDsc = [
             {
               Name = "xDnsServer",
@@ -206,12 +205,11 @@ resource "google_compute_instance" "jumpy" {
     type = "jumpy"
     sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
       nameHost = "jumpy", 
-      nameConfiguration = "jumpy",
       uriMeta = var.uri-meta,
-      uriConfigurations = var.uri-configurations,
       password = var.password,
       parametersConfiguration = jsonencode({
-        domainName = var.name-domain
+        domainName = var.name-domain,
+        inlineConfiguration = filebase64("${path.module}/jumpy.ps1")
       })
     })
   }

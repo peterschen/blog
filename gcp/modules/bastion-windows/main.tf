@@ -8,7 +8,6 @@ locals {
   network = var.network
   subnetwork = var.subnetwork
   uri-meta = var.uri-meta
-  uri-configuration = var.uri-configuration
   password = var.password
 }
 
@@ -20,23 +19,6 @@ module "apis" {
   source = "github.com/peterschen/blog/gcp/modules/apis"
   project = local.project
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com"]
-}
-
-resource "google_compute_firewall" "bastion-3389" {
-  project = local.project
-  name = "bastion-windows-3389"
-  network = local.network
-  priority = 2500
-
-  allow {
-    protocol = "tcp"
-    ports = ["3389"]
-  }
-
-  direction = "INGRESS"
-
-  source_ranges = ["35.235.240.0/20"]
-  target_tags = ["bastion-windows"]
 }
 
 resource "google_compute_instance" "bastion" {
@@ -61,12 +43,12 @@ resource "google_compute_instance" "bastion" {
 
   metadata = {
     sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
-      nameHost = "bastion-windows", 
-      nameConfiguration = "bastion",
+      nameHost = "bastion", 
       uriMeta = local.uri-meta,
-      uriConfigurations = local.uri-configuration,
       password = local.password,
-      parametersConfiguration = jsonencode({})
+      parametersConfiguration = jsonencode({
+        inlineConfiguration = filebase64("${path.module}/bastion.ps1")
+      })
     })
   }
 
