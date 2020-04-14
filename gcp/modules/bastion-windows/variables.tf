@@ -1,9 +1,9 @@
 variable "project" {
-    default = ""
+    type = string
 }
 
-variable "zone" {
-    default = ""
+variable "region" {
+    type = string
 }
 
 variable "network" {
@@ -16,7 +16,4 @@ variable "password" {
 }
 
 variable "uri-meta" {
-}
-
-variable "uri-configuration" {
 }
