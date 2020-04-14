@@ -28,7 +28,7 @@ module "gce-default-scopes" {
 }
 
 module "ad-on-gcp" {
-  source = "github.com/peterschen/blog//gcp/samples/ad-on-gcp?ref=fix-91"
+  source = "github.com/peterschen/blog//gcp/samples/ad-on-gcp"
   project = local.project
   regions = local.regions
   zones = local.zones
