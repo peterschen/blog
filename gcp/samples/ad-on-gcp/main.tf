@@ -9,6 +9,7 @@ provider "google-beta" {
 }
 
 locals {
+  project = var.project
   name-sample = "ad-on-gce"
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
   scopes-default = ["https://www.googleapis.com/auth/cloud-platform"]
@@ -20,6 +21,13 @@ locals {
 
 module "sysprep" {
   source = "github.com/peterschen/blog/gcp/modules/sysprep"
+}
+
+module "firewall-iap" {
+  source = "github.com/peterschen/blog/gcp/modules/firewall-iap"
+  project = local.project
+  network = google_compute_network.network
+  enable-ssh = false
 }
 
 resource "google_project_service" "apis" {
@@ -93,22 +101,6 @@ resource "google_compute_firewall" "allow-dns-gcp" {
 
   source_ranges = ["35.199.192.0/19"]
   target_tags = ["dns"]
-}
-
-resource "google_compute_firewall" "allow-rdp-gcp" {
-  name    = "allow-rdp-gcp"
-  network = google_compute_network.network.name
-  priority = 5000
-
-  allow {
-    protocol = "tcp"
-    ports    = ["3389"]
-  }
-
-  direction = "INGRESS"
-
-  source_ranges = ["35.235.240.0/20"]
-  target_tags = ["rdp"]
 }
 
 resource "google_dns_managed_zone" "ad-dns-forward" {
