@@ -139,6 +139,7 @@ resource "google_compute_instance" "dc" {
   boot_disk {
     initialize_params {
       image = "windows-cloud/windows-2019"
+      type = "pd-ssd"
     }
   }
 
@@ -190,6 +191,7 @@ resource "google_compute_instance" "jumpy" {
   boot_disk {
     initialize_params {
       image = "windows-cloud/windows-2019"
+      type = "pd-ssd"
     }
   }
 

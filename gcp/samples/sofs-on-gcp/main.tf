@@ -59,6 +59,7 @@ resource "google_compute_instance" "sofs" {
   boot_disk {
     initialize_params {
       image = "windows-cloud/windows-2019"
+      type = "pd-ssd"
     }
   }
 
