@@ -47,7 +47,7 @@ resource "google_compute_instance" "bastion" {
       uriMeta = local.uri-meta,
       password = local.password,
       parametersConfiguration = jsonencode({
-        inlineConfiguration = filebase64("${path.module}/bastion.ps1"),
+        inlineConfiguration = filebase64("${path.module}/bastion.ps1")
       })
     })
   }
