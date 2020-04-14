@@ -5,15 +5,12 @@ $VerbosePreference = "SilentlyContinue";
 $DebugPreference = "SilentlyContinue";
 
 $nameHost = '${nameHost}';
-$nameConfiguration = '${nameConfiguration}';
 $uriMeta = '${uriMeta}';
-$uriConfigurations = '${uriConfigurations}';
 $password = '${password}';
 $passwordSecure = ConvertTo-SecureString -String $password -AsPlainText -Force;
 $parametersConfiguration = ConvertFrom-Json -InputObject '${parametersConfiguration}';
 
-# Inline configuration passed through parametersConfiguration
-# to not break configurations with dependency on sysprep
+$uriConfiguration = $parametersConfiguration.uriConfiguration;
 $inlineConfiguration = $parametersConfiguration.inlineConfiguration;
 
 # Enable administrator
@@ -96,11 +93,12 @@ Export-Certificate -Cert $certificate -FilePath $pathDscCertificate -Force | Out
 
 # Download DSC (meta) configuration
 $pathDscConfigurationDefinitionMeta = (Join-Path -Path $env:TEMP -ChildPath "meta.ps1");
-$pathDscConfigurationDefinition = (Join-Path -Path $env:TEMP -ChildPath "$nameConfiguration.ps1");
+$pathDscConfigurationDefinition = (Join-Path -Path $env:TEMP -ChildPath "configuration.ps1");
 Invoke-WebRequest -Uri "$uriMeta/meta.ps1" -OutFile $pathDscConfigurationDefinitionMeta;
 if([string]::IsNullOrEmpty($inlineConfiguration))
 {
-    Invoke-WebRequest -Uri "$uriConfigurations/$nameConfiguration.ps1" -OutFile $pathDscConfigurationDefinition;
+    $nameConfiguration = $parametersConfiguration.nameConfiguration;
+    Invoke-WebRequest -Uri "$uriConfiguration/$nameConfiguration.ps1" -OutFile $pathDscConfigurationDefinition;
 }
 else
 {
