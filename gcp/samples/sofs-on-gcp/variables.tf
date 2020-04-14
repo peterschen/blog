@@ -24,10 +24,6 @@ variable "uri-meta" {
   default = "https://raw.githubusercontent.com/peterschen/blog/master/gcp/samples/ad-on-gcp"
 }
 
-variable "uri-configurations" {
-  default = "https://raw.githubusercontent.com/peterschen/blog/master/gcp/samples/sofs-on-gcp"
-}
-
 variable "provision-cluster" {
   type = bool
   default = false
