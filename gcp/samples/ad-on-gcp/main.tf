@@ -157,11 +157,11 @@ resource "google_compute_instance" "dc" {
         uriMeta = var.uri-meta,
         password = var.password,
         parametersConfiguration = jsonencode({
-          inlineConfiguration = filebase64("${path.module}/dc.ps1"),
           domainName = var.name-domain,
           zone = "${var.regions[count.index]}-${var.zones[count.index][0]}",
           networkRange = local.network-ranges[count.index],
           isFirst = (count.index == 0),
+          inlineConfiguration = filebase64("${path.module}/dc.ps1"),
           modulesDsc = [
             {
               Name = "xDnsServer",
@@ -208,8 +208,8 @@ resource "google_compute_instance" "jumpy" {
       uriMeta = var.uri-meta,
       password = var.password,
       parametersConfiguration = jsonencode({
-        inlineConfiguration = filebase64("${path.module}/jumpy.ps1"),
-        domainName = var.name-domain
+        domainName = var.name-domain,
+        inlineConfiguration = filebase64("${path.module}/jumpy.ps1")
       })
     })
   }
