@@ -24,7 +24,7 @@ module "sysprep" {
 }
 
 module "firewall-iap" {
-  source = "github.com/peterschen/blog/gcp/modules/firewall-iap"
+  source = "github.com/peterschen/blog//gcp/modules/firewall-iap"
   project = local.project
   network = google_compute_network.network
   enable-ssh = false
