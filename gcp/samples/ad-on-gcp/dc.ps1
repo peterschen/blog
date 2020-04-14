@@ -255,6 +255,31 @@ configuration ConfigurationWorkload
                     DependsOn = "[ADDomainController]ADC-DC"
                 }
             }
+
+            Script MoveDc
+            {
+                GetScript = {
+                    if((Get-ADDomainController -Server $using:Node.NodeName).Site -eq $using:Parameters.zone)
+                    {
+                        $result = "Present";
+                    }
+                    else
+                    {
+                        $result = "Absent";
+                    }
+
+                    return @{Ensure = $result};
+                }
+                TestScript = {
+                    $state = [scriptblock]::Create($GetScript).Invoke();
+                    return $state.Ensure -eq "Present";
+                }
+                SetScript = {
+                    Get-ADDomainController -Identity "$($using:Node.NodeName).$($using:Parameters.domainName)" | Move-ADDirectoryServer -Site $using:Parameters.zone;
+                }
+                
+                DependsOn = "[ADReplicationSite]ReplicationSite-$($Parameters.zone)"
+            }
         }
     }
 }
