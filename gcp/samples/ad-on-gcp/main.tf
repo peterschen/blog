@@ -10,7 +10,12 @@ provider "google-beta" {
 
 locals {
   project = var.project
+  regions = var.regions
+  zones = var.zones
   name-sample = "ad-on-gce"
+  name-domain = var.name-domain
+  password = var.password
+  uri-meta = var.uri-meta
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
   scopes-default = ["https://www.googleapis.com/auth/cloud-platform"]
   network-prefixes = ["10.0.0", "10.1.0"]
@@ -44,24 +49,24 @@ resource "google_compute_network" "network" {
 }
 
 resource "google_compute_subnetwork" "subnets" {
-  count = length(var.regions)
-  region = var.regions[count.index]
-  name = var.regions[count.index]
+  count = length(local.regions)
+  region = local.regions[count.index]
+  name = local.regions[count.index]
   ip_cidr_range = local.network-ranges[count.index]
   network = google_compute_network.network.self_link
   private_ip_google_access = true
 }
 
 resource "google_compute_router" "router" {
-  count = length(var.regions)
-  region = var.regions[count.index]
-  name = "router-${var.regions[count.index]}"
+  count = length(local.regions)
+  region = local.regions[count.index]
+  name = "router-${local.regions[count.index]}"
   network = google_compute_network.network.self_link
 }
 
 resource "google_compute_router_nat" "nat" {
-  count = length(var.regions)
-  region = var.regions[count.index]
+  count = length(local.regions)
+  region = local.regions[count.index]
   name = "nat"
   router = google_compute_router.router[count.index].name
   nat_ip_allocate_option = "AUTO_ONLY"
@@ -106,7 +111,7 @@ resource "google_compute_firewall" "allow-dns-gcp" {
 resource "google_dns_managed_zone" "ad-dns-forward" {
   provider = google-beta
   name = "ad-dns-forward"
-  dns_name = "${var.name-domain}."
+  dns_name = "${local.name-domain}."
 
   visibility = "private"
 
@@ -129,8 +134,8 @@ resource "google_dns_managed_zone" "ad-dns-forward" {
 }
 
 resource "google_compute_instance" "dc" {
-  count = length(var.regions)
-  zone = "${var.regions[count.index]}-${var.zones[count.index][0]}"
+  count = length(local.zones)
+  zone = local.zones[count.index]
   name = "dc-${count.index}"
   machine_type = "n1-standard-1"
 
@@ -154,11 +159,11 @@ resource "google_compute_instance" "dc" {
     type = "dc"
     sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
         nameHost = "dc-${count.index}", 
-        uriMeta = var.uri-meta,
-        password = var.password,
+        uriMeta = local.uri-meta,
+        password = local.password,
         parametersConfiguration = jsonencode({
-          domainName = var.name-domain,
-          zone = "${var.regions[count.index]}-${var.zones[count.index][0]}",
+          domainName = local.name-domain,
+          zone = local.zones[count.index]
           networkRange = local.network-ranges[count.index],
           isFirst = (count.index == 0),
           inlineConfiguration = filebase64("${path.module}/dc.ps1"),
@@ -171,47 +176,6 @@ resource "google_compute_instance" "dc" {
           ]
         })
       })
-  }
-
-  service_account {
-    scopes = local.scopes-default
-  }
-
-  depends_on = [google_project_service.apis]
-}
-
-resource "google_compute_instance" "jumpy" {
-  name = "jumpy"
-  zone = "${var.regions[0]}-${var.zones[0][0]}"
-  machine_type = "n1-standard-2"
-
-  tags = ["sample-${local.name-sample}-jumpy", "rdp"]
-
-  boot_disk {
-    initialize_params {
-      image = "windows-cloud/windows-2019"
-      type = "pd-ssd"
-    }
-  }
-
-  network_interface {
-    network = google_compute_network.network.self_link
-    subnetwork = google_compute_subnetwork.subnets[0].self_link
-    network_ip = "${local.network-prefixes[0]}.3"
-  }
-
-  metadata = {
-    sample = local.name-sample
-    type = "jumpy"
-    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
-      nameHost = "jumpy", 
-      uriMeta = var.uri-meta,
-      password = var.password,
-      parametersConfiguration = jsonencode({
-        domainName = var.name-domain,
-        inlineConfiguration = filebase64("${path.module}/jumpy.ps1")
-      })
-    })
   }
 
   service_account {
