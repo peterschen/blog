@@ -7,16 +7,17 @@ locals {
   zone = var.zone
   network = var.network
   subnetwork = var.subnetwork
-  uri-meta = var.uri-meta
   password = var.password
+  machine-type = var.machine-type
+  uri-meta = var.uri-meta
 }
 
 module "sysprep" {
-  source = "github.com/peterschen/blog/gcp/modules/sysprep"
+  source = "github.com/peterschen/blog//gcp/modules/sysprep"
 }
 
 module "apis" {
-  source = "github.com/peterschen/blog/gcp/modules/apis"
+  source = "github.com/peterschen/blog//gcp/modules/apis"
   project = local.project
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com"]
 }
@@ -25,7 +26,7 @@ resource "google_compute_instance" "bastion" {
   project = local.project
   zone = local.zone
   name = "bastion-windows"
-  machine_type = "n1-standard-2"
+  machine_type = local.machine-type
 
   tags = ["bastion-windows"]
 
@@ -43,7 +44,7 @@ resource "google_compute_instance" "bastion" {
 
   metadata = {
     sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
-      nameHost = "bastion", 
+      nameHost = "bastion-windows", 
       uriMeta = local.uri-meta,
       password = local.password,
       parametersConfiguration = jsonencode({

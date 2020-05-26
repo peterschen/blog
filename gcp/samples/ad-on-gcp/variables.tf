@@ -7,10 +7,10 @@ variable "regions" {
 }
 
 variable "zones" {
-  type = list(list(string))
+  type = list(string)
   default = [
-    ["b"],
-    ["a"]
+    "europe-west1-b",
+    "europe-west4-a"
   ]
 }
 
