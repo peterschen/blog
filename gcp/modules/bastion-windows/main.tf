@@ -9,6 +9,8 @@ locals {
   subnetwork = var.subnetwork
   password = var.password
   machine-type = var.machine-type
+  name-domain = var.name-domain
+  enable-domain = var.enable-domain
 }
 
 module "sysprep" {
@@ -47,7 +49,9 @@ resource "google_compute_instance" "bastion" {
       password = local.password,
       parametersConfiguration = jsonencode({
         inlineMeta = filebase64(module.sysprep.path-meta),
-        inlineConfiguration = filebase64("${path.module}/bastion.ps1")
+        inlineConfiguration = filebase64("${path.module}/bastion.ps1"),
+        nameDomain = local.name-domain,
+        enableDomain = local.enable-domain
       })
     })
   }
