@@ -133,6 +133,45 @@ configuration ConfigurationWorkload
             DependsOn = "[Script]DownloadChrome"
         }
 
+        Script DownloadMremoteng
+        {
+            GetScript = {
+                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "mremoteng.msi";
+                if((Test-Path -Path $path))
+                {
+                    $result = "Present";
+                }
+                else
+                {
+                    $result = "Absent";
+                }
+
+                return @{Ensure = $result};
+            }
+
+            TestScript = {
+                $state = [scriptblock]::Create($GetScript).Invoke();
+                return $state.Ensure -eq "Present";
+            }
+
+            SetScript = {
+                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "mremoteng.msi";
+                Invoke-WebRequest -Uri "https://github.com/mRemoteNG/mRemoteNG/releases/download/v1.76.20/mRemoteNG-Installer-1.76.20.24615.msi" -OutFile $path;
+            }
+        }
+
+        Package "Mremoteng"
+        {
+            Ensure = "Present"
+            Name = "mRemoteNG"
+            ProductID = ""
+            Path = "C:\Windows\temp\mremoteng.msi"
+            Arguments = "/quiet"
+            DependsOn = "[Script]DownloadMremoteng"
+        }
+
+        
+
         if($Parameters.enableSsms)
         {
             Script DownloadSsms
