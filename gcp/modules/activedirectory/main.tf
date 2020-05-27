@@ -124,7 +124,6 @@ resource "google_compute_instance" "dc" {
   }
 
   metadata = {
-    sample = local.name-sample
     type = "dc"
     sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
         nameHost = "dc-${count.index}", 
