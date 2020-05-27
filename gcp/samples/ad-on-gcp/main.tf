@@ -16,11 +16,14 @@ locals {
   name-domain = var.name-domain
   password = var.password
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
-  scopes-default = ["https://www.googleapis.com/auth/cloud-platform"]
   network-prefixes = ["10.0.0", "10.1.0"]
   network-mask = 16
   network-ranges = ["${local.network-prefixes[0]}.0/${local.network-mask}", "${local.network-prefixes[1]}.0/${local.network-mask}"]
   ip-dcs = ["${local.network-prefixes[0]}.2", "${local.network-prefixes[1]}.2"]
+}
+
+module "gce-default-scopes" {
+  source = "github.com/peterschen/blog//gcp/modules/gce-default-scopes"
 }
 
 module "sysprep" {
@@ -178,7 +181,7 @@ resource "google_compute_instance" "dc" {
   }
 
   service_account {
-    scopes = local.scopes-default
+    scopes = module.gce-default-scopes.scopes
   }
 
   depends_on = [google_project_service.apis]

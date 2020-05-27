@@ -13,6 +13,10 @@ locals {
   enable-domain = var.enable-domain
 }
 
+module "gce-default-scopes" {
+  source = "github.com/peterschen/blog//gcp/modules/gce-default-scopes"
+}
+
 module "sysprep" {
   source = "github.com/peterschen/blog//gcp/modules/sysprep"
 }
@@ -54,6 +58,10 @@ resource "google_compute_instance" "bastion" {
         enableDomain = local.enable-domain
       })
     })
+  }
+
+  service_account {
+    scopes = module.gce-default-scopes.scopes
   }
 
   depends_on = [module.apis]
