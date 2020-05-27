@@ -123,7 +123,7 @@ configuration ConfigurationWorkload
             }
         }
 
-        Package "Chrome"
+        Package "InstallChrome"
         {
             Ensure = "Present"
             Name = "Google Chrome"
@@ -160,7 +160,7 @@ configuration ConfigurationWorkload
             }
         }
 
-        Package "Mremoteng"
+        Package "InstallMremoteng"
         {
             Ensure = "Present"
             Name = "mRemoteNG"
@@ -169,8 +169,6 @@ configuration ConfigurationWorkload
             Arguments = "/quiet"
             DependsOn = "[Script]DownloadMremoteng"
         }
-
-        
 
         if($Parameters.enableSsms)
         {
@@ -201,7 +199,7 @@ configuration ConfigurationWorkload
                 }
             }
 
-            Package "SqlServerManagementStudio"
+            Package "InstallSqlServerManagementStudio"
             {
                 Ensure = "Present"
                 Name = "Microsoft SQL Server Management Studio - 18.5"
