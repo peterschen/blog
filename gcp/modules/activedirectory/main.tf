@@ -58,8 +58,8 @@ resource "google_compute_firewall" "allow-all-dc" {
 
   direction = "INGRESS"
 
-  source_ranges = [local.subnetworks[0].ip_cidr_range, local.subnetworks[0].ip_cidr_range]
-  
+  source_ranges = [local.subnetworks[0].ip_cidr_range, local.subnetworks[1].ip_cidr_range]
+
   target_tags = ["ad"]
 }
 
