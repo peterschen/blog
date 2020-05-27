@@ -95,5 +95,45 @@ configuration ConfigurationWorkload
                 DependsOn = "[Computer]JoinDomain"
             }
         }
+
+        if($Parameters.enableSsms)
+        {
+            Script DownloadSsms
+            {
+                GetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "SSMS-Setup-ENU.msi";
+                    if((Test-Path -Path $path))
+                    {
+                        $result = "Present";
+                    }
+                    else
+                    {
+                        $result = "Absent";
+                    }
+
+                    return @{Ensure = $result};
+                }
+
+                TestScript = {
+                    $state = [scriptblock]::Create($GetScript).Invoke();
+                    return $state.Ensure -eq "Present";
+                }
+
+                SetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "SSMS-Setup-ENU.msi";
+                    Invoke-WebRequest -Uri "https://aka.ms/ssmsfullsetup" -OutFile $path;
+                }
+            }
+
+            Package "SqlServerManagementStudio"
+            {
+                Ensure = "Present"
+                Name = "Microsoft SQL Server Management Studio - 18.5"
+                ProductID = ""
+                Path = "C:\Windows\temp\SSMS-Setup-ENU.exe"
+                Arguments = "/install /quiet"
+                DependsOn = "[Script]DownloadSsms"
+            }
+        }
     }
 }

@@ -7,6 +7,7 @@ locals {
   machine-type = var.machine-type
   name-domain = var.name-domain
   enable-domain = var.enable-domain
+  enable-ssms = var.enable-ssms
 }
 
 module "gce-default-scopes" {
@@ -51,7 +52,8 @@ resource "google_compute_instance" "bastion" {
         inlineMeta = filebase64(module.sysprep.path-meta),
         inlineConfiguration = filebase64("${path.module}/bastion.ps1"),
         nameDomain = local.name-domain,
-        enableDomain = local.enable-domain
+        enableDomain = local.enable-domain,
+        enableSsms = local.enable-ssms
       })
     })
   }

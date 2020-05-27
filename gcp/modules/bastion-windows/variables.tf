@@ -30,3 +30,8 @@ variable "enable-domain" {
     type = bool
     default = false
 }
+
+variable "enable-ssms" {
+    type = bool
+    default = false
+}
