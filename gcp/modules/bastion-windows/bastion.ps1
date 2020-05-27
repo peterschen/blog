@@ -96,7 +96,7 @@ configuration ConfigurationWorkload
             }
         }
 
-        Script DownloadChrome
+        Script "DownloadChrome"
         {
             GetScript = {
                 $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "chrome.msi";
@@ -133,7 +133,7 @@ configuration ConfigurationWorkload
             DependsOn = "[Script]DownloadChrome"
         }
 
-        Script DownloadMremoteng
+        Script "DownloadMremoteng"
         {
             GetScript = {
                 $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "mremoteng.msi";
@@ -172,7 +172,7 @@ configuration ConfigurationWorkload
 
         if($Parameters.enableSsms)
         {
-            Script DownloadSsms
+            Script "DownloadSsms"
             {
                 GetScript = {
                     $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "SSMS-Setup-ENU.exe";
@@ -199,7 +199,7 @@ configuration ConfigurationWorkload
                 }
             }
 
-            Package "InstallSqlServerManagementStudio"
+            Package "InstallSsms"
             {
                 Ensure = "Present"
                 Name = "Microsoft SQL Server Management Studio - 18.5"
