@@ -130,7 +130,7 @@ configuration ConfigurationWorkload
                 Ensure = "Present"
                 Name = "Microsoft SQL Server Management Studio - 18.5"
                 ProductID = ""
-                Path = "C:\Windows\temp\SSMS-Setup-ENU.exe"
+                Path = "C:\Windows\temp\SSMS-Setup-ENU.msi"
                 Arguments = "/install /quiet"
                 DependsOn = "[Script]DownloadSsms"
             }
