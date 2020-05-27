@@ -92,10 +92,10 @@ resource "google_dns_managed_zone" "ad-dns-forward" {
 
   forwarding_config {
     target_name_servers {
-      ipv4_address = google_compute_address.dc[0]
+      ipv4_address = google_compute_address.dc[0].address
     }
     target_name_servers {
-      ipv4_address = google_compute_address.dc[1]
+      ipv4_address = google_compute_address.dc[1].address
     }
   }
 
@@ -120,7 +120,7 @@ resource "google_compute_instance" "dc" {
   network_interface {
     network = local.network.self_link
     subnetwork = local.subnetworks[count.index].self_link
-    network_ip = google_compute_address.dc[count.index]
+    network_ip = google_compute_address.dc[count.index].address
   }
 
   metadata = {
