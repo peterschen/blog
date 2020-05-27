@@ -35,10 +35,10 @@ module "sysprep" {
 resource "google_compute_address" "dc" {
   count = length(local.zones)
   region = local.regions[0]
-  subnetwork = local.subnetwork[count.index].self_link
+  subnetwork = local.subnetworks[count.index].self_link
   name = "dc"
   address_type = "INTERNAL"
-  address = cidrhost(local.subnetwork[count.index].ip_cidr_range, 2)
+  address = cidrhost(local.subnetworks[count.index].ip_cidr_range, 2)
 }
 
 resource "google_compute_firewall" "allow-all-ad" {
@@ -119,7 +119,7 @@ resource "google_compute_instance" "dc" {
 
   network_interface {
     network = local.network.self_link
-    subnetwork = local.subnetwork[count.index].self_link
+    subnetwork = local.subnetworks[count.index].self_link
     network_ip = google_compute_address.dc[count.index]
   }
 
