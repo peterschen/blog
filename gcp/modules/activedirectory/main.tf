@@ -86,7 +86,7 @@ resource "google_dns_managed_zone" "ad-dns-forward" {
 
   private_visibility_config {
     networks {
-      network_url = google_compute_network.network.self_link
+      network_url = local.network.self_link
     }
   }
 
