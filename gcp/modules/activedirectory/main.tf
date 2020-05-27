@@ -131,7 +131,7 @@ resource "google_compute_instance" "dc" {
         parametersConfiguration = jsonencode({
           domainName = local.name-domain,
           zone = local.zones[count.index]
-          networkRange = local.network-ranges[count.index],
+          networkRange = local.subnetworks[count.index].ip_cidr_range,
           isFirst = (count.index == 0),
           inlineMeta = filebase64(module.sysprep.path-meta),
           inlineConfiguration = filebase64("${path.module}/dc.ps1"),
