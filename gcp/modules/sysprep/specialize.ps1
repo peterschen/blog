@@ -5,12 +5,13 @@ $VerbosePreference = "SilentlyContinue";
 $DebugPreference = "SilentlyContinue";
 
 $nameHost = '${nameHost}';
-$uriMeta = '${uriMeta}';
 $password = '${password}';
 $passwordSecure = ConvertTo-SecureString -String $password -AsPlainText -Force;
 $parametersConfiguration = ConvertFrom-Json -InputObject '${parametersConfiguration}';
 
+$uriMeta = $parametersConfiguration.uriMeta;
 $uriConfiguration = $parametersConfiguration.uriConfiguration;
+$inlineMeta = $parametersConfiguration.inlineMeta;
 $inlineConfiguration = $parametersConfiguration.inlineConfiguration;
 
 # Enable administrator
@@ -92,9 +93,18 @@ $certificate = New-SelfSignedCertificate -Type DocumentEncryptionCertLegacyCsp -
 Export-Certificate -Cert $certificate -FilePath $pathDscCertificate -Force | Out-Null;
 
 # Download DSC (meta) configuration
-$pathDscConfigurationDefinitionMeta = (Join-Path -Path $env:TEMP -ChildPath "meta.ps1");
+$pathDscMetaDefinition = (Join-Path -Path $env:TEMP -ChildPath "meta.ps1");
 $pathDscConfigurationDefinition = (Join-Path -Path $env:TEMP -ChildPath "configuration.ps1");
-Invoke-WebRequest -Uri "$uriMeta/meta.ps1" -OutFile $pathDscConfigurationDefinitionMeta;
+
+if([string]::IsNullOrEmpty($inlineMeta))
+{
+    Invoke-WebRequest -Uri "$uriMeta/meta.ps1" -OutFile $pathDscMetaDefinition;
+}
+else
+{
+    [IO.File]::WriteAllBytes($pathDscMetaDefinition, [Convert]::FromBase64String($inlineMeta));
+}
+
 if([string]::IsNullOrEmpty($inlineConfiguration))
 {
     $nameConfiguration = $parametersConfiguration.nameConfiguration;
@@ -106,7 +116,7 @@ else
 }
 
 # Source DSC (meta) configuration
-. $pathDscConfigurationDefinitionMeta;
+. $pathDscMetaDefinition;
 . $pathDscConfigurationDefinition;
 
 # Build DSC (meta) configuration
