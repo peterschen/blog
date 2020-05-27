@@ -101,7 +101,7 @@ configuration ConfigurationWorkload
             Script DownloadSsms
             {
                 GetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "SSMS-Setup-ENU.msi";
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "SSMS-Setup-ENU.exe";
                     if((Test-Path -Path $path))
                     {
                         $result = "Present";
@@ -120,7 +120,7 @@ configuration ConfigurationWorkload
                 }
 
                 SetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "SSMS-Setup-ENU.msi";
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "SSMS-Setup-ENU.exe";
                     Invoke-WebRequest -Uri "https://aka.ms/ssmsfullsetup" -OutFile $path;
                 }
             }
@@ -130,7 +130,7 @@ configuration ConfigurationWorkload
                 Ensure = "Present"
                 Name = "Microsoft SQL Server Management Studio - 18.5"
                 ProductID = ""
-                Path = "C:\Windows\temp\SSMS-Setup-ENU.msi"
+                Path = "C:\Windows\temp\SSMS-Setup-ENU.exe"
                 Arguments = "/install /quiet"
                 DependsOn = "[Script]DownloadSsms"
             }
