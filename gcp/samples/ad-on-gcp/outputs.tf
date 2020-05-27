@@ -2,6 +2,10 @@ output "path-module" {
   value = path.module
 }
 
+output "path-meta" {
+  value = module.sysprep.path-meta
+}
+
 output "path-specialize" {
   value = module.sysprep.path-specialize
 }

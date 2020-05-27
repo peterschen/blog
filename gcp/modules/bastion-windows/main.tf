@@ -9,7 +9,6 @@ locals {
   subnetwork = var.subnetwork
   password = var.password
   machine-type = var.machine-type
-  uri-meta = var.uri-meta
 }
 
 module "sysprep" {
@@ -45,9 +44,9 @@ resource "google_compute_instance" "bastion" {
   metadata = {
     sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
       nameHost = "bastion-windows", 
-      uriMeta = local.uri-meta,
       password = local.password,
       parametersConfiguration = jsonencode({
+        inlineMeta = filebase64(module.sysprep.path-meta),
         inlineConfiguration = filebase64("${path.module}/bastion.ps1")
       })
     })

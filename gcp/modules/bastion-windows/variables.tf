@@ -20,7 +20,3 @@ variable "machine-type" {
 variable "password" {
     type = string
 }
-
-variable "uri-meta" {
-    type = string
-}
