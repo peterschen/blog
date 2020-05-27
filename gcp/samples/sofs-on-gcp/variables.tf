@@ -20,10 +20,6 @@ variable "name-domain" {
 variable "password" {
 }
 
-variable "uri-meta" {
-  default = "https://raw.githubusercontent.com/peterschen/blog/master/gcp/samples/ad-on-gcp"
-}
-
 variable "provision-cluster" {
   type = bool
   default = false

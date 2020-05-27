@@ -14,7 +14,6 @@ locals {
   zones = var.zones
   name-sample = "sofs-on-gcp"
   name-domain = var.name-domain
-  uri-meta = var.uri-meta
   password = var.password
   provision-cluster = var.provision-cluster
   provision-hdd = var.provision-hdd
@@ -85,7 +84,6 @@ resource "google_compute_instance" "sofs" {
     enable-wsfc = "true"
     sysprep-specialize-script-ps1 = templatefile(module.ad-on-gcp.path-specialize, { 
         nameHost = "sofs-${count.index}", 
-        uriMeta = local.uri-meta,
         password = local.password,
         parametersConfiguration = jsonencode({
           domainName = var.name-domain,
@@ -94,6 +92,7 @@ resource "google_compute_instance" "sofs" {
           nodeCount = local.count-nodes,
           ipCluster = google_compute_address.sofs-cl.address,
           isFirst = (count.index == 0),
+          inlineMeta = filebase64(module.ad-on-gcp.path-meta),
           inlineConfiguration = filebase64("${path.module}/sofs.ps1"),
           modulesDsc = [
             {
