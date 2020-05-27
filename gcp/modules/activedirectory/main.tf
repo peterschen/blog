@@ -1,13 +1,3 @@
-provider "google" {
-  version = "~> 3.1"
-  project = var.project
-}
-
-provider "google-beta" {
-  version = "~> 3.1"
-  project = var.project
-}
-
 locals {
   project = var.project
   regions = var.regions
