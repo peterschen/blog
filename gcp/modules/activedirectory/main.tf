@@ -56,6 +56,10 @@ resource "google_compute_firewall" "allow-ad" {
     ports    = ["88", "135", "389", "445", "464", "636", "3268", "3269", "49152-65535"]
   }
 
+  allow {
+    protocol = "icmp"
+  }
+
   direction = "INGRESS"
 
   source_ranges = [local.subnetworks[0].ip_cidr_range, local.subnetworks[1].ip_cidr_range]
