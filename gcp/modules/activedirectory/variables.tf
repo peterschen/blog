@@ -17,7 +17,7 @@ variable "zones" {
 variable "network" {
 }
 
-variable "subnetwork" {
+variable "subnetworks" {
 }
 
 variable "name-domain" {

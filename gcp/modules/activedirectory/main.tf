@@ -15,7 +15,7 @@ locals {
   name-domain = var.name-domain
   password = var.password
   network = var.network
-  subnetwork = var.subnetwork
+  subnetworks = var.subnetworks
 }
 
 module "apis" {
