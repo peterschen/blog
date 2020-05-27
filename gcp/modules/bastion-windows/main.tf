@@ -29,7 +29,7 @@ resource "google_compute_instance" "bastion" {
   name = "bastion-windows"
   machine_type = local.machine-type
 
-  tags = ["bastion-windows"]
+  tags = ["bastion-windows", "rdp"]
 
   boot_disk {
     initialize_params {
