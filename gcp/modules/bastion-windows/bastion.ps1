@@ -96,6 +96,43 @@ configuration ConfigurationWorkload
             }
         }
 
+        Script DownloadChrome
+        {
+            GetScript = {
+                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "chrome.msi";
+                if((Test-Path -Path $path))
+                {
+                    $result = "Present";
+                }
+                else
+                {
+                    $result = "Absent";
+                }
+
+                return @{Ensure = $result};
+            }
+
+            TestScript = {
+                $state = [scriptblock]::Create($GetScript).Invoke();
+                return $state.Ensure -eq "Present";
+            }
+
+            SetScript = {
+                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "chrome.msi";
+                Invoke-WebRequest -Uri "https://dl.google.com/tag/s/dl/chrome/install/googlechromestandaloneenterprise64.msi" -OutFile $path;
+            }
+        }
+
+        Package "Chrome"
+        {
+            Ensure = "Present"
+            Name = "Google Chrome"
+            ProductID = ""
+            Path = "C:\Windows\temp\chrome.msi"
+            Arguments = "/quiet"
+            DependsOn = "[Script]DownloadChrome"
+        }
+
         if($Parameters.enableSsms)
         {
             Script DownloadSsms
@@ -135,5 +172,7 @@ configuration ConfigurationWorkload
                 DependsOn = "[Script]DownloadSsms"
             }
         }
+
+
     }
 }
