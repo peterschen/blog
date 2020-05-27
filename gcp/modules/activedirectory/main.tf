@@ -99,7 +99,7 @@ resource "google_dns_managed_zone" "ad-dns-forward" {
     }
   }
 
-  depends_on = [google_project_service.apis]
+  depends_on = [module.apis]
 }
 
 resource "google_compute_instance" "dc" {
@@ -151,5 +151,5 @@ resource "google_compute_instance" "dc" {
     scopes = module.gce-default-scopes.scopes
   }
 
-  depends_on = [google_project_service.apis]
+  depends_on = [module.apis]
 }
