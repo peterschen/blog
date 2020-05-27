@@ -47,12 +47,19 @@ resource "google_compute_firewall" "allow-all-dc" {
   priority = 1000
 
   allow {
-    protocol = "all"
+    protocol = "udp"
+    ports    = ["88", "123", "389", "445", "464"]
+  }
+
+  allow {
+    protocol = "tcp"
+    ports    = ["88", "135", "389", "445", "464", "636", "3268", "3269", "49152-65535"]
   }
 
   direction = "INGRESS"
 
-  source_tags = ["ad"]
+  source_ranges = [local.subnetworks[0].ip_cidr_range, local.subnetworks[0].ip_cidr_range]
+  
   target_tags = ["ad"]
 }
 
