@@ -91,7 +91,7 @@ configuration ConfigurationWorkload
             {
                 GroupName = "Remote Management Users"
                 Credential = $domainCredential
-                MembersToInclude = "$($Parameters.namneDomain)\g-RemoteManagementUsers"
+                MembersToInclude = "$($Parameters.nameDomain)\g-RemoteManagementUsers"
                 DependsOn = "[Computer]JoinDomain"
             }
         }
