@@ -20,3 +20,13 @@ variable "machine-type" {
 variable "password" {
     type = string
 }
+
+variable "name-domain" {
+    type = string
+    default = ""
+}
+
+variable "enable-domain" {
+    type = bool
+    default = false
+}
