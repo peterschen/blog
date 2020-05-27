@@ -41,8 +41,8 @@ resource "google_compute_address" "dc" {
   address = cidrhost(local.subnetworks[count.index].ip_cidr_range, 2)
 }
 
-resource "google_compute_firewall" "allow-all-dc" {
-  name    = "allow-all-dc"
+resource "google_compute_firewall" "allow-ad" {
+  name    = "allow-ad"
   network = local.network.name
   priority = 1000
 
