@@ -15,7 +15,6 @@ locals {
   name-sample = "ad-on-gce"
   name-domain = var.name-domain
   password = var.password
-  uri-meta = var.uri-meta
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
   scopes-default = ["https://www.googleapis.com/auth/cloud-platform"]
   network-prefixes = ["10.0.0", "10.1.0"]
@@ -159,13 +158,13 @@ resource "google_compute_instance" "dc" {
     type = "dc"
     sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
         nameHost = "dc-${count.index}", 
-        uriMeta = local.uri-meta,
         password = local.password,
         parametersConfiguration = jsonencode({
           domainName = local.name-domain,
           zone = local.zones[count.index]
           networkRange = local.network-ranges[count.index],
           isFirst = (count.index == 0),
+          inlineMeta = filebase64(module.sysprep.path-meta),
           inlineConfiguration = filebase64("${path.module}/dc.ps1"),
           modulesDsc = [
             {
