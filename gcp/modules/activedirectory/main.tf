@@ -79,6 +79,28 @@ resource "google_compute_firewall" "allow-dns-gcp" {
   target_tags = ["dns"]
 }
 
+resource "google_compute_firewall" "allow-dns-internal" {
+  name    = "allow-dns-internal"
+  network = local.network.name
+  priority = 5000
+
+  allow {
+    protocol = "udp"
+    ports    = ["53"]
+  }
+
+  allow {
+    protocol = "tcp"
+    ports    = ["53"]
+  }
+
+  direction = "INGRESS"
+
+  source_ranges = [local.subnetworks[0].ip_cidr_range, local.subnetworks[1].ip_cidr_range]
+
+  target_tags = ["dns"]
+}
+
 resource "google_dns_managed_zone" "ad-dns-forward" {
   provider = google-beta
   name = "ad-dns-forward"
