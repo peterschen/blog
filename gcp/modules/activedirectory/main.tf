@@ -34,7 +34,7 @@ module "sysprep" {
 
 resource "google_compute_address" "dc" {
   count = length(local.zones)
-  region = local.regions[0]
+  region = local.regions[count.index]
   subnetwork = local.subnetworks[count.index].self_link
   name = "dc"
   address_type = "INTERNAL"
