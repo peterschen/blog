@@ -35,3 +35,8 @@ variable "enable-ssms" {
     type = bool
     default = false
 }
+
+variable "enable-hammerdb" {
+    type = bool
+    default = false
+}

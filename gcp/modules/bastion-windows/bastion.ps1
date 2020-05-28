@@ -247,5 +247,81 @@ configuration ConfigurationWorkload
                 DependsOn = "[Script]DownloadSsms"
             }
         }
+
+        if($Parameters.enableHammerdb)
+        {
+
+
+            Script "DownloadMsoledbsql"
+            {
+                GetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "msoledbsql.msi";
+                    if((Test-Path -Path $path))
+                    {
+                        $result = "Present";
+                    }
+                    else
+                    {
+                        $result = "Absent";
+                    }
+
+                    return @{Ensure = $result};
+                }
+
+                TestScript = {
+                    $state = [scriptblock]::Create($GetScript).Invoke();
+                    return $state.Ensure -eq "Present";
+                }
+
+                SetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "msoledbsql.msi";
+                    Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2117515" -OutFile $path;
+                }
+            }
+
+            Package "InstallMsoledb"
+            {
+                Ensure = "Present"
+                Name = "Microsoft OLE DB Driver for SQL Server"
+                ProductID = ""
+                Path = "C:\Windows\temp\msoledbsql.msi"
+                Arguments = "/install /quiet"
+                DependsOn = "[Script]DownloadMsoledbsql"
+            }
+
+            Script "DownloadHammerdb"
+            {
+                GetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "hammerdb.zip";
+                    if((Test-Path -Path $path))
+                    {
+                        $result = "Present";
+                    }
+                    else
+                    {
+                        $result = "Absent";
+                    }
+
+                    return @{Ensure = $result};
+                }
+
+                TestScript = {
+                    $state = [scriptblock]::Create($GetScript).Invoke();
+                    return $state.Ensure -eq "Present";
+                }
+
+                SetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "hammerdb.zip";
+                    Invoke-WebRequest -Uri "https://github.com/TPC-Council/HammerDB/releases/download/v3.3/HammerDB-3.3-Win.zip" -OutFile $path;
+                }
+            }
+
+            Archive "ExpandHammerdb"
+            {
+                Destination = "c:\tools"
+                Path = "C:\Windows\temp\hammerdb.zip"
+                DependsOn = "[Script]DownloadHammerdb"
+            }
+        }
     }
 }

@@ -8,6 +8,7 @@ locals {
   name-domain = var.name-domain
   enable-domain = var.enable-domain
   enable-ssms = var.enable-ssms
+  enable-hammerdb = var.enable-hammerdb
 }
 
 module "gce-default-scopes" {
@@ -53,7 +54,8 @@ resource "google_compute_instance" "bastion" {
         inlineConfiguration = filebase64("${path.module}/bastion.ps1"),
         nameDomain = local.name-domain,
         enableDomain = local.enable-domain,
-        enableSsms = local.enable-ssms
+        enableSsms = local.enable-ssms,
+        enableHammerdb = local.enable-hammerdb
       })
     })
   }
