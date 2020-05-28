@@ -22,6 +22,7 @@ configuration ConfigurationWorkload
         "RSAT-ADDS",
         "RSAT-DNS-Server",
         "RSAT-File-Services"
+        "Web-Mgmt-Console"
     );
 
     $rules = @(
@@ -170,6 +171,43 @@ configuration ConfigurationWorkload
             DependsOn = "[Script]DownloadMremoteng"
         }
 
+        Script "DownloadVscode"
+        {
+            GetScript = {
+                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "vscode.exe";
+                if((Test-Path -Path $path))
+                {
+                    $result = "Present";
+                }
+                else
+                {
+                    $result = "Absent";
+                }
+
+                return @{Ensure = $result};
+            }
+
+            TestScript = {
+                $state = [scriptblock]::Create($GetScript).Invoke();
+                return $state.Ensure -eq "Present";
+            }
+
+            SetScript = {
+                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "vscode.exe";
+                Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?Linkid=852157" -OutFile $path;
+            }
+        }
+
+        Package "InstallVscode"
+        {
+            Ensure = "Present"
+            Name = "Microsoft Visual Studio Code"
+            ProductID = ""
+            Path = "C:\Windows\temp\vscode.exe"
+            Arguments = "/VERYSILENT"
+            DependsOn = "[Script]DownloadVscode"
+        }
+
         if($Parameters.enableSsms)
         {
             Script "DownloadSsms"
@@ -209,7 +247,5 @@ configuration ConfigurationWorkload
                 DependsOn = "[Script]DownloadSsms"
             }
         }
-
-
     }
 }
