@@ -22,6 +22,13 @@ module "sysprep" {
   source = "github.com/peterschen/blog//gcp/modules/sysprep"
 }
 
+module "firewall-ad" {
+  source = "github.com/peterschen/blog//gcp/modules/firewall-ad?ref=admodule"
+  name = "allow-ad"
+  network = local.network
+  cidr-ranges = [local.subnetworks[0].ip_cidr_range, local.subnetworks[1].ip_cidr_range]
+}
+
 resource "google_compute_address" "dc" {
   count = length(local.zones)
   region = local.regions[count.index]
@@ -31,31 +38,6 @@ resource "google_compute_address" "dc" {
   address = cidrhost(local.subnetworks[count.index].ip_cidr_range, 2)
 }
 
-resource "google_compute_firewall" "allow-ad" {
-  name    = "allow-ad"
-  network = local.network.name
-  priority = 1000
-
-  allow {
-    protocol = "udp"
-    ports    = ["88", "123", "389", "445", "464"]
-  }
-
-  allow {
-    protocol = "tcp"
-    ports    = ["88", "135", "389", "445", "464", "636", "3268", "3269", "9389", "49152-65535"]
-  }
-
-  allow {
-    protocol = "icmp"
-  }
-
-  direction = "INGRESS"
-
-  source_ranges = [local.subnetworks[0].ip_cidr_range, local.subnetworks[1].ip_cidr_range]
-
-  target_tags = ["ad"]
-}
 
 resource "google_compute_firewall" "allow-dns-gcp" {
   name    = "allow-dns-gcp"
