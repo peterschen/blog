@@ -35,7 +35,7 @@ resource "google_compute_instance" "bastion" {
 
   boot_disk {
     initialize_params {
-      image = "windows-cloud/windows-2019"
+      image = "windows-cloud/windows-2019-for-containers"
       type = "pd-ssd"
     }
   }
