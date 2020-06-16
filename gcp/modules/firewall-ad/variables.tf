@@ -6,5 +6,5 @@ variable "network" {
 }
 
 variable "cidr-ranges" {
-  type = string[]
+  type = list(string)
 }
