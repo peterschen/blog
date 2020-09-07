@@ -21,8 +21,9 @@ configuration ConfigurationWorkload
         "RSAT-Storage-Replica",
         "RSAT-ADDS",
         "RSAT-DNS-Server",
-        "RSAT-File-Services"
-        "Web-Mgmt-Console"
+        "RSAT-File-Services",
+        "Web-Mgmt-Console",
+        "GPMC"
     );
 
     $rules = @(
