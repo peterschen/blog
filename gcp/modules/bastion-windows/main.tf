@@ -1,7 +1,3 @@
-provider "google" {
-  version = "~> 3.4"
-}
-
 locals {
   project = var.project
   zone = var.zone
@@ -11,6 +7,8 @@ locals {
   machine-type = var.machine-type
   name-domain = var.name-domain
   enable-domain = var.enable-domain
+  enable-ssms = var.enable-ssms
+  enable-hammerdb = var.enable-hammerdb
 }
 
 module "gce-default-scopes" {
@@ -37,7 +35,7 @@ resource "google_compute_instance" "bastion" {
 
   boot_disk {
     initialize_params {
-      image = "windows-cloud/windows-2019"
+      image = "windows-cloud/windows-2019-for-containers"
       type = "pd-ssd"
     }
   }
@@ -55,7 +53,9 @@ resource "google_compute_instance" "bastion" {
         inlineMeta = filebase64(module.sysprep.path-meta),
         inlineConfiguration = filebase64("${path.module}/bastion.ps1"),
         nameDomain = local.name-domain,
-        enableDomain = local.enable-domain
+        enableDomain = local.enable-domain,
+        enableSsms = local.enable-ssms,
+        enableHammerdb = local.enable-hammerdb
       })
     })
   }

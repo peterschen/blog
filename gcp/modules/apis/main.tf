@@ -1,6 +1,3 @@
-provider "google" {
-  version = "~> 3.4"
-}
 
 locals {
   project = var.project
