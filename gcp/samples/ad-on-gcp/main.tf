@@ -13,21 +13,36 @@ locals {
   regions = var.regions
   zones = var.zones
   name-sample = "ad-on-gce"
-  name-domain = var.name-domain
+  name-domain = var.domain-name
   password = var.password
-  apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
+  apis = ["compute.googleapis.com"]
   network-prefixes = ["10.0.0", "10.1.0"]
   network-mask = 16
   network-ranges = ["${local.network-prefixes[0]}.0/${local.network-mask}", "${local.network-prefixes[1]}.0/${local.network-mask}"]
   ip-dcs = ["${local.network-prefixes[0]}.2", "${local.network-prefixes[1]}.2"]
 }
 
-module "gce-default-scopes" {
-  source = "github.com/peterschen/blog//gcp/modules/gce-default-scopes"
+module "ad" {
+  source = "github.com/peterschen/blog//gcp/modules/activedirectory"
+  project = local.project
+  regions = ["europe-west4", "europe-west1"]
+  zones = ["europe-west4-a", "europe-west1-b"]
+  network = google_compute_network.network
+  subnetworks = google_compute_subnetwork.subnets
+  name-domain = local.name-domain
+  password = local.password
 }
 
-module "sysprep" {
-  source = "github.com/peterschen/blog//gcp/modules/sysprep"
+module "bastion" {
+  source = "github.com/peterschen/blog//gcp/modules/bastion-windows"
+  project = local.project
+  zone = local.zones[0]
+  network = google_compute_network.network.self_link
+  subnetwork = google_compute_subnetwork.subnets[0].self_link
+  machine-name = "bastion"
+  password = local.password
+  domain-name = local.name-domain
+  enable-domain = true
 }
 
 module "firewall-iap" {
@@ -73,116 +88,4 @@ resource "google_compute_router_nat" "nat" {
   router = google_compute_router.router[count.index].name
   nat_ip_allocate_option = "AUTO_ONLY"
   source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
-}
-
-resource "google_compute_firewall" "allow-all-internal" {
-  name    = "allow-all-internal"
-  network = google_compute_network.network.name
-  priority = 1000
-
-  allow {
-    protocol = "all"
-  }
-
-  direction = "INGRESS"
-
-  source_ranges = [local.network-ranges[0], local.network-ranges[1]]
-}
-
-resource "google_compute_firewall" "allow-dns-gcp" {
-  name    = "allow-dns-gcp"
-  network = google_compute_network.network.name
-  priority = 5000
-
-  allow {
-    protocol = "udp"
-    ports    = ["53"]
-  }
-
-  allow {
-    protocol = "tcp"
-    ports    = ["53"]
-  }
-
-  direction = "INGRESS"
-
-  source_ranges = ["35.199.192.0/19"]
-  target_tags = ["dns"]
-}
-
-resource "google_dns_managed_zone" "ad-dns-forward" {
-  provider = google-beta
-  name = "ad-dns-forward"
-  dns_name = "${local.name-domain}."
-
-  visibility = "private"
-
-  private_visibility_config {
-    networks {
-      network_url = google_compute_network.network.self_link
-    }
-  }
-
-  forwarding_config {
-    target_name_servers {
-      ipv4_address = local.ip-dcs[0]
-    }
-    target_name_servers {
-      ipv4_address = local.ip-dcs[1]
-    }
-  }
-
-  depends_on = [google_project_service.apis]
-}
-
-resource "google_compute_instance" "dc" {
-  count = length(local.zones)
-  zone = local.zones[count.index]
-  name = "dc-${count.index}"
-  machine_type = "n1-standard-1"
-
-  tags = ["rdp", "dns"]
-
-  boot_disk {
-    initialize_params {
-      image = "windows-cloud/windows-2019"
-      type = "pd-ssd"
-    }
-  }
-
-  network_interface {
-    network = google_compute_network.network.self_link
-    subnetwork = google_compute_subnetwork.subnets[count.index].self_link
-    network_ip = "${local.network-prefixes[count.index]}.2"
-  }
-
-  metadata = {
-    sample = local.name-sample
-    type = "dc"
-    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
-        nameHost = "dc-${count.index}", 
-        password = local.password,
-        parametersConfiguration = jsonencode({
-          domainName = local.name-domain,
-          zone = local.zones[count.index]
-          networkRange = local.network-ranges[count.index],
-          isFirst = (count.index == 0),
-          inlineMeta = filebase64(module.sysprep.path-meta),
-          inlineConfiguration = filebase64("${path.module}/dc.ps1"),
-          modulesDsc = [
-            {
-              Name = "xDnsServer",
-              Version = "1.16.0"
-              Uri = "https://github.com/dsccommunity/xDnsServer/archive/v1.16.0.zip"
-            }
-          ]
-        })
-      })
-  }
-
-  service_account {
-    scopes = module.gce-default-scopes.scopes
-  }
-
-  depends_on = [google_project_service.apis]
 }
