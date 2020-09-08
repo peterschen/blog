@@ -17,11 +17,15 @@ variable "machine-type" {
     default = "n1-standard-2"
 }
 
+variable "machine-name" {
+    type = string
+}
+
 variable "password" {
     type = string
 }
 
-variable "name-domain" {
+variable "domain-name" {
     type = string
     default = ""
 }
