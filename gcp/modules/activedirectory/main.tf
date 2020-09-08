@@ -23,7 +23,7 @@ module "sysprep" {
 }
 
 module "firewall-ad" {
-  source = "github.com/peterschen/blog//gcp/modules/firewall-ad?ref=admodule"
+  source = "github.com/peterschen/blog//gcp/modules/firewall-ad"
   name = "allow-ad"
   network = local.network
   cidr-ranges = [local.subnetworks[0].ip_cidr_range, local.subnetworks[1].ip_cidr_range]
@@ -37,7 +37,6 @@ resource "google_compute_address" "dc" {
   address_type = "INTERNAL"
   address = cidrhost(local.subnetworks[count.index].ip_cidr_range, 2)
 }
-
 
 resource "google_compute_firewall" "allow-dns-gcp" {
   name    = "allow-dns-gcp"
