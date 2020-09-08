@@ -5,7 +5,8 @@ locals {
   subnetwork = var.subnetwork
   password = var.password
   machine-type = var.machine-type
-  name-domain = var.name-domain
+  machine-name = var.machine-name
+  name-domain = var.domain-name
   enable-domain = var.enable-domain
   enable-ssms = var.enable-ssms
   enable-hammerdb = var.enable-hammerdb
@@ -28,7 +29,7 @@ module "apis" {
 resource "google_compute_instance" "bastion" {
   project = local.project
   zone = local.zone
-  name = "bastion-windows"
+  name = local.machine-name
   machine_type = local.machine-type
 
   tags = ["bastion-windows", "rdp"]
@@ -36,7 +37,7 @@ resource "google_compute_instance" "bastion" {
   boot_disk {
     initialize_params {
       image = "windows-cloud/windows-2019-for-containers"
-      type = "pd-ssd"
+      type = "pd-balanced"
     }
   }
 
@@ -47,7 +48,7 @@ resource "google_compute_instance" "bastion" {
 
   metadata = {
     sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
-      nameHost = "bastion-windows", 
+      nameHost = local.machine-name, 
       password = local.password,
       parametersConfiguration = jsonencode({
         inlineMeta = filebase64(module.sysprep.path-meta),
