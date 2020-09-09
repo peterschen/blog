@@ -89,3 +89,17 @@ resource "google_compute_router_nat" "nat" {
   nat_ip_allocate_option = "AUTO_ONLY"
   source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
 }
+
+resource "google_compute_firewall" "allow-all-internal" {
+  name    = "allow-all-internal"
+  network = google_compute_network.network.name
+  priority = 1000
+
+  allow {
+    protocol = "all"
+  }
+
+  direction = "INGRESS"
+
+  source_ranges = [local.network-ranges[0], local.network-ranges[1]]
+}
