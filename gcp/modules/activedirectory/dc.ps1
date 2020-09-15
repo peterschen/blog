@@ -52,13 +52,16 @@ configuration ConfigurationWorkload
         @{Name = "Groups"; Path = $ou},
         @{Name = "Accounts"; Path = $ou},
         @{Name = "Services"; Path = "ou=Accounts,$ou"},
-        @{Name = "Users"; Path = "ou=Accounts,$ou"}
+        @{Name = "Users"; Path = "ou=Accounts,$ou"},
+        @{Name = "Projects"; Path = $ou}
     );
 
     $userJohndoe = @{Name = "johndoe"; Path = "ou=Users,ou=Accounts,$ou"};
+    $userAdjoiner = @{Name = "s-adjoiner"; Path = "ou=Services,ou=Accounts,$ou"};
 
     $users = @(
-        $userJohndoe
+        $userJohndoe,
+        $userAdjoiner
     );
 
     $groups = @(
