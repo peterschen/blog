@@ -7,8 +7,8 @@ locals {
 resource "google_compute_firewall" "allow-rdp-iap" {
   count = local.enable-rdp ? 1 : 0
 
-  name    = "allow-rdp-iap"
-  network = local.network.name
+  name = "allow-rdp-iap"
+  network = local.network
   priority = 5000
 
   allow {
@@ -26,8 +26,8 @@ resource "google_compute_firewall" "allow-rdp-iap" {
 resource "google_compute_firewall" "allow-ssh-iap" {
   count = local.enable-ssh ? 1 : 0
   
-  name    = "allow-ssh-iap"
-  network = local.network.name
+  name = "allow-ssh-iap"
+  network = local.network
   priority = 5000
 
   allow {
