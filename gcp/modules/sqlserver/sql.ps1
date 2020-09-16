@@ -13,7 +13,8 @@ configuration ConfigurationWorkload
     );
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration, 
-        ComputerManagementDsc, ActiveDirectoryDsc, SqlServerDsc;
+        ComputerManagementDsc, ActiveDirectoryDsc, xFailoverCluster, 
+        NetworkingDsc, SqlServerDsc;
 
     $components = $Parameters.domainName.Split(".");
     $dc = "";
@@ -29,7 +30,9 @@ configuration ConfigurationWorkload
     $ou = "ou=$($Parameters.domainName),$dc"
 
     $features = @(
-        "RSAT-AD-PowerShell"
+        "Failover-clustering",
+        "RSAT-AD-PowerShell",
+        "RSAT-Clustering-PowerShell"
     );
 
     $admins = @(
@@ -141,6 +144,140 @@ configuration ConfigurationWorkload
             InstanceName = "MSSQLSERVER"
             Features = "SQLENGINE,FULLTEXT"
             DependsOn = "[SqlSetup]SqlServerSetup"
+        }
+
+        if($Parameters.provisionCluster -ne $false)
+        {
+            Firewall "F-GceClusterHelper"
+            {
+                Name = "GceClusterHelper"
+                DisplayName = "GCE Cluster helper"
+                Ensure = "Present"
+                Enabled = "True"
+                Direction = "InBound"
+                LocalPort = ("59998")
+                Protocol = "TCP"
+                Description = "Enables GCP Internal Load Balancer to check which node in the cluster is active to route traffic to the cluster IP."
+            }
+
+            if($Parameters.isFirst)
+            {
+                ADComputer "PrestageClusterResource"
+                {
+                    ComputerName = "$($Parameters.nodePrefix)-cl"
+                    EnabledOnCreation = $false
+                    PsDscRunAsCredential = $domainCredential
+                    DependsOn = "[Computer]JoinDomain"
+                }
+
+                ADGroup "AddClusterResourceToGroup"
+                {
+                    GroupName = "g-ClusterResources"
+                    GroupScope = "Global"
+                    Ensure = "Present"
+                    Path = "ou=Groups,$ou"
+                    MembersToInclude = "$($Parameters.nodePrefix)-cl`$"
+                    PsDscRunAsCredential = $domainCredential
+                    DependsOn = "[ADComputer]PrestageClusterResource"
+                }
+
+                xCluster "CreateCluster"
+                {
+                    Name = "$($Parameters.nodePrefix)-cl"
+                    DomainAdministratorCredential = $domainCredential
+                    StaticIPAddress = $Parameters.ipCluster
+                    DependsOn = "[WindowsFeature]WF-Failover-clustering","[ADGroup]AddClusterResourceToGroup"
+                }
+
+                xClusterQuorum "Quorum"
+                {
+                    Type = "NodeMajority"
+                    IsSingleInstance = "Yes"
+                    DependsOn = "[xCluster]CreateCluster"
+                }
+
+                Script IncreaseClusterTimeouts
+                {
+                    GetScript = {
+                        $cluster = Get-Cluster;
+                        if($cluster.SameSubnetDelay -eq 2000 -and `
+                            $cluster.SameSubnetThreshold -eq 15 -and `
+                            $cluster.CrossSubnetDelay -eq 3000 -and `
+                            $cluster.CrossSubnetThreshold -eq 15)
+                        {
+                            $result = "Present";
+                        }
+                        else
+                        {
+                            $result = "Absent";
+                        }
+
+                        return @{Ensure = $result};
+                    }
+                    TestScript = {
+                        $state = [scriptblock]::Create($GetScript).Invoke();
+                        return $state.Ensure -eq "Present";
+                    }
+                    SetScript = {
+                        $cluster = Get-Cluster;
+                        $cluster.SameSubnetDelay = 2000;
+                        $cluster.SameSubnetThreshold = 15;
+                        $cluster.CrossSubnetDelay = 3000;
+                        $cluster.CrossSubnetThreshold = 15;
+                    }
+                    
+                    DependsOn = "[xCluster]CreateCluster"
+                }
+
+                SqlAlwaysOnService "EnableAlwaysOn"
+                {
+                    Ensure = "Present"
+                    ServerName = "localhost"
+                    InstanceName = "MSSQLSERVER"
+                    RestartTimeout = 120
+                    DependsOn = "[Script]IncreaseClusterTimeouts"
+                }
+
+                <#
+                    SqlAGListener "AvailabilityGroup"
+                    {
+                        Ensure = "Present"
+                        ServerName = "localhost"
+                        InstanceName = "MSSQLSERVER"
+                        AvailabilityGroup = $Parameters.nodePrefix
+                        Name = "$($Parameters.nodePrefix)-ag"
+                        DHCP = $true
+                        DependsOn = "[SqlAlwaysOnService]EnableAlwaysOn"
+                    }
+                #>
+            }
+            else
+            {
+                WaitForAll "WaitForCluster"
+                {
+                    ResourceName = "[xCluster]CreateCluster"
+                    NodeName = "$($Parameters.nodePrefix)-0"
+                    RetryIntervalSec = 5
+                    RetryCount = 120
+                    PsDscRunAsCredential = $domainCredential
+                }
+
+                xCluster "JoinNodeToCluster"
+                {
+                    Name = "$($Parameters.nodePrefix)-cl"
+                    DomainAdministratorCredential = $domainCredential
+                    DependsOn = "[WaitForAll]WaitForCluster"
+                }
+
+                SqlAlwaysOnService "EnableAlwaysOn"
+                {
+                    Ensure = "Present"
+                    ServerName = "localhost"
+                    InstanceName = "MSSQLSERVER"
+                    RestartTimeout = 120
+                    DependsOn = "[xCluster]JoinNodeToCluster"
+                }
+            }
         }
     }
 }

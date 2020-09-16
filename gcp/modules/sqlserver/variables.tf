@@ -18,8 +18,8 @@ variable "subnetwork" {
 }
 
 variable "machine-type" {
-    type = string
-    default = "n2-standard-4"
+  type = string
+  default = "n2-standard-4"
 }
 
 variable "domain-name" {
@@ -28,4 +28,9 @@ variable "domain-name" {
 
 variable "password" {
   type = string
+}
+
+variable "enable-aag" {
+  type = bool
+  default = false
 }

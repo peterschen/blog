@@ -11,6 +11,7 @@ locals {
   network = var.network
   subnetwork = var.subnetwork
   machine-type = var.machine-type
+  enable-aag = var.enable-aag
   node-count = 2
 }
 
@@ -63,6 +64,23 @@ resource "google_compute_address" "sql-cl" {
   subnetwork = data.google_compute_subnetwork.subnetwork.self_link
 }
 
+resource "google_compute_firewall" "allow-mssqlhealthcheck-gcp" {
+  project = local.project
+  name = "allow-mssqlhealthcheck-gcp"
+  network = data.google_compute_network.network.self_link
+  priority = 5000
+
+  allow {
+    protocol = "tcp"
+    ports    = ["59998"]
+  }
+
+  direction = "INGRESS"
+
+  source_ranges = ["35.191.0.0/16", "130.211.0.0/22"]
+  target_tags = ["mssql"]
+}
+
 resource "google_compute_instance" "sql" {
   count = local.node-count
   project = local.project
@@ -74,7 +92,7 @@ resource "google_compute_instance" "sql" {
 
   boot_disk {
     initialize_params {
-      image = "windows-sql-cloud/sql-web-2019-win-2019"
+      image = "windows-sql-cloud/sql-ent-2019-win-2019"
       type = "pd-ssd"
     }
   }
@@ -96,9 +114,18 @@ resource "google_compute_instance" "sql" {
           zone = local.zone
           networkRange = data.google_compute_subnetwork.subnetwork.ip_cidr_range,
           isFirst = (count.index == 0),
+          nodePrefix = "sql",
+          nodeCount = local.node-count,
+          ipCluster = google_compute_address.sql-cl.address,
           inlineMeta = filebase64(module.sysprep.path-meta),
           inlineConfiguration = filebase64("${path.module}/sql.ps1"),
+          enableAag = local.enable-aag,
           modulesDsc = [
+            {
+              Name = "xFailOverCluster",
+              Version = "1.14.1"
+              Uri = "https://github.com/dsccommunity/xFailOverCluster/archive/v1.14.1.zip"
+            },
             { 
               Name = "SqlServerDsc",
               Version = "13.5.0"
