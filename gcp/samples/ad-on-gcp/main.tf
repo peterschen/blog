@@ -3,13 +3,7 @@ provider "google" {
   project = var.project
 }
 
-provider "google-beta" {
-  version = "~> 3.1"
-  project = var.project
-}
-
 locals {
-  project = var.project
   regions = var.regions
   zones = var.zones
   name-sample = "ad-on-gce"
@@ -18,37 +12,49 @@ locals {
   apis = ["compute.googleapis.com"]
   network-prefixes = ["10.0.0", "10.1.0"]
   network-mask = 16
-  network-ranges = ["${local.network-prefixes[0]}.0/${local.network-mask}", "${local.network-prefixes[1]}.0/${local.network-mask}"]
-  ip-dcs = ["${local.network-prefixes[0]}.2", "${local.network-prefixes[1]}.2"]
+  network-ranges = [
+    for prefix in local.network-prefixes:
+    "${prefix}.0/${local.network-mask}"
+  ]
+  ip-dcs = [
+    for prefix in local.network-prefixes:
+    "${prefix}.2"
+  ]
 }
 
-module "ad" {
-  source = "github.com/peterschen/blog//gcp/modules/activedirectory"
-  project = local.project
-  regions = ["europe-west4", "europe-west1"]
-  zones = ["europe-west4-a", "europe-west1-b"]
-  network = google_compute_network.network
-  subnetworks = google_compute_subnetwork.subnets
+module "activedirectory" {
+  # source = "github.com/peterschen/blog//gcp/modules/activedirectory"
+  source = "../../modules/activedirectory"
+  regions = local.regions
+  zones = local.zones
+  network = google_compute_network.network.name
+  subnetworks = [
+    for subnet in google_compute_subnetwork.subnetworks:
+    subnet.name
+  ]
   name-domain = local.name-domain
   password = local.password
+  depends_on = [google_compute_subnetwork.subnetworks]
 }
 
 module "bastion" {
-  source = "github.com/peterschen/blog//gcp/modules/bastion-windows"
-  project = local.project
+  # source = "github.com/peterschen/blog//gcp/modules/bastion-windows"
+  source = "../../modules/bastion-windows"
+  region = local.regions[0]
   zone = local.zones[0]
-  network = google_compute_network.network.self_link
-  subnetwork = google_compute_subnetwork.subnets[0].self_link
+  network = google_compute_network.network.name
+  subnetwork = google_compute_subnetwork.subnetworks[0].name
   machine-name = "bastion"
   password = local.password
   domain-name = local.name-domain
   enable-domain = true
+  depends_on = [google_compute_subnetwork.subnetworks]
 }
 
 module "firewall-iap" {
-  source = "github.com/peterschen/blog//gcp/modules/firewall-iap"
-  project = local.project
-  network = google_compute_network.network
+  # source = "github.com/peterschen/blog//gcp/modules/firewall-iap"
+  source = "../../modules/firewall-iap"
+  network = google_compute_network.network.name
   enable-ssh = false
 }
 
@@ -65,7 +71,7 @@ resource "google_compute_network" "network" {
   depends_on = [google_project_service.apis]
 }
 
-resource "google_compute_subnetwork" "subnets" {
+resource "google_compute_subnetwork" "subnetworks" {
   count = length(local.regions)
   region = local.regions[count.index]
   name = local.regions[count.index]
@@ -101,5 +107,8 @@ resource "google_compute_firewall" "allow-all-internal" {
 
   direction = "INGRESS"
 
-  source_ranges = [local.network-ranges[0], local.network-ranges[1]]
+  source_ranges = [
+    for range in local.network-ranges:
+    range
+  ]
 }

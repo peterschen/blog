@@ -28,14 +28,6 @@ export SA_KEY_FILE=~configs/sa/terraform@cbp-sandbox.json # Set to the Service A
 export PASSWORD="Admin123Admin123" # Set to the desired password
 export DOMAIN="sandbox.lab" # Set to the desired domain name
 
-# By default only SSD Persistent Disks are deployed with the machine. 
-# You can enable the deployment of Standard Persistent Disks as well which will enable tiering in Scale-out File Server.
-export PROVISION_HDD=false
-
-# By default Windows Server Failover Clustering (WSFC) will not be provisioned automatically.
-# You can enable automatic deployment which will enable WSFC, S2D and SOFS
-export PROVISION_CLUSTER=false
-
 export GOOGLE_APPLICATION_CREDENTIALS=$SA_KEY_FILE
 gcloud auth activate-service-account --key-file=$SA_KEY_FILE
 gcloud config set project $PROJECT
@@ -46,26 +38,23 @@ terraform get -update
 
 ## Deploy resource ##
 ```
-terraform apply -var "project=$PROJECT" -var "name-domain=$DOMAIN" -var "password=$PASSWORD" -var "provision-hdd=$PROVISION_HDD" -var "provision-cluster=$PROVISION_CLUSTER"
+terraform apply -var project=$PROJECT -var domain-name=$DOMAIN -var password=$PASSWORD
 ```
 
 ## Destroy resources ##
 ```
-terraform destroy -var="project=$PROJECT" -var="name-domain=$DOMAIN" -var="password=$PASSWORD"
+terraform destroy -var project=$PROJECT -var domain-name=$DOMAIN -var password=$PASSWORD
 ```
 
 ## Redeploy ##
 If you need to redeploy the VM instances you need to taint them first. You may need to do this if you have changed the DSC configuration which does not invalidate the Terraform state.
 
 ```
-terraform taint module.ad-on-gcp.google_compute_instance.dc\[0\]
-terraform taint module.ad-on-gcp.google_compute_instance.dc\[1\]
-terraform taint module.ad-on-gcp.google_compute_instance.jumpy
-terraform taint google_compute_instance.sofs\[0\]
-terraform taint google_compute_instance.sofs\[1\]
-terraform taint google_compute_instance.sofs\[2\]
+terraform taint module.activedirectory.google_compute_instance.dc\[0\]
+terraform taint module.activedirectory.google_compute_instance.dc\[1\]
+terraform taint module.bastion-windows.google_compute_instance.bastion
 
-terraform apply -var="project=$PROJECT" -var="name-domain=$DOMAIN" -var="password=$PASSWORD"
+terraform apply -var project=$PROJECT -var name-domain=$DOMAIN -var password=$PASSWORD
 ```
 
 ## Using the environment ##
@@ -77,7 +66,7 @@ To connect to the environment you can make use of [Identity Aware TCP forwarding
 Open the tunnel:
 
 ```sh
-gcloud compute start-iap-tunnel jumpy 3389 --local-host-port=localhost:3389
+gcloud compute start-iap-tunnel bastion 3389 --local-host-port=localhost:3389
 ```
 
 Now you can point your favorite RDP tool to `localhost:3389` and connect to the jumpbox:
