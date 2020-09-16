@@ -3,4 +3,5 @@ variable "region" {
 }
 
 variable "network" {
+    type = string
 }

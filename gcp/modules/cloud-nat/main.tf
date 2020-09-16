@@ -3,11 +3,14 @@ locals {
   network = var.network
 }
 
+data "google_compute_network" "network" {
+  name = local.network
+}
+
 resource "google_compute_router" "router" {
   region = local.region
   name = "router"
-  network = local.network.self_link
-}
+  network = data.google_compute_network.network.self_link
 
 resource "google_compute_router_nat" "nat" {
   region = local.region
