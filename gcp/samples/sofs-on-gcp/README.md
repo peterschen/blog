@@ -1,14 +1,14 @@
 # SOFS on GCP #
-This sample deploys a Scale-out File Server on Google Cloud. It relies on the [`ad-on-gcp`](../ad-on-gcp/) sample. This sample is very opinionated and only leaves a few parameters to configure. It is meant for rapid deployment for development environments to validate capabilities or test things out.
+This sample deploys a Scale-out File Server on Google Cloud. It relies on the [`activedirectory`](../../modules/activedirectory/) and [`sofs`](../../modules/sofs/) modules. This sample is very opinionated and only leaves a few parameters to configure. It is meant for rapid deployment for development environments to validate capabilities or test things out.
 
 * VPC Network
 * Cloud NAT (with Cloud Router)
 * 4 Firewall rules (no internet ingress)
 * 2 Compute Engine instances for Active Directory
-* 3 Compute Engine instances for Scale-out Fileserver
+* 2 Compute Engine instances for Scale-out Fileserver
 * Cloud DNS private forward zone with forwarding
 * Cloud DNS private reverse zone
-* 3 unmanaged instance groups (1 per zone)
+* 2 unmanaged instance groups
 * Layer-4 ILB for Windows Server Failover Cluster
 
 Additionally the deployment will enable the neccessary APIs required to deploy the resources listed above:
@@ -25,17 +25,17 @@ These instructions work for Linux, macOS and Cloud Shell. For Windows you may ne
 
 ```
 export PROJECT=$GOOGLE_CLOUD_PROJECT # Set to proper project name if not using Cloud Shell
-export SA_KEY_FILE=~configs/sa/terraform@cbp-sofs.json # Set to the Service Account file
+export SA_KEY_FILE=~/configs/sa/terraform@cbp-common.json # Set to the Service Account file
 export PASSWORD="Admin123Admin123" # Set to the desired password
-export DOMAIN="sofs.lab" # Set to the desired domain name
+export DOMAIN="sandbox.lab" # Set to the desired domain name
 
 # By default only SSD Persistent Disks are deployed with the machine. 
 # You can enable the deployment of Standard Persistent Disks as well which will enable tiering in Scale-out File Server.
-export PROVISION_HDD=false
+export ENABLE_HDD=false
 
-# By default Windows Server Failover Clustering (WSFC) will not be provisioned automatically.
-# You can enable automatic deployment which will enable WSFC, S2D and SOFS
-export PROVISION_CLUSTER=false
+# By default Windows Server Failover Clustering (WSFC) will be provisioned automatically.
+# You can disable automatic deployment which will enable WSFC, S2D and SOFS
+export ENABLE_CLUSTER=false
 
 export GOOGLE_APPLICATION_CREDENTIALS=$SA_KEY_FILE
 gcloud auth activate-service-account --key-file=$SA_KEY_FILE
@@ -47,26 +47,25 @@ terraform get -update
 
 ## Deploy resource ##
 ```
-terraform apply -var "project=$PROJECT" -var "name-domain=$DOMAIN" -var "password=$PASSWORD" -var "provision-hdd=$PROVISION_HDD" -var "provision-cluster=$PROVISION_CLUSTER"
+terraform apply -var project=$PROJECT -var name-domain=$DOMAIN -var password=$PASSWORD -var enable-hdd=$ENABLE_HDD -var enable-cluster=$ENABLE_CLUSTER"
 ```
 
 ## Destroy resources ##
 ```
-terraform destroy -var="project=$PROJECT" -var="name-domain=$DOMAIN" -var="password=$PASSWORD"
+terraform destroy -var project=$PROJECT -var name-domain=$DOMAIN -var password=$PASSWORD
 ```
 
 ## Redeploy ##
 If you need to redeploy the VM instances you need to taint them first. You may need to do this if you have changed the DSC configuration which does not invalidate the Terraform state.
 
 ```
-terraform taint module.ad-on-gcp.google_compute_instance.dc\[0\]
-terraform taint module.ad-on-gcp.google_compute_instance.dc\[1\]
-terraform taint module.ad-on-gcp.google_compute_instance.jumpy
-terraform taint google_compute_instance.sofs\[0\]
-terraform taint google_compute_instance.sofs\[1\]
-terraform taint google_compute_instance.sofs\[2\]
+terraform taint module.activedirectory.google_compute_instance.dc\[0\]
+terraform taint module.activedirectory.google_compute_instance.dc\[1\]
+terraform taint module.bastion-windows.google_compute_instance.bastion
+terraform taint module.sofs.google_compute_instance.sofs\[0\]
+terraform taint module.sofs.google_compute_instance.sofs\[1\]
 
-terraform apply -var="project=$PROJECT" -var="name-domain=$DOMAIN" -var="password=$PASSWORD"
+terraform apply -var project=$PROJECT -var name-domain=$DOMAIN -var password=$PASSWORD -var enable-hdd=$ENABLE_HDD -var enable-cluster=$ENABLE_CLUSTER"
 ```
 
 ## Using the environment ##
@@ -78,7 +77,7 @@ To connect to the environment you can make use of [Identity Aware TCP forwarding
 Open the tunnel:
 
 ```sh
-gcloud compute start-iap-tunnel jumpy 3389 --local-host-port=localhost:3389
+gcloud compute start-iap-tunnel bastion 3389 --local-host-port=localhost:3389
 ```
 
 Now you can point your favorite RDP tool to `localhost:3389` and connect to the jumpbox:
