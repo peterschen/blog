@@ -251,8 +251,6 @@ configuration ConfigurationWorkload
 
         if($Parameters.enableHammerdb)
         {
-
-
             Script "DownloadMsoledbsql"
             {
                 GetScript = {
