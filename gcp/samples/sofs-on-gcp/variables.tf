@@ -3,29 +3,33 @@ variable "project" {
 
 variable "regions" {
   type = list(string)
-  default = ["europe-west1", "europe-west4"]
+  default = ["europe-west4", "europe-west1"]
 }
 
 variable "zones" {
-  type = list(list(string))
-  default = [
-    ["b", "c", "d"],
-    ["a", "b", "c"]
-  ]
+  type = list(string)
+  default = ["europe-west4-a", "europe-west1-b"]
 }
 
-variable "name-domain" {
+variable "domain-name" {
+  type = string
 }
 
 variable "password" {
+  type = string
 }
 
-variable "provision-cluster" {
+variable "count-nodes" {
+  type = number
+  default = 3
+}
+
+variable "enable-cluster" {
   type = bool
-  default = false
+  default = true
 }
 
-variable "provision-hdd" {
+variable "enable-hdd" {
   type = bool
   default = false
 }
