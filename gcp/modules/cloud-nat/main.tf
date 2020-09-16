@@ -11,6 +11,7 @@ resource "google_compute_router" "router" {
   region = local.region
   name = "router"
   network = data.google_compute_network.network.self_link
+}
 
 resource "google_compute_router_nat" "nat" {
   region = local.region
