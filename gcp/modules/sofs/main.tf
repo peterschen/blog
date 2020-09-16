@@ -6,9 +6,11 @@ locals {
   network = var.network
   subnetwork = var.subnetwork
   machine-type = var.machine-type
-  node-count = var.node-count
   enable-cluster = var.enable-cluster
   enable-hdd = var.enable-hdd
+  count-nodes = var.node-count
+  count-disks = 4
+  size-disks = 100
 }
 
 data "google_compute_network" "network" {
@@ -45,7 +47,7 @@ module "firewall-sofs" {
 }
 
 resource "google_compute_address" "sofs" {
-  count = local.node-count
+  count = local.count-nodes
   region = local.region
   subnetwork = data.google_compute_subnetwork.subnetwork.self_link
   name = "sofs-${count.index}"
@@ -76,7 +78,7 @@ resource "google_compute_firewall" "allow-healthcheck-sofs-gcp" {
 }
 
 resource "google_compute_instance" "sofs" {
-  count = local.node-count
+  count = local.count-nodes
   zone = local.zone
   name = "sofs-${count.index}"
   machine_type = local.machine-type
@@ -108,7 +110,7 @@ resource "google_compute_instance" "sofs" {
           domainName = local.name-domain,
           isFirst = (count.index == 0),
           nodePrefix = "sofs",
-          nodeCount = local.node-count,
+          nodeCount = local.count-nodes,
           enableCluster = local.enable-cluster,
           ipCluster = google_compute_address.sofs-cl.address,
           modulesDsc = [
@@ -162,7 +164,7 @@ resource "google_compute_attached_disk" "sofs-ssd" {
 }
 
 resource "google_compute_instance_group" "sofs" {
-  count = local.node-count
+  count = local.count-nodes
   zone = local.zone
   name = "sofs-${count.index}"
   instances = [google_compute_instance.sofs[count.index].self_link]
