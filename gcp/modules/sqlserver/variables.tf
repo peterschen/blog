@@ -1,6 +1,3 @@
-variable "project" {
-}
-
 variable "region" {
   type = string
 }
