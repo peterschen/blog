@@ -1,9 +1,4 @@
-provider "google" {
-  project = var.project
-}
-
 locals {
-  project = var.project
   region = var.region
   zone = var.zone
   name-domain = var.domain-name
@@ -16,32 +11,33 @@ locals {
 }
 
 data "google_compute_network" "network" {
-  project = local.project
   name = local.network
 }
 
 data "google_compute_subnetwork" "subnetwork" {
-  project = local.project
   region = local.region
   name = local.subnetwork
 }
 
 module "apis" {
-  source = "github.com/peterschen/blog//gcp/modules/apis"
-  project = local.project
+  # source = "github.com/peterschen/blog//gcp/modules/apis"
+  source = "../apis"
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
 }
 
 module "gce-default-scopes" {
-  source = "github.com/peterschen/blog//gcp/modules/gce-default-scopes"
+  # source = "github.com/peterschen/blog//gcp/modules/gce-default-scopes"
+  source = "../gce-default-scopes"
 }
 
 module "sysprep" {
-  source = "github.com/peterschen/blog//gcp/modules/sysprep"
+  # source = "github.com/peterschen/blog//gcp/modules/sysprep"
+  source = "../sysprep"
 }
 
 module "firewall-mssql" {
-  source = "github.com/peterschen/blog//gcp/modules/firewall-mssql"
+  # source = "github.com/peterschen/blog//gcp/modules/firewall-mssql"
+  source = "../firewall-mssql"
   name = "allow-mssql"
   network = data.google_compute_network.network
   cidr-ranges = [data.google_compute_subnetwork.subnetwork.ip_cidr_range]
@@ -49,7 +45,6 @@ module "firewall-mssql" {
 
 resource "google_compute_address" "sql" {
   count = local.node-count
-  project = local.project
   region = local.region
   subnetwork = data.google_compute_subnetwork.subnetwork.self_link
   name = "sql-${count.index}"
@@ -57,7 +52,6 @@ resource "google_compute_address" "sql" {
 }
 
 resource "google_compute_address" "sql-cl" {
-  project = local.project
   region = local.region
   name = "sql-cl"
   address_type = "INTERNAL"
@@ -65,7 +59,6 @@ resource "google_compute_address" "sql-cl" {
 }
 
 resource "google_compute_firewall" "allow-mssqlhealthcheck-gcp" {
-  project = local.project
   name = "allow-mssqlhealthcheck-gcp"
   network = data.google_compute_network.network.self_link
   priority = 5000
@@ -83,7 +76,6 @@ resource "google_compute_firewall" "allow-mssqlhealthcheck-gcp" {
 
 resource "google_compute_instance" "sql" {
   count = local.node-count
-  project = local.project
   zone = local.zone
   name = "sql-${count.index}"
   machine_type = local.machine-type
@@ -149,7 +141,6 @@ resource "google_compute_instance" "sql" {
 
 resource "google_compute_instance_group" "sql" {
   count = local.node-count
-  project = local.project
   zone = local.zone
   name = "sql-${count.index}"
   instances = [google_compute_instance.sql[count.index].self_link]
@@ -157,7 +148,6 @@ resource "google_compute_instance_group" "sql" {
 }
 
 resource "google_compute_health_check" "sql" {
-  project = local.project
   name = "sql"
   timeout_sec = 1
   check_interval_sec = 2
@@ -170,7 +160,6 @@ resource "google_compute_health_check" "sql" {
 }
 
 resource "google_compute_region_backend_service" "sql" {
-  project = local.project
   region = local.region
   name = "sql"
   health_checks = [google_compute_health_check.sql.self_link]
@@ -184,8 +173,6 @@ resource "google_compute_region_backend_service" "sql" {
 }
 
 resource "google_compute_forwarding_rule" "sql" {
-  provider = google-beta
-  project = local.project
   region = local.region
   name = "sql"
   ip_address = google_compute_address.sql-cl.address
