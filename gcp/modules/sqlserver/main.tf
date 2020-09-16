@@ -22,7 +22,7 @@ data "google_compute_subnetwork" "subnetwork" {
 module "apis" {
   # source = "github.com/peterschen/blog//gcp/modules/apis"
   source = "../apis"
-  apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
+  apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com"]
 }
 
 module "gce-default-scopes" {
