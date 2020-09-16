@@ -1,5 +1,5 @@
 locals {
-  project = var.project
+  region = var.region
   zone = var.zone
   network = var.network
   subnetwork = var.subnetwork
@@ -12,22 +12,32 @@ locals {
   enable-hammerdb = var.enable-hammerdb
 }
 
+data "google_compute_network" "network" {
+  name = local.network
+}
+
+data "google_compute_subnetwork" "subnetwork" {
+  region = local.region
+  name = local.subnetwork
+}
+
 module "gce-default-scopes" {
-  source = "github.com/peterschen/blog//gcp/modules/gce-default-scopes"
+  # source = "github.com/peterschen/blog//gcp/modules/gce-default-scopes"
+  source = "../gce-default-scopes"
 }
 
 module "sysprep" {
-  source = "github.com/peterschen/blog//gcp/modules/sysprep"
+  # source = "github.com/peterschen/blog//gcp/modules/sysprep"
+  source = "../sysprep"
 }
 
 module "apis" {
-  source = "github.com/peterschen/blog//gcp/modules/apis"
-  project = local.project
+  # source = "github.com/peterschen/blog//gcp/modules/apis"
+  source = "../apis"
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com"]
 }
 
 resource "google_compute_instance" "bastion" {
-  project = local.project
   zone = local.zone
   name = local.machine-name
   machine_type = local.machine-type
