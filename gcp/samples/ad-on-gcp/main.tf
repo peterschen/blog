@@ -9,7 +9,6 @@ locals {
   name-sample = "ad-on-gce"
   name-domain = var.domain-name
   password = var.password
-  apis = ["compute.googleapis.com"]
   network-prefixes = ["10.0.0", "10.1.0"]
   network-mask = 16
   network-ranges = [
@@ -20,6 +19,14 @@ locals {
     for prefix in local.network-prefixes:
     "${prefix}.2"
   ]
+}
+
+module "cloud-nat" {
+  count = length(local.regions)
+  source = "../../modules/cloud-nat"
+  region = local.regions[count.index]
+  network = google_compute_network.network.name
+  depends_on = [google_compute_network.network]
 }
 
 module "activedirectory" {
@@ -34,7 +41,7 @@ module "activedirectory" {
   ]
   name-domain = local.name-domain
   password = local.password
-  depends_on = [google_compute_subnetwork.subnetworks]
+  depends_on = [module.cloud-nat]
 }
 
 module "bastion" {
@@ -48,7 +55,7 @@ module "bastion" {
   password = local.password
   domain-name = local.name-domain
   enable-domain = true
-  depends_on = [google_compute_subnetwork.subnetworks]
+  depends_on = [module.cloud-nat]
 }
 
 module "firewall-iap" {
@@ -58,17 +65,9 @@ module "firewall-iap" {
   enable-ssh = false
 }
 
-resource "google_project_service" "apis" {
-  count = length(local.apis)
-  service = local.apis[count.index]
-  disable_dependent_services = true
-  disable_on_destroy = false
-}
-
 resource "google_compute_network" "network" {
   name = local.name-sample
   auto_create_subnetworks = false
-  depends_on = [google_project_service.apis]
 }
 
 resource "google_compute_subnetwork" "subnetworks" {
@@ -78,22 +77,6 @@ resource "google_compute_subnetwork" "subnetworks" {
   ip_cidr_range = local.network-ranges[count.index]
   network = google_compute_network.network.self_link
   private_ip_google_access = true
-}
-
-resource "google_compute_router" "router" {
-  count = length(local.regions)
-  region = local.regions[count.index]
-  name = "router-${local.regions[count.index]}"
-  network = google_compute_network.network.self_link
-}
-
-resource "google_compute_router_nat" "nat" {
-  count = length(local.regions)
-  region = local.regions[count.index]
-  name = "nat"
-  router = google_compute_router.router[count.index].name
-  nat_ip_allocate_option = "AUTO_ONLY"
-  source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
 }
 
 resource "google_compute_firewall" "allow-all-internal" {
