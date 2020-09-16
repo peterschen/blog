@@ -1,4 +1,5 @@
 variable "project" {
+  type = string
 }
 
 variable "regions" {
@@ -10,9 +11,11 @@ variable "zones" {
 }
 
 variable "network" {
+  type = string
 }
 
 variable "subnetworks" {
+  type = list(string)
 }
 
 variable "name-domain" {

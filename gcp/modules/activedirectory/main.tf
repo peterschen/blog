@@ -1,5 +1,4 @@
 locals {
-  project = var.project
   regions = var.regions
   zones = var.zones
   name-domain = var.name-domain
@@ -8,39 +7,55 @@ locals {
   subnetworks = var.subnetworks
 }
 
+data "google_compute_network" "network" {
+  name = local.network
+}
+
+data "google_compute_subnetwork" "subnetworks" {
+  count = length(local.subnetworks)
+  region = local.regions[count.index]
+  name = local.subnetworks[count.index]
+}
+
 module "apis" {
-  source = "github.com/peterschen/blog//gcp/modules/apis"
-  project = local.project
+  # source = "github.com/peterschen/blog//gcp/modules/apis"
+  source = "../apis"
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
 }
 
 module "gce-default-scopes" {
-  source = "github.com/peterschen/blog//gcp/modules/gce-default-scopes"
+  # source = "github.com/peterschen/blog//gcp/modules/gce-default-scopes"
+  source = "../gce-default-scopes"
 }
 
 module "sysprep" {
-  source = "github.com/peterschen/blog//gcp/modules/sysprep"
+  # source = "github.com/peterschen/blog//gcp/modules/sysprep"
+  source = "../sysprep"
 }
 
 module "firewall-ad" {
-  source = "github.com/peterschen/blog//gcp/modules/firewall-ad"
+  # source = "github.com/peterschen/blog//gcp/modules/firewall-ad"
+  source = "../firewall-ad"
   name = "allow-ad"
-  network = local.network
-  cidr-ranges = [local.subnetworks[0].ip_cidr_range, local.subnetworks[1].ip_cidr_range]
+  network = data.google_compute_network.network.self_link
+  cidr-ranges = [
+    for subnet in data.google_compute_subnetwork.subnetworks:
+    subnet.ip_cidr_range
+  ]
 }
 
 resource "google_compute_address" "dc" {
   count = length(local.zones)
   region = local.regions[count.index]
-  subnetwork = local.subnetworks[count.index].self_link
+  subnetwork = data.google_compute_subnetwork.subnetworks[count.index].self_link
   name = "dc"
   address_type = "INTERNAL"
-  address = cidrhost(local.subnetworks[count.index].ip_cidr_range, 2)
+  address = cidrhost(data.google_compute_subnetwork.subnetworks[count.index].ip_cidr_range, 2)
 }
 
 resource "google_compute_firewall" "allow-dns-gcp" {
-  name    = "allow-dns-gcp"
-  network = local.network.name
+  name = "allow-dns-gcp"
+  network = data.google_compute_network.network.self_link
   priority = 5000
 
   allow {
@@ -61,8 +76,8 @@ resource "google_compute_firewall" "allow-dns-gcp" {
 }
 
 resource "google_compute_firewall" "allow-dns-internal" {
-  name    = "allow-dns-internal"
-  network = local.network.name
+  name = "allow-dns-internal"
+  network = data.google_compute_network.network.self_link
   priority = 5000
 
   allow {
@@ -77,13 +92,15 @@ resource "google_compute_firewall" "allow-dns-internal" {
 
   direction = "INGRESS"
 
-  source_ranges = [local.subnetworks[0].ip_cidr_range, local.subnetworks[1].ip_cidr_range]
+  source_ranges = [
+    for subnet in data.google_compute_subnetwork.subnetworks:
+    subnet.ip_cidr_range
+  ]
 
   target_tags = ["dns"]
 }
 
 resource "google_dns_managed_zone" "ad-dns-forward" {
-  provider = google-beta
   name = "ad-dns-forward"
   dns_name = "${local.name-domain}."
 
@@ -91,16 +108,16 @@ resource "google_dns_managed_zone" "ad-dns-forward" {
 
   private_visibility_config {
     networks {
-      network_url = local.network.self_link
+      network_url = data.google_compute_network.network.self_link
     }
   }
 
   forwarding_config {
-    target_name_servers {
-      ipv4_address = google_compute_address.dc[0].address
-    }
-    target_name_servers {
-      ipv4_address = google_compute_address.dc[1].address
+    dynamic "target_name_servers" {
+      for_each = google_compute_address.dc
+      content {
+        ipv4_address = target_name_servers.value.address
+      }
     }
   }
 
@@ -123,8 +140,8 @@ resource "google_compute_instance" "dc" {
   }
 
   network_interface {
-    network = local.network.self_link
-    subnetwork = local.subnetworks[count.index].self_link
+    network = data.google_compute_network.network.self_link
+    subnetwork = data.google_compute_subnetwork.subnetworks[count.index].self_link
     network_ip = google_compute_address.dc[count.index].address
   }
 
@@ -136,7 +153,7 @@ resource "google_compute_instance" "dc" {
         parametersConfiguration = jsonencode({
           domainName = local.name-domain,
           zone = local.zones[count.index]
-          networkRange = local.subnetworks[count.index].ip_cidr_range,
+          networkRange = data.google_compute_subnetwork.subnetworks[count.index].ip_cidr_range,
           isFirst = (count.index == 0),
           inlineMeta = filebase64(module.sysprep.path-meta),
           inlineConfiguration = filebase64("${path.module}/dc.ps1"),
