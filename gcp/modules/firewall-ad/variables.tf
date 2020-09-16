@@ -3,6 +3,7 @@ variable "name" {
 }
 
 variable "network" {
+  type = string
 }
 
 variable "cidr-ranges" {

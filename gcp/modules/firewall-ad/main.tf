@@ -6,7 +6,7 @@ locals {
 
 resource "google_compute_firewall" "activedirectory" {
   name = local.name
-  network = local.network.name
+  network = local.network
   priority = 1000
 
   allow {
