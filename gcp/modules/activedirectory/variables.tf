@@ -1,7 +1,3 @@
-variable "project" {
-  type = string
-}
-
 variable "regions" {
   type = list(string)
 }
