@@ -52,7 +52,7 @@ module "sofs" {
   subnetwork = google_compute_subnetwork.subnetworks[0].name
   domain-name = local.name-domain
   password = local.password
-  depends_on = [module.cloud-nat]
+  depends_on = [module.activedirectory]
 }
 
 module "bastion" {
@@ -66,7 +66,7 @@ module "bastion" {
   password = local.password
   domain-name = local.name-domain
   enable-domain = true
-  depends_on = [module.cloud-nat]
+  depends_on = [module.activedirectory]
 }
 
 module "firewall-iap" {
