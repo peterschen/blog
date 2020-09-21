@@ -20,6 +20,7 @@ configuration ConfigurationWorkload
         "RSAT-Clustering",
         "RSAT-Storage-Replica",
         "RSAT-ADDS",
+        "RSAT-AD-PowerShell",
         "RSAT-DNS-Server",
         "RSAT-File-Services",
         "Web-Mgmt-Console",
