@@ -152,7 +152,8 @@ resource "google_compute_instance" "dc" {
         password = local.password,
         parametersConfiguration = jsonencode({
           domainName = local.name-domain,
-          zone = local.zones[count.index]
+          zone = local.zones[count.index],
+          zones = local.zones,
           networkRange = data.google_compute_subnetwork.subnetworks[count.index].ip_cidr_range,
           isFirst = (count.index == 0),
           inlineMeta = filebase64(module.sysprep.path-meta),

@@ -279,9 +279,20 @@ configuration ConfigurationWorkload
             ADReplicationSite "ReplicationSite-$($Parameters.zone)"
             {
                 Ensure = "Present"
-                Name = "$($Parameters.zone)"
+                Name = $Parameters.zone
                 RenameDefaultFirstSiteName = $Parameters.isFirst
                 DependsOn = "[ADDomainController]ADC-DC"
+            }
+
+            ADReplicationSiteLink "DefaultReplicationSiteLink"
+            {
+                Ensure = "Present"
+                Name = "DEFAULTIPSITELINK"
+                SitesIncluded = $Parameters.zones
+                ReplicationFrequencyInMinutes = 15
+                OptionChangeNotification = $true
+                OptionTwoWaySync = $true
+                DependsOn = "[ADReplicationSite]ReplicationSite-$($Parameters.zone)"
             }
 
             ADReplicationSubnet "ReplicationSubnet-$($Parameters.networkRange)"
