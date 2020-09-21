@@ -208,6 +208,52 @@ configuration ConfigurationWorkload
                 Forwarders = "8.8.8.8", "8.8.4.4"
                 DependsOn = "[WaitForADDomain]WFAD-CreateDomain"
             }
+
+            Script SetAdjoinerPermissions
+            {
+                GetScript = {
+                    $dn = "OU=Projects,$($using:ou)";
+                    $acl = (Get-Acl -Path "ad:$dn").Access | Where-Object {$_.IdentityReference.Value.Contains($using:userAdjoiner.Name)};
+                    
+                    if($acl.Count -eq 16)
+                    {
+                        $result = "Present";
+                    }
+                    else
+                    {
+                        $result = "Absent";
+                    }
+
+                    return @{Ensure = $result};
+                }
+                TestScript = {
+                    $state = [scriptblock]::Create($GetScript).Invoke();
+                    return $state.Ensure -eq "Present";
+                }
+                SetScript = {
+                    $dn = "OU=Projects,{0}" -f $using:ou;
+                    $upn = (Get-ADUser -Identity $using:userAdjoiner.Name).UserPrincipalName;
+                    
+                    & dsacls.exe $dn /G "$($upn):CCDC;Computer" /I:T | Out-Null;
+                    & dsacls.exe $dn /G "$($upn):LC;;Computer" /I:S  | Out-Null;
+                    & dsacls.exe $dn /G "$($upn):RC;;Computer" /I:S  | Out-Null;
+                    & dsacls.exe $dn /G "$($upn):WD;;Computer" /I:S  | Out-Null;
+                    & dsacls.exe $dn /G "$($upn):WP;;Computer" /I:S  | Out-Null;
+                    & dsacls.exe $dn /G "$($upn):RP;;Computer" /I:S  | Out-Null;
+                    & dsacls.exe $dn /G "$($upn):CA;Reset Password;Computer" /I:S  | Out-Null;
+                    & dsacls.exe $dn /G "$($upn):CA;Change Password;Computer" /I:S | Out-Null;
+                    & dsacls.exe $dn /G "$($upn):WS;Validated write to service principal name;Computer" /I:S | Out-Null;
+                    & dsacls.exe $dn /G "$($upn):WS;Validated write to DNS host name;Computer" /I:S | Out-Null;
+                    & dsacls.exe $dn /G "$($upn):CCDC;Group" /I:T | Out-Null;
+                    & dsacls.exe $dn /G "$($upn):LC;;Group" /I:S  | Out-Null;
+                    & dsacls.exe $dn /G "$($upn):RC;;Group" /I:S  | Out-Null;
+                    & dsacls.exe $dn /G "$($upn):WD;;Group" /I:S  | Out-Null;
+                    & dsacls.exe $dn /G "$($upn):WP;;Group" /I:S  | Out-Null;
+                    & dsacls.exe $dn /G "$($upn):RP;;Group" /I:S  | Out-Null;   
+                }
+                
+                DependsOn = "[ADOrganizationalUnit]ADOU-Projects"
+            }
         }
         else
         {
