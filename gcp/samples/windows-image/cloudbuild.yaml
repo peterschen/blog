@@ -1,0 +1,21 @@
+steps:
+    # Inject secret into packer template file and invoke packer build
+    - name: 'gcr.io/$PROJECT_ID/packer'
+      entrypoint: 'bash'
+      args:
+      - '-c'
+      - |
+        echo "Injecting secrets into packer template file.." \
+        && sed -i "s/_PROJECT_ID/$PROJECT_ID/g" coba/packer/packer.json \
+        && sed -i "s/_IMAGE_FAMILY/windows-2019/g" coba/packer/packer.json \
+        && sed -i "s/_IMAGE_NAME/windows-golden-image/g" coba/packer/packer.json \
+        && sed -i "s/_MACHINE_TYPE/n2-standard-4/g" coba/packer/packer.json \
+        && sed -i "s/_REGION/europe-west4/g" coba/packer/packer.json \
+        && sed -i "s/_ZONE/europe-west4-a/g" coba/packer/packer.json \
+        && sed -i "s/_NETWORK/cx-coba/g" coba/packer/packer.json \
+        && sed -i "s/_SUBNETWORK/europe-west4/g" coba/packer/packer.json \
+        && sed -i "s/_TAGS/packer-windows/g" coba/packer/packer.json \
+        && echo "Invoking packer build.." \
+        && packer build -debug -var project_id=$PROJECT_ID coba/packer/packer.json
+tags: ['windows-golden-image']
+timeout: '3600s'
