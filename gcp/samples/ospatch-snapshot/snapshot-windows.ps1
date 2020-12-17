@@ -310,7 +310,7 @@ Write-Host $jobId;
 
 Write-Host -NoNewline "Retrieving disks associated with VM: ";
 $disks = Get-Disks -VmName $vmName -Zone $zone;
-Write-Host "$($disks.Count) disks found";
+Write-Host "$($disks.Count) disk(s) found";
 
 Write-Host -NoNewline "Creating snapshot(s): ";
 $result = New-Snapshot -Disks $disks -VmName $VmName -PatchJobId $jobId;
