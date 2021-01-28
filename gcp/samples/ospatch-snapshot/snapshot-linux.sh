@@ -50,14 +50,29 @@ getDisks()
     echo $(gcloud compute instances describe $VM --zone $ZONE --format="value[delimiter=\n](disks[].source)")
 }
 
-newSnapshot()
+newClone()
 {
     DISKS=$1
     VM=$2
     JOBID=$3
 
-    gcloud compute disks snapshot --labels patchjob=$JOBID,vm=$VM --user-output-enabled false $DISKS
-    echo $?
+    for diskId in $DISKS; do
+        targetDiskId="$diskId-$JOBID"
+
+        gcloud compute disks create $targetDiskId \
+            --description="Clone before patching" \
+            --labels reason=patching,patchjob=$JOBID,vm=$VM \
+            --user-output-enabled false \
+            --source-disk $diskId
+
+        # Stop creating any additional clones
+        if [ $? -ne 0 ]; then
+            echo 1
+            return   
+        fi
+    done
+
+    echo 0
 }
 
 vmName=$(getVmName);
@@ -71,8 +86,8 @@ echo -n "Retrieving disks associated with VM: "
 disks=$(getDisks $vmName $zone)
 echo "$(echo "$disks" | wc -w) disk(s) found"
 
-echo -n "Creating snapshot(s): ";
-result=$(newSnapshot $disks $vmName $jobId)
+echo -n "Creating clone(s): ";
+result=$(newClone "$disks" $vmName $jobId)
 
 if [ $result -eq 0 ]; then
     echo "done"
