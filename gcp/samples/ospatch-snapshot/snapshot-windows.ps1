@@ -3,6 +3,50 @@ $ErrorActionPreference = "Stop";
 
 <#
     .SYNOPSIS
+        This function calls the gcloud binary
+
+    .PARAMETER Arguments
+        Array of arguments to be passed to gcloud
+
+    .OUTPUTS
+        PSCustomObject {StandardOutput, StandardError, ExitCode}
+
+    .EXAMPLE
+        Invoke-Gcloud -Arguments @("compute", "instances", "list");
+#>
+function Invoke-Gcloud
+{
+    param
+    (
+        [string[]] $Arguments
+    );
+
+    process
+    {
+        $info = New-Object System.Diagnostics.ProcessStartInfo;
+        $info.FileName = "cmd.exe";
+        $info.RedirectStandardError = $true;
+        $info.RedirectStandardOutput = $true;
+        $info.UseShellExecute = $false;
+        $info.LoadUserProfile = $true;
+        $info.Arguments = "/C gcloud.cmd $($Arguments -join " ")";
+
+        $process = New-Object System.Diagnostics.Process;
+        $process.StartInfo = $info;
+        $process.Start() | Out-Null;
+
+        [PSCustomObject] @{
+            StandardOutput = $process.StandardOutput.ReadToEnd()
+            StandardError = $process.StandardError.ReadToEnd()
+            ExitCode = $process.ExitCode
+        };
+
+        $process.WaitForExit();
+    }
+}
+
+<#
+    .SYNOPSIS
         This function returns the object name from a given resource URI
 
     .PARAMETER Uri
@@ -249,13 +293,25 @@ function Get-Disks
 
     process
     {
-        return gcloud compute instances describe $VmName --zone $Zone --format="value[delimiter=\n](disks[].source)";
+        $arguments = @(
+            "compute",
+            "instances",
+            "describe",
+            $VmName,
+            "--zone $Zone",
+            '--format="value[delimiter=\n](disks[].source)"'
+        );
+            
+        $process = Invoke-Gcloud -Arguments $arguments;
+
+        # Trim whitespaces from output and split on newline
+        return $process.StandardOutput.Trim().Split("`n");
     }
 }
 
 <#
     .SYNOPSIS
-        Creates snapshot(s) for attached disk(s)
+        Creates a disk clone for all attached disk(s)
 
     .PARAMETER Disks
         Array of disk resource URIs
@@ -267,10 +323,10 @@ function Get-Disks
         Id of the patch job
 
     .EXAMPLE
-        New-Snapshot -Disks @(https://www.googleapis.com/compute/v1/projects/test/zones/europe-west4-a/disks/boot https://www.googleapis.com/compute/v1/projects/test/zones/europe-west4-a/disks/data) `
+        New-Clone -Disks @(https://www.googleapis.com/compute/v1/projects/test/zones/europe-west4-a/disks/boot https://www.googleapis.com/compute/v1/projects/test/zones/europe-west4-a/disks/data) `
             -VmName "instance-1" -PatchJobId "9245b1bc-643b-4f87-8020-eda82d1d3cb4"
 #>
-function New-Snapshot
+function New-Clone
 {
     param
     (
@@ -281,23 +337,31 @@ function New-Snapshot
 
     process
     {
-        $arguments = @(
-            "compute",
-            "disks",
-            "snapshot",
-            "--guest-flush",
-            "--labels patchjob=$PatchJobId,vm=$VmName",
-            "--user-output-enabled false",
-            $($Disks -join " ")
-        );
-        
-        $process = Start-Process "gcloud" -ArgumentList $arguments -Wait -NoNewWindow -PassThru;
-        if($process.ExitCode -eq 0)
+        foreach($diskId in $Disks)
         {
-            return $true;
+            $sourceName = ConvertTo-ObjectName -Uri $diskId;
+            $targetName = "$sourceName-$PatchJobId";
+            $targetDiskId = $diskId.Replace($sourceName, $targetName);
+
+            $arguments = @(
+                "compute",
+                "disks",
+                "create",
+                $targetDiskId,
+                '--description="Clone before patching"',
+                "--labels reason=patching,patchjob=$PatchJobId,vm=$VmName",
+                "--user-output-enabled false",
+                "--source-disk $diskId"
+            );
+            
+            $process = Invoke-Gcloud -Arguments $arguments;
+            if($process.ExitCode -ne 0)
+            {
+                return $false;
+            }
         }
 
-        return $false;
+        return $true;
     }
 }
 
@@ -309,11 +373,11 @@ $jobId = Get-PatchJobId -VmName $vmName -Zone $zone;
 Write-Host $jobId;
 
 Write-Host -NoNewline "Retrieving disks associated with VM: ";
-$disks = Get-Disks -VmName $vmName -Zone $zone;
+$disks = @(Get-Disks -VmName $vmName -Zone $zone);
 Write-Host "$($disks.Count) disk(s) found";
 
-Write-Host -NoNewline "Creating snapshot(s): ";
-$result = New-Snapshot -Disks $disks -VmName $VmName -PatchJobId $jobId;
+Write-Host -NoNewline "Creating clone(s): ";
+$result = New-Clone -Disks $disks -VmName $VmName -PatchJobId $jobId;
 
 if($result)
 {
