@@ -46,3 +46,9 @@ variable "enable-hammerdb" {
     type = bool
     default = false
 }
+
+# Defaults to true
+variable "enable-iometer" {
+    type = bool
+    default = true
+}
