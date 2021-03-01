@@ -42,9 +42,10 @@ variable "enable-ssms" {
     default = false
 }
 
+# Enabled by default
 variable "enable-hammerdb" {
     type = bool
-    default = false
+    default = true
 }
 
 # Enabled by default
