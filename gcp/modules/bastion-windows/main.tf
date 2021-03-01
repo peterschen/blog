@@ -68,7 +68,8 @@ resource "google_compute_instance" "bastion" {
         enableDomain = local.enable-domain,
         enableSsms = local.enable-ssms,
         enableHammerdb = local.enable-hammerdb,
-        enableIometer = local.enable-iometer
+        enableIometer = local.enable-iometer,
+        enableDiskspd = local.enable-diskspd
       })
     })
   }
