@@ -318,7 +318,7 @@ configuration ConfigurationWorkload
 
             Archive "ExpandHammerdb"
             {
-                Destination = "c:\tools"
+                Destination = "c:\tools\hammerdb"
                 Path = "C:\Windows\temp\hammerdb.zip"
                 DependsOn = "[Script]DownloadHammerdb"
             }
@@ -357,7 +357,7 @@ configuration ConfigurationWorkload
 
             Archive "ExpandIometer"
             {
-                Destination = "c:\tools"
+                Destination = "c:\tools\iometer"
                 Path = "C:\Windows\temp\iometer.zip"
                 DependsOn = "[Script]DownloadIometer"
             }
