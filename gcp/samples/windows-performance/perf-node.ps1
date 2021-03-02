@@ -54,6 +54,80 @@ configuration ConfigurationWorkload
             }
         }
 
+        Script "DownloadChrome"
+        {
+            GetScript = {
+                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "chrome.msi";
+                if((Test-Path -Path $path))
+                {
+                    $result = "Present";
+                }
+                else
+                {
+                    $result = "Absent";
+                }
+
+                return @{Ensure = $result};
+            }
+
+            TestScript = {
+                $state = [scriptblock]::Create($GetScript).Invoke();
+                return $state.Ensure -eq "Present";
+            }
+
+            SetScript = {
+                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "chrome.msi";
+                Invoke-WebRequest -Uri "https://dl.google.com/tag/s/dl/chrome/install/googlechromestandaloneenterprise64.msi" -OutFile $path;
+            }
+        }
+
+        Package "InstallChrome"
+        {
+            Ensure = "Present"
+            Name = "Google Chrome"
+            ProductID = ""
+            Path = "C:\Windows\temp\chrome.msi"
+            Arguments = "/quiet"
+            DependsOn = "[Script]DownloadChrome"
+        }
+
+        Script "DownloadVscode"
+        {
+            GetScript = {
+                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "vscode.exe";
+                if((Test-Path -Path $path))
+                {
+                    $result = "Present";
+                }
+                else
+                {
+                    $result = "Absent";
+                }
+
+                return @{Ensure = $result};
+            }
+
+            TestScript = {
+                $state = [scriptblock]::Create($GetScript).Invoke();
+                return $state.Ensure -eq "Present";
+            }
+
+            SetScript = {
+                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "vscode.exe";
+                Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?Linkid=852157" -OutFile $path;
+            }
+        }
+
+        Package "InstallVscode"
+        {
+            Ensure = "Present"
+            Name = "Microsoft Visual Studio Code"
+            ProductID = ""
+            Path = "C:\Windows\temp\vscode.exe"
+            Arguments = "/VERYSILENT"
+            DependsOn = "[Script]DownloadVscode"
+        }
+
         Script "DownloadIometer"
         {
             GetScript = {
@@ -85,9 +159,44 @@ configuration ConfigurationWorkload
 
         Archive "ExpandIometer"
         {
-            Destination = "c:\tools"
+            Destination = "c:\tools\iometer"
             Path = "C:\Windows\temp\iometer.zip"
             DependsOn = "[Script]DownloadIometer"
+        }
+
+        Script "DownloadDiskspd"
+        {
+            GetScript = {
+                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "diskspd.zip";
+                if((Test-Path -Path $path))
+                {
+                    $result = "Present";
+                }
+                else
+                {
+                    $result = "Absent";
+                }
+
+                return @{Ensure = $result};
+            }
+
+            TestScript = {
+                $state = [scriptblock]::Create($GetScript).Invoke();
+                return $state.Ensure -eq "Present";
+            }
+
+            SetScript = {
+                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "diskspd.zip";
+                $uri = "https://github.com/microsoft/diskspd/releases/download/v2.0.21a/DiskSpd.zip";
+                Invoke-WebRequest -Uri $uri -OutFile $path;
+            }
+        }
+
+        Archive "ExpandDiskspd"
+        {
+            Destination = "c:\tools\diskspd"
+            Path = "C:\Windows\temp\diskspd.zip"
+            DependsOn = "[Script]DownloadDiskspd"
         }
     }
 }
