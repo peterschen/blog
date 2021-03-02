@@ -2,8 +2,6 @@ Set-StrictMode -Version Latest;
 $InformationPreference = "Continue";
 $ErrorActionPreference = "Stop";
 
-# https://datacadamia.com/io/access_pattern
-
 <#
     .SYNOPSIS
         This function calls the diskspd binary
@@ -32,7 +30,7 @@ function Invoke-Diskspd
         $info.RedirectStandardOutput = $true;
         $info.UseShellExecute = $false;
         $info.LoadUserProfile = $true;
-        $info.Arguments = "/C c:\tools\amd64\diskspd.exe $($Arguments -join " ")";
+        $info.Arguments = "/C c:\tools\diskspd\amd64\diskspd.exe $($Arguments -join " ")";
 
         $process = New-Object System.Diagnostics.Process;
         $process.StartInfo = $info;
@@ -48,17 +46,56 @@ function Invoke-Diskspd
     }
 }
 
-$outputFolder = "c:\tools";
-$disks = @(
-    "d", "e", "f", "g", "h"
-);
-
-$fileSizeValue = "10";
-$fileSizeUnit = "G";
-$duration = 60;
-$threads = 1;
-$warmup = 5;
-$cooldown = 0;
+$configs = @{
+    "1" = @{
+        "fileSystem" = "NTFS"
+        "allocationUnitSize" = 4096
+    }
+    "2" = @{
+        "fileSystem" = "NTFS"
+        "allocationUnitSize" = 8192
+    }
+    "3" = @{
+        "fileSystem" = "NTFS"
+        "allocationUnitSize" = 16384
+    }
+    "4" = @{
+        "fileSystem" = "NTFS"
+        "allocationUnitSize" = 32768
+    }
+    "5" = @{
+        "fileSystem" = "NTFS"
+        "allocationUnitSize" = 65536
+    }
+    "6" = @{
+        "fileSystem" = "NTFS"
+        "allocationUnitSize" = 131072
+    }
+    "7" = @{
+        "fileSystem" = "NTFS"
+        "allocationUnitSize" = 262144
+    }
+    "8" = @{
+        "fileSystem" = "NTFS"
+        "allocationUnitSize" = 524288
+    }
+    "9" = @{
+        "fileSystem" = "NTFS"
+        "allocationUnitSize" = 1048576
+    }
+    "10" = @{
+        "fileSystem" = "NTFS"
+        "allocationUnitSize" = 2097152
+    }
+    "11" = @{
+        "fileSystem" = "ReFS"
+        "allocationUnitSize" = 4096
+    }
+    "12" = @{
+        "fileSystem" = "ReFS"
+        "allocationUnitSize" = 65536
+    }
+}
 
 $scenarios = @{
     "fileserver" = @{
@@ -70,6 +107,31 @@ $scenarios = @{
         "outstandingIo" = 32
         "enableSoftwarCache" = $true
         "enableWriteTrough" = $true
+    }
+}
+
+$outputFolder = "c:\tools";
+$fileSizeValue = "10";
+$fileSizeUnit = "G";
+$duration = 60;
+$threads = 1;
+$warmup = 5;
+$cooldown = 0;
+
+$disks = Get-PhysicalDisk -CanPool $true | Sort-Object {[int]$_.DeviceId};
+foreach($disk in $disks)
+{
+    Clear-Disk -UniqueId $disk.UniqueId -RemoveData -RemoveOEM -Confirm:$false -ErrorAction "SilentlyContinue";
+
+    $config = $configs[$disk.DeviceId];
+    if($null -ne $config) {
+        $fileSystem = $config["fileSystem"];
+        $allocationUnitSize = $config["allocationUnitSize"];
+        $label = "${fileSystem}-$($allocationUnitSize / 1024)K";
+
+        Initialize-Disk -UniqueId $disk.UniqueId -PartitionStyle GPT -PassThru |
+            New-Partition -UseMaximumSize |
+            Format-Volume -AllocationUnitSize $allocationUnitSize -FileSystem $fileSystem -NewFileSystemLabel $label;
     }
 }
 
@@ -110,12 +172,12 @@ foreach($scenario in $scenarios.GetEnumerator())
     {
         Write-Information -MessageData "Running diskspd for '${disk}:'";
 
-        $args = $arguments;
-        $args += @(
-            "${disk}:\diskspd.bin"
+        $instanceArguments = $arguments;
+        $instanceArguments += @(
+            "#$($disk.DeviceId)"
         );
 
-        $process = Invoke-Diskspd -Arguments $args;
+        $process = Invoke-Diskspd -Arguments $instanceArguments;
         Set-Content -Path "${outputFolder}\diskspd-$($scenario.Name)-${disk}.xml" -Value $process.StandardOutput;
 
         Write-Information -MessageData "Cooling down for ${duration} seconds";
