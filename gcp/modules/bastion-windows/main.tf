@@ -11,6 +11,7 @@ locals {
   enable-ssms = var.enable-ssms
   enable-hammerdb = var.enable-hammerdb
   enable-iometer = var.enable-iometer
+  enable-diskspd = var.enable-diskspd
 }
 
 data "google_compute_network" "network" {
