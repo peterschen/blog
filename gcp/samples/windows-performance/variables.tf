@@ -13,7 +13,7 @@ variable "zone" {
 
 variable "machine-type" {
   type = string
-  default = "n2-standard-2"
+  default = "n2-standard-8"
 }
 
 variable "password" {
