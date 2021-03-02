@@ -1,5 +1,12 @@
+terraform {
+  required_providers {
+    google = {
+      version = "~> 3.1"
+    }
+  }
+}
+
 provider "google" {
-  version = "~> 3.1"
   project = var.project
 }
 
@@ -125,7 +132,7 @@ resource "google_compute_instance" "perf-nodes" {
 resource "google_compute_disk" "perf-node-ssd" {
   count = local.count-nodes * local.count-disks
   zone = google_compute_instance.perf-nodes[floor(count.index / local.count-disks)].zone
-  name = "perf-node-ssd-${count.index}"
+  name = "perf-node-ssd-${format("%02g", count.index)}"
   type = "pd-ssd"
   size = local.size-disks
 }
