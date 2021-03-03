@@ -1,3 +1,10 @@
+[CmdletBinding()]
+param
+(
+    [Parameter(Mandatory = $false)]
+    [bool] $InitializeDisks = $true
+)
+
 Set-StrictMode -Version Latest;
 $InformationPreference = "Continue";
 $ErrorActionPreference = "Stop";
@@ -105,7 +112,7 @@ $scenarios = @{
         "accessHint" = 'r'
         "accesspattern" = 'r'
         "outstandingIo" = 32
-        "enableSoftwarCache" = $true
+        "enableSoftwarCache" = $false
         "enableWriteTrough" = $true
     }
 }
@@ -117,21 +124,26 @@ $duration = 60;
 $threads = 1;
 $warmup = 5;
 $cooldown = 0;
+$enableLatencyCollection = $false;
 
 $disks = Get-PhysicalDisk -CanPool $true | Sort-Object {[int]$_.DeviceId};
-foreach($disk in $disks)
+
+if($InitializeDisks)
 {
-    Clear-Disk -UniqueId $disk.UniqueId -RemoveData -RemoveOEM -Confirm:$false -ErrorAction "SilentlyContinue";
+    foreach($disk in $disks)
+    {
+        Clear-Disk -UniqueId $disk.UniqueId -RemoveData -RemoveOEM -Confirm:$false -ErrorAction "SilentlyContinue";
+    
+        $config = $configs[$disk.DeviceId];
+        if($null -ne $config) {
+            $fileSystem = $config["fileSystem"];
+            $allocationUnitSize = $config["allocationUnitSize"];
+            $label = "${fileSystem}-$($allocationUnitSize / 1024)K";
 
-    $config = $configs[$disk.DeviceId];
-    if($null -ne $config) {
-        $fileSystem = $config["fileSystem"];
-        $allocationUnitSize = $config["allocationUnitSize"];
-        $label = "${fileSystem}-$($allocationUnitSize / 1024)K";
-
-        Initialize-Disk -UniqueId $disk.UniqueId -PartitionStyle GPT -PassThru |
-            New-Partition -UseMaximumSize |
-            Format-Volume -AllocationUnitSize $allocationUnitSize -FileSystem $fileSystem -NewFileSystemLabel $label;
+            Initialize-Disk -UniqueId $disk.UniqueId -PartitionStyle GPT -PassThru |
+                New-Partition -UseMaximumSize -DriveLetter $([char](99 + $disk.DeviceId)) |
+                Format-Volume -AllocationUnitSize $allocationUnitSize -FileSystem $fileSystem -NewFileSystemLabel $label;
+        }
     }
 }
 
@@ -152,6 +164,11 @@ foreach($scenario in $scenarios.GetEnumerator())
         $flags += "-Sw "
     }
 
+    if($enableLatencyCollection)
+    {
+        $flags += "-L "
+    }
+
     $arguments = @(
         "-c${fileSizeValue}${fileSizeUnit}",
         "-b$($config["blockSizeValue"])$($config["blockSizeUnit"])"
@@ -163,22 +180,22 @@ foreach($scenario in $scenarios.GetEnumerator())
         "-w$($config["ratio"])",
         "-f$($config["accessHint"])",
         "-$($config["accessPattern"])",
-        "-o$($config["outstandingIo"])"
-        "-L",
+        "-o$($config["outstandingIo"])",
+        "-D",
         $flags
     );
 
     foreach($disk in $disks)
     {
-        Write-Information -MessageData "Running diskspd for '${disk}:'";
+        Write-Information -MessageData "Running diskspd for disk '$($disk.DeviceId)'";
 
         $instanceArguments = $arguments;
         $instanceArguments += @(
-            "#$($disk.DeviceId)"
+            "$([char](99 + $disk.DeviceId)):\diskspd.bin"
         );
 
         $process = Invoke-Diskspd -Arguments $instanceArguments;
-        Set-Content -Path "${outputFolder}\diskspd-$($scenario.Name)-${disk}.xml" -Value $process.StandardOutput;
+        Set-Content -Path "${outputFolder}\diskspd-$($scenario.Name)-$($disk.DeviceId).xml" -Value $process.StandardOutput;
 
         Write-Information -MessageData "Cooling down for ${duration} seconds";
         Start-Sleep -Seconds $duration;
