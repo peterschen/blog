@@ -18,7 +18,7 @@ locals {
   network-range = "10.0.0.0/16"
   machine-type = var.machine-type
   count-nodes = var.node-count
-  count-disks = 12
+  count-disks = 1
   size-disks = 100
 }
 
@@ -141,4 +141,5 @@ resource "google_compute_attached_disk" "perf-node-ssd" {
   count = local.count-nodes * local.count-disks
   disk = google_compute_disk.perf-node-ssd[count.index].self_link
   instance = google_compute_instance.perf-nodes[floor(count.index / local.count-disks)].self_link
+  device_name = "pd-${count.index}"
 }

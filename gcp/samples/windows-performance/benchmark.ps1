@@ -1,10 +1,3 @@
-[CmdletBinding()]
-param
-(
-    [Parameter(Mandatory = $false)]
-    [bool] $InitializeDisks = $true
-)
-
 Set-StrictMode -Version Latest;
 $InformationPreference = "Continue";
 $ErrorActionPreference = "Stop";
@@ -53,149 +46,179 @@ function Invoke-Diskspd
     }
 }
 
-$configs = @{
-    "1" = @{
-        "fileSystem" = "NTFS"
-        "allocationUnitSize" = 4096
-    }
-    "2" = @{
-        "fileSystem" = "NTFS"
-        "allocationUnitSize" = 8192
-    }
-    "3" = @{
-        "fileSystem" = "NTFS"
-        "allocationUnitSize" = 16384
-    }
-    "4" = @{
-        "fileSystem" = "NTFS"
-        "allocationUnitSize" = 32768
-    }
-    "5" = @{
-        "fileSystem" = "NTFS"
-        "allocationUnitSize" = 65536
-    }
-    "6" = @{
-        "fileSystem" = "NTFS"
-        "allocationUnitSize" = 131072
-    }
-    "7" = @{
-        "fileSystem" = "NTFS"
-        "allocationUnitSize" = 262144
-    }
-    "8" = @{
-        "fileSystem" = "NTFS"
-        "allocationUnitSize" = 524288
-    }
-    "9" = @{
-        "fileSystem" = "NTFS"
-        "allocationUnitSize" = 1048576
-    }
-    "10" = @{
-        "fileSystem" = "NTFS"
-        "allocationUnitSize" = 2097152
-    }
-    "11" = @{
-        "fileSystem" = "ReFS"
-        "allocationUnitSize" = 4096
-    }
-    "12" = @{
-        "fileSystem" = "ReFS"
-        "allocationUnitSize" = 65536
+<#
+    .SYNOPSIS
+        This function initializes the disk
+
+    .PARAMETER Disk
+        MSFT_PhysicalDisk $Disk
+
+    .PARAMETER Configuration
+        Hashtable of parameters for disk initialization
+
+    .OUTPUTS
+        Boolean
+
+    .EXAMPLE
+        Setup-Disk -Configuration @{"fileSystem" = "NTFS" "allocationUnitSize" = 4096}
+#>
+function Setup-Disk
+{
+    param
+    (
+        [CimInstance] $Disk,
+        [Hashtable] $Configuration,
+        [String] $DriveLetter
+    );
+
+    process
+    {
+        Clear-Disk -UniqueId $Disk.UniqueId -RemoveData -RemoveOEM -Confirm:$false -ErrorAction "SilentlyContinue";
+    
+        $fileSystem = $Configuration["fileSystem"];
+        $allocationUnitSize = $Configuration["allocationUnitSize"];
+        $label = "${fileSystem}-$($allocationUnitSize / 1024)K";
+
+        Initialize-Disk -UniqueId $Disk.UniqueId -PartitionStyle GPT -PassThru |
+            New-Partition -UseMaximumSize -DriveLetter $DriveLetter |
+            Format-Volume -AllocationUnitSize $allocationUnitSize -FileSystem $fileSystem -NewFileSystemLabel $label |
+            Out-Null;
     }
 }
 
 $scenarios = @{
-    "fileserver" = @{
-        "ratio" = 20
-        "blockSizeValue" = 64
+    "write_throughput" = @{
+        "ratio" = 100
+        "blockSizeValue" = 1
+        "blockSizeUnit" = 'M'
+        "accessHint" = 's'
+        "accesspattern" = 's'
+        "outstandingIo" = 64
+        "enableSoftwarCache" = $false
+        "enableWriteTrough" = $true
+        "threads" = 8
+    }
+    "write_iops" = @{
+        "ratio" = 100
+        "blockSizeValue" = 4
         "blockSizeUnit" = 'K'
         "accessHint" = 'r'
         "accesspattern" = 'r'
-        "outstandingIo" = 32
+        "outstandingIo" = 64
         "enableSoftwarCache" = $false
         "enableWriteTrough" = $true
+        "threads" = 1
     }
 }
 
+$configurations = @(
+    @{
+        "fileSystem" = "NTFS"
+        "allocationUnitSize" = 4096
+    },
+    @{
+        "fileSystem" = "NTFS"
+        "allocationUnitSize" = 8192
+    },
+    @{
+        "fileSystem" = "NTFS"
+        "allocationUnitSize" = 16384
+    },
+    @{
+        "fileSystem" = "NTFS"
+        "allocationUnitSize" = 32768
+    },
+    @{
+        "fileSystem" = "NTFS"
+        "allocationUnitSize" = 65536
+    },
+    @{
+        "fileSystem" = "NTFS"
+        "allocationUnitSize" = 131072
+    },
+    @{
+        "fileSystem" = "NTFS"
+        "allocationUnitSize" = 262144
+    },
+    @{
+        "fileSystem" = "NTFS"
+        "allocationUnitSize" = 524288
+    },
+    @{
+        "fileSystem" = "NTFS"
+        "allocationUnitSize" = 1048576
+    },
+    @{
+        "fileSystem" = "NTFS"
+        "allocationUnitSize" = 2097152
+    },
+    @{
+        "fileSystem" = "ReFS"
+        "allocationUnitSize" = 4096
+    },
+    @{
+        "fileSystem" = "ReFS"
+        "allocationUnitSize" = 65536
+    }
+);
+
+$driveLetter = "t";
 $outputFolder = "c:\tools";
 $fileSizeValue = "10";
 $fileSizeUnit = "G";
 $duration = 60;
-$threads = 1;
 $warmup = 5;
 $cooldown = 0;
 $enableLatencyCollection = $false;
 
-$disks = Get-PhysicalDisk -CanPool $true | Sort-Object {[int]$_.DeviceId};
-
-if($InitializeDisks)
+$disk = Get-PhysicalDisk | Where-Object { $_.Size -eq 100GB };
+foreach($configuration in $configurations)
 {
-    foreach($disk in $disks)
-    {
-        Clear-Disk -UniqueId $disk.UniqueId -RemoveData -RemoveOEM -Confirm:$false -ErrorAction "SilentlyContinue";
-    
-        $config = $configs[$disk.DeviceId];
-        if($null -ne $config) {
-            $fileSystem = $config["fileSystem"];
-            $allocationUnitSize = $config["allocationUnitSize"];
-            $label = "${fileSystem}-$($allocationUnitSize / 1024)K";
+    Write-Information -MessageData "Preparing disk '$($configuration["fileSystem"])-$($configuration["allocationUnitSize"])'";
+    Setup-Disk -Disk $disk -Configuration $configuration -DriveLetter $driveLetter;
 
-            Initialize-Disk -UniqueId $disk.UniqueId -PartitionStyle GPT -PassThru |
-                New-Partition -UseMaximumSize -DriveLetter $([char](99 + $disk.DeviceId)) |
-                Format-Volume -AllocationUnitSize $allocationUnitSize -FileSystem $fileSystem -NewFileSystemLabel $label;
+    foreach($scenario in $scenarios.GetEnumerator())
+    {
+        $config = $scenario.Value;
+        $flags = "";
+
+        if(-not $config["enableSoftwareCache"])
+        {
+            $flags += "-Su "
         }
-    }
-}
 
-foreach($scenario in $scenarios.GetEnumerator())
-{
-    Write-Information -MessageData "Starting scenario '$($scenario.Name)'";
-    $config = $scenario.Value;
+        if($config["enableWriteThrough"])
+        {
+            $flags += "-Sw "
+        }
 
-    $flags = "";
+        if($enableLatencyCollection)
+        {
+            $flags += "-L "
+        }
 
-    if(-not $config["enableSoftwareCache"])
-    {
-        $flags += "-Su "
-    }
-
-    if($config["enableWriteThrough"])
-    {
-        $flags += "-Sw "
-    }
-
-    if($enableLatencyCollection)
-    {
-        $flags += "-L "
-    }
-
-    $arguments = @(
-        "-c${fileSizeValue}${fileSizeUnit}",
-        "-b$($config["blockSizeValue"])$($config["blockSizeUnit"])"
-        "-d$duration"
-        "-t$threads",
-        "-W$warmup",
-        "-C$cooldown",
-        "-Rxml",
-        "-w$($config["ratio"])",
-        "-f$($config["accessHint"])",
-        "-$($config["accessPattern"])",
-        "-o$($config["outstandingIo"])",
-        "-D",
-        $flags
-    );
-
-    foreach($disk in $disks)
-    {
-        Write-Information -MessageData "Running diskspd for disk '$($disk.DeviceId)'";
-
-        $instanceArguments = $arguments;
-        $instanceArguments += @(
-            "$([char](99 + $disk.DeviceId)):\diskspd.bin"
+        $arguments = @(
+            "-c${fileSizeValue}${fileSizeUnit}",
+            "-b$($config["blockSizeValue"])$($config["blockSizeUnit"])"
+            "-d$duration"
+            "-t$($config["threads"])",
+            "-W$warmup",
+            "-C$cooldown",
+            "-Rxml",
+            "-w$($config["ratio"])",
+            "-f$($config["accessHint"])",
+            "-$($config["accessPattern"])",
+            "-o$($config["outstandingIo"])",
+            "-D",
+            $flags,
+            "${driveLetter}:\diskspd.bin"
         );
 
-        $process = Invoke-Diskspd -Arguments $instanceArguments;
-        Set-Content -Path "${outputFolder}\diskspd-$($scenario.Name)-$($disk.DeviceId).xml" -Value $process.StandardOutput;
+        Write-Information -MessageData "Running scenario '$($scenario.Name)'";
+
+        $process = Invoke-Diskspd -Arguments $arguments;
+        Set-Content -Path "${outputFolder}\diskspd-$($scenario.Name)-$($configuration["fileSystem"])-$($configuration["allocationUnitSize"]).xml" `
+            -Value $process.StandardOutput;
 
         Write-Information -MessageData "Cooling down for ${duration} seconds";
         Start-Sleep -Seconds $duration;
