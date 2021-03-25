@@ -10,7 +10,6 @@ locals {
   enable-domain = var.enable-domain
   enable-ssms = var.enable-ssms
   enable-hammerdb = var.enable-hammerdb
-  enable-iometer = var.enable-iometer
   enable-diskspd = var.enable-diskspd
 }
 
@@ -69,7 +68,6 @@ resource "google_compute_instance" "bastion" {
         enableDomain = local.enable-domain,
         enableSsms = local.enable-ssms,
         enableHammerdb = local.enable-hammerdb,
-        enableIometer = local.enable-iometer,
         enableDiskspd = local.enable-diskspd
       })
     })

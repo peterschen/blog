@@ -49,12 +49,6 @@ variable "enable-hammerdb" {
 }
 
 # Enabled by default
-variable "enable-iometer" {
-    type = bool
-    default = true
-}
-
-# Enabled by default
 variable "enable-diskspd" {
     type = bool
     default = true

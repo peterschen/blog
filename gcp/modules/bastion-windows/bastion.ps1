@@ -324,45 +324,6 @@ configuration ConfigurationWorkload
             }
         }
 
-        if($Parameters.enableIometer)
-        {
-            Script "DownloadIometer"
-            {
-                GetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "iometer.zip";
-                    if((Test-Path -Path $path))
-                    {
-                        $result = "Present";
-                    }
-                    else
-                    {
-                        $result = "Absent";
-                    }
-
-                    return @{Ensure = $result};
-                }
-
-                TestScript = {
-                    $state = [scriptblock]::Create($GetScript).Invoke();
-                    return $state.Ensure -eq "Present";
-                }
-
-                SetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "iometer.zip";
-                    $timestamp = Get-Date -UFormat %s -Millisecond 0;
-                    $uri = "https://downloads.sourceforge.net/project/iometer/iometer-stable/1.1.0/iometer-1.1.0-win64.x86_64-bin.zip?r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Fiometer%2Ffiles%2Fiometer-stable%2F1.1.0%2Fiometer-1.1.0-win64.x86_64-bin.zip%2Fdownload&ts=$timestamp";
-                    Invoke-WebRequest -Uri $uri -OutFile $path;
-                }
-            }
-
-            Archive "ExpandIometer"
-            {
-                Destination = "c:\tools\iometer"
-                Path = "C:\Windows\temp\iometer.zip"
-                DependsOn = "[Script]DownloadIometer"
-            }
-        }
-
         if($Parameters.enableDiskspd)
         {
             Script "DownloadDiskspd"
