@@ -242,7 +242,7 @@ configuration ConfigurationWorkload
             Package "InstallSsms"
             {
                 Ensure = "Present"
-                Name = "Microsoft SQL Server Management Studio"
+                Name = "Microsoft SQL Server Management Studio 18.8"
                 ProductID = ""
                 Path = "C:\Windows\temp\SSMS-Setup-ENU.exe"
                 Arguments = "/install /quiet"
