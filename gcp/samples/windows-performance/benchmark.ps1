@@ -357,6 +357,28 @@ $scenarios = @{
         "enableWriteTrough" = $true
         "threads" = 1
     }
+    "read_throughput" = @{
+        "ratio" = 0
+        "blockSizeValue" = 1
+        "blockSizeUnit" = 'M'
+        "accessHint" = 's'
+        "accesspattern" = 's'
+        "outstandingIo" = 64
+        "enableSoftwarCache" = $false
+        "enableWriteTrough" = $true
+        "threads" = 8
+    }
+    "read_iops" = @{
+        "ratio" = 0
+        "blockSizeValue" = 4
+        "blockSizeUnit" = 'K'
+        "accessHint" = 'r'
+        "accesspattern" = 'r'
+        "outstandingIo" = 64
+        "enableSoftwarCache" = $false
+        "enableWriteTrough" = $true
+        "threads" = 1
+    }
 }
 
 $configurations = @(
