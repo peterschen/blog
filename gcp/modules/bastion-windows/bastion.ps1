@@ -122,7 +122,7 @@ configuration ConfigurationWorkload
 
             SetScript = {
                 $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "chrome.msi";
-                Invoke-WebRequest -Uri "https://dl.google.com/tag/s/dl/chrome/install/googlechromestandaloneenterprise64.msi" -OutFile $path;
+                Start-BitsTransfer -Source "https://dl.google.com/tag/s/dl/chrome/install/googlechromestandaloneenterprise64.msi" -Destination $path;
             }
         }
 
@@ -159,7 +159,7 @@ configuration ConfigurationWorkload
 
             SetScript = {
                 $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "mremoteng.msi";
-                Invoke-WebRequest -Uri "https://github.com/mRemoteNG/mRemoteNG/releases/download/v1.76.20/mRemoteNG-Installer-1.76.20.24615.msi" -OutFile $path;
+                Start-BitsTransfer -Source "https://github.com/mRemoteNG/mRemoteNG/releases/download/v1.76.20/mRemoteNG-Installer-1.76.20.24615.msi" -Destination $path;
             }
         }
 
@@ -196,7 +196,7 @@ configuration ConfigurationWorkload
 
             SetScript = {
                 $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "vscode.exe";
-                Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?Linkid=852157" -OutFile $path;
+                Start-BitsTransfer -Source "https://go.microsoft.com/fwlink/?Linkid=852157" -Destination $path;
             }
         }
 
@@ -235,7 +235,7 @@ configuration ConfigurationWorkload
 
                 SetScript = {
                     $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "SSMS-Setup-ENU.exe";
-                    Invoke-WebRequest -Uri "https://aka.ms/ssmsfullsetup" -OutFile $path;
+                    Start-BitsTransfer -Source "https://aka.ms/ssmsfullsetup" -Destination $path;
                 }
             }
 
@@ -275,7 +275,7 @@ configuration ConfigurationWorkload
 
                 SetScript = {
                     $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "msoledbsql.msi";
-                    Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2117515" -OutFile $path;
+                    Start-BitsTransfer -Source "https://go.microsoft.com/fwlink/?linkid=2117515" -Destination $path;
                 }
             }
 
@@ -312,7 +312,7 @@ configuration ConfigurationWorkload
 
                 SetScript = {
                     $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "hammerdb.zip";
-                    Invoke-WebRequest -Uri "https://github.com/TPC-Council/HammerDB/releases/download/v3.3/HammerDB-3.3-Win.zip" -OutFile $path;
+                    Start-BitsTransfer -Source "https://github.com/TPC-Council/HammerDB/releases/download/v3.3/HammerDB-3.3-Win.zip" -Destination $path;
                 }
             }
 
