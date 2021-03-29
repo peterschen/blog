@@ -5,6 +5,7 @@ locals {
   password = var.password
   network = var.network
   subnetworks = var.subnetworks
+  machine-type = var.machine-type
 }
 
 data "google_compute_network" "network" {
@@ -128,7 +129,7 @@ resource "google_compute_instance" "dc" {
   count = length(local.zones)
   zone = local.zones[count.index]
   name = "dc-${count.index}"
-  machine_type = "n1-standard-1"
+  machine_type = local.machine-type
 
   tags = ["ad", "rdp", "dns"]
 
