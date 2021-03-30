@@ -19,16 +19,19 @@ locals {
   machine-type = var.machine-type
   count-nodes = var.node-count
   count-disks = 1
-  size-disks = 100
+  size-disks = 1000
 }
 
 module "gce-default-scopes" {
-  # source = "github.com/peterschen/blog//gcp/modules/gce-default-scopes"
   source = "../../modules/gce-default-scopes"
 }
 
+module "apis" {
+  source = "../../modules/apis"
+  apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com"]
+}
+
 module "sysprep" {
-  # source = "github.com/peterschen/blog//gcp/modules/sysprep"
   source = "../../modules/sysprep"
 }
 
@@ -37,19 +40,6 @@ module "cloud-nat" {
   region = local.region
   network = google_compute_network.network.name
   depends_on = [google_compute_network.network]
-}
-
-module "bastion" {
-  # source = "github.com/peterschen/blog//gcp/modules/bastion-windows"
-  source = "../../modules/bastion-windows"
-  region = local.region
-  zone = local.zone
-  network = google_compute_network.network.name
-  subnetwork = google_compute_subnetwork.subnetwork.name
-  machine-name = "bastion"
-  password = local.password
-  enable-domain = false
-  depends_on = [module.cloud-nat]
 }
 
 module "firewall-iap" {
@@ -114,6 +104,7 @@ resource "google_compute_instance" "perf-nodes" {
         parametersConfiguration = jsonencode({
           inlineMeta = filebase64(module.sysprep.path-meta),
           inlineConfiguration = filebase64("${path.module}/perf-node.ps1"),
+          scriptBenchmark = filebase64("${path.module}/benchmark.ps1")
         })
       })
   }
@@ -126,7 +117,7 @@ resource "google_compute_instance" "perf-nodes" {
     ignore_changes = [attached_disk]
   }
 
-  depends_on = [module.bastion]
+  depends_on = [module.apis]
 }
 
 resource "google_compute_disk" "perf-node-ssd" {
