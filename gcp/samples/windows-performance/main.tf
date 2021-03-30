@@ -104,7 +104,8 @@ resource "google_compute_instance" "perf-nodes" {
         parametersConfiguration = jsonencode({
           inlineMeta = filebase64(module.sysprep.path-meta),
           inlineConfiguration = filebase64("${path.module}/perf-node.ps1"),
-          scriptBenchmark = filebase64("${path.module}/benchmark.ps1")
+          scriptBenchmark = filebase64("${path.module}/benchmark.ps1"),
+          scriptConversion = filebase64("${path.module}/conversion.ps1")
         })
       })
   }

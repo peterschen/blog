@@ -235,5 +235,42 @@ configuration ConfigurationWorkload
 
             DependsOn = "[File]benchmark.b64"
         }
+
+        File "conversion.b64"
+        {
+            DestinationPath = "c:\tools\conversion.b64"
+            Contents = $Parameters.scriptConversion
+            Ensure = "Present"
+        }
+
+        Script "conversion.ps1"
+        {
+            GetScript = {
+                $path  = Join-Path -Path "c:\tools" -ChildPath "conversion.ps1";
+                if((Test-Path -Path $path))
+                {
+                    $result = "Present";
+                }
+                else
+                {
+                    $result = "Absent";
+                }
+
+                return @{Ensure = $result};
+            }
+
+            TestScript = {
+                $state = [scriptblock]::Create($GetScript).Invoke();
+                return $state.Ensure -eq "Present";
+            }
+
+            SetScript = {
+                $content = Get-Content -Path (Join-Path -Path "c:\tools" -ChildPath "conversion.b64");
+                $pathDestination = Join-Path -Path "c:\tools" -ChildPath "conversion.ps1";
+                [IO.File]::WriteAllBytes($pathDestination, [Convert]::FromBase64String($content));
+            }
+
+            DependsOn = "[File]conversion.b64"
+        }
     }
 }
