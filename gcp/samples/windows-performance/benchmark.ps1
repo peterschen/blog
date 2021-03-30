@@ -39,6 +39,8 @@ function Invoke-Diskspd
         $info.LoadUserProfile = $true;
         $info.Arguments = "/C c:\tools\diskspd\amd64\diskspd.exe $($Arguments -join " ")";
 
+        Write-Debug -Message "Running 'diskspd.exe $($Arguments -join " ")'";
+
         $process = New-Object System.Diagnostics.Process;
         $process.StartInfo = $info;
         $process.Start() | Out-Null;
@@ -126,7 +128,7 @@ function Setup-Disk
 
     .EXAMPLE
         Invoke-Benchmark `
-            -Scenarios @{"write_throughput" = @{"ratio" = 100 "blockSizeValue" = 1 "blockSizeUnit" = 'M' "accessHint" = 's' "accesspattern" = 's' "outstandingIo" = 64 "enableSoftwarCache" = $false "enableWriteTrough" = $true "threads" = 8}} `
+            -Scenarios @{"write_throughput" = @{"ratio" = 100 "blockSizeValue" = 1 "blockSizeUnit" = 'M' "accessHint" = 's' "accesspattern" = 's' "outstandingIo" = 64 "enableSoftwarCache" = $false "enableWriteThrough" = $true "threads" = 8}} `
             -Configuration @(@{"fileSystem" = "NTFS" "allocationUnitSize" = 4096}) `
             -DriveLetter "t" `
             -OutputFolder .\ '
@@ -153,7 +155,7 @@ function Invoke-Benchmark
 
     process
     {
-        $disk = Get-PhysicalDisk | Where-Object { $_.Size -eq 100GB };
+        $disk = Get-PhysicalDisk | Where-Object { $_.Size -eq 1000GB };
         foreach($configuration in $Configurations)
         {
             Write-Information -MessageData "Preparing disk '$($configuration["fileSystem"])-$($configuration["allocationUnitSize"])'";
@@ -163,7 +165,7 @@ function Invoke-Benchmark
             {
                 $config = $scenario.Value;
                 $flags = "";
-
+                
                 if(-not $config["enableSoftwareCache"])
                 {
                     $flags += "-Su "
@@ -179,11 +181,16 @@ function Invoke-Benchmark
                     $flags += "-L "
                 }
 
+                if($config.Contains("otherFlags"))
+                {
+                    $flags += $config["otherFlags"];
+                }
+
                 $arguments = @(
-                    "-c${FileSize}",
-                    "-b$($config["blockSizeValue"])$($config["blockSizeUnit"])"
-                    "-d$Duration"
-                    "-t$($config["threads"])",
+                    "-c${FileSize}", # Size of the test file
+                    "-b$($config["blockSizeValue"])$($config["blockSizeUnit"])" # blocksize
+                    "-d$Duration" # test duration
+                    "-t$($config["threads"])", # threads per file
                     "-W$Warmup",
                     "-C$Cooldown",
                     "-Rxml",
@@ -192,6 +199,7 @@ function Invoke-Benchmark
                     "-$($config["accessPattern"])",
                     "-o$($config["outstandingIo"])",
                     "-D",
+                    "-Z1M"
                     $flags,
                     "${DriveLetter}:\diskspd.bin"
                 );
@@ -201,9 +209,6 @@ function Invoke-Benchmark
                 $process = Invoke-Diskspd -Arguments $arguments;
                 Set-Content -Path "${OutputFolder}\diskspd-$($scenario.Name)-$($configuration["fileSystem"])-$($configuration["allocationUnitSize"]).xml" `
                     -Value $process.StandardOutput;
-
-                # Write-Information -MessageData "Cooling down for ${duration} seconds";
-                # Start-Sleep -Seconds $duration;
             }
         }
     }
@@ -227,7 +232,7 @@ function Invoke-Benchmark
 
     .EXAMPLE
         Invoke-Analysis `
-            -Scenarios @{"write_throughput" = @{"ratio" = 100 "blockSizeValue" = 1 "blockSizeUnit" = 'M' "accessHint" = 's' "accesspattern" = 's' "outstandingIo" = 64 "enableSoftwarCache" = $false "enableWriteTrough" = $true "threads" = 8}} `
+            -Scenarios @{"write_throughput" = @{"ratio" = 100 "blockSizeValue" = 1 "blockSizeUnit" = 'M' "accessHint" = 's' "accesspattern" = 's' "outstandingIo" = 64 "enableSoftwarCache" = $false "enableWriteThrough" = $true "threads" = 8}} `
             -Configuration @(@{"fileSystem" = "NTFS" "allocationUnitSize" = 4096}) `
             -OutputFolder .\
 #>
@@ -249,84 +254,111 @@ function Invoke-Analysis
             foreach($scenario in $Scenarios.GetEnumerator())
             {
                 $document = "${OutputFolder}\diskspd-$($scenario.Name)-$($configuration["fileSystem"])-$($configuration["allocationUnitSize"]).xml";
-                Write-Information -MessageData "Parsing data ${document}";
-
-                $xml = [xml](Get-Content -Path $document);
-                $result = New-Object psobject;
-
-                # Generic test parameters
-                $result | Add-Member -MemberType NoteProperty -Name "Timestamp" -Value $xml.Results.System.RunTime;
-                $result | Add-Member -MemberType NoteProperty -Name "Scenario" -Value $scenario.Name;
-                $result | Add-Member -MemberType NoteProperty -Name "File system" -Value $configuration["fileSystem"];
-                $result | Add-Member -MemberType NoteProperty -Name "Allocation unit size" -Value $configuration["allocationUnitSize"];
-                $result | Add-Member -MemberType NoteProperty -Name "Cores" -Value $xml.Results.TimeSpan.ProcCount;
-
-                # Target specific test parameters
-                $duration = $xml.Results.Profile.TimeSpans.TimeSpan.Duration;
-                $result | Add-Member -MemberType NoteProperty -Name "Duration (s)" -Value $duration;
-                $result | Add-Member -MemberType NoteProperty -Name "Actual duration (s)" -Value $xml.Results.TimeSpan.TestTimeSeconds;
-                $result | Add-Member -MemberType NoteProperty -Name "Warmup (s)" -Value $xml.Results.Profile.TimeSpans.TimeSpan.Warmup;
-                $result | Add-Member -MemberType NoteProperty -Name "Cooldown (s)" -Value $xml.Results.Profile.TimeSpans.TimeSpan.Cooldown;
-                $result | Add-Member -MemberType NoteProperty -Name "Thread count" -Value $xml.Results.TimeSpan.ThreadCount;
-                
-                # What happens if there is more than one target?
-                $result | Add-Member -MemberType NoteProperty -Name "Path" -Value $xml.Results.Profile.TimeSpans.TimeSpan.Targets.Target.Path;
-                $result | Add-Member -MemberType NoteProperty -Name "Block size" -Value $xml.Results.Profile.TimeSpans.TimeSpan.Targets.Target.BlockSize;
-                $result | Add-Member -MemberType NoteProperty -Name "Sequential scan" -Value $xml.Results.Profile.TimeSpans.TimeSpan.Targets.Target.SequentialScan;
-                $result | Add-Member -MemberType NoteProperty -Name "Random access" -Value $xml.Results.Profile.TimeSpans.TimeSpan.Targets.Target.RandomAccess;
-                $result | Add-Member -MemberType NoteProperty -Name "Disable OS cache" -Value $xml.Results.Profile.TimeSpans.TimeSpan.Targets.Target.DisableOSCache;
-                $result | Add-Member -MemberType NoteProperty -Name "Write buffer content pattern" -Value $xml.Results.Profile.TimeSpans.TimeSpan.Targets.Target.WriteBufferContent.Pattern;
-                $result | Add-Member -MemberType NoteProperty -Name "File size" -Value $xml.Results.Profile.TimeSpans.TimeSpan.Targets.Target.FileSize;
-                $result | Add-Member -MemberType NoteProperty -Name "Request count (queue depth)" -Value $xml.Results.Profile.TimeSpans.TimeSpan.Targets.Target.RequestCount;
-
-                # Performance metrics
-                $bytesTotal = 0;
-                $bytesRead = 0;
-                $bytesWrite = 0;
-                $ioTotal = 0;
-                $ioRead = 0;
-                $ioWrite = 0;
-
-                foreach($thread in $xml.Results.TimeSpan.GetElementsByTagName("Thread"))
+                if(Test-Path -Path $document)
                 {
-                    $bytesTotal += $thread.Target.BytesCount;
-                    $bytesRead += $thread.Target.ReadBytes;
-                    $bytesWrite += $thread.Target.WriteBytes;
-                    $ioTotal += $thread.Target.IOCOunt;
-                    $ioRead += $thread.Target.ReadCount;
-                    $ioWrite += $thread.Target.WriteCount;
+                    Write-Information -MessageData "Parsing data ${document}";
+
+                    $xml = [xml](Get-Content -Path $document);
+                    $result = New-Object psobject;
+
+                    # Generic test parameters
+                    $result | Add-Member -MemberType NoteProperty -Name "Timestamp" -Value $xml.Results.System.RunTime;
+                    $result | Add-Member -MemberType NoteProperty -Name "Scenario" -Value $scenario.Name;
+                    $result | Add-Member -MemberType NoteProperty -Name "FileSystem" -Value $configuration["fileSystem"];
+                    $result | Add-Member -MemberType NoteProperty -Name "AllocationUnitSize" -Value $configuration["allocationUnitSize"];
+                    $result | Add-Member -MemberType NoteProperty -Name "Cores" -Value $xml.Results.TimeSpan.ProcCount;
+
+                    # Target specific test parameters
+                    $duration = $xml.Results.Profile.TimeSpans.TimeSpan.Duration;
+                    $result | Add-Member -MemberType NoteProperty -Name "DurationSeconds" -Value $duration;
+                    $result | Add-Member -MemberType NoteProperty -Name "ActualDurationSeconds" -Value $xml.Results.TimeSpan.TestTimeSeconds;
+                    $result | Add-Member -MemberType NoteProperty -Name "WarmupSeconds" -Value $xml.Results.Profile.TimeSpans.TimeSpan.Warmup;
+                    $result | Add-Member -MemberType NoteProperty -Name "CooldownSeconds" -Value $xml.Results.Profile.TimeSpans.TimeSpan.Cooldown;
+                    $result | Add-Member -MemberType NoteProperty -Name "ThreadCount" -Value $xml.Results.TimeSpan.ThreadCount;
+                    
+                    # What happens if there is more than one target?
+                    $result | Add-Member -MemberType NoteProperty -Name "Path" -Value $xml.Results.Profile.TimeSpans.TimeSpan.Targets.Target.Path;
+                    $result | Add-Member -MemberType NoteProperty -Name "BlockSize" -Value $xml.Results.Profile.TimeSpans.TimeSpan.Targets.Target.BlockSize;
+                    $result | Add-Member -MemberType NoteProperty -Name "SequentialScan" -Value $xml.Results.Profile.TimeSpans.TimeSpan.Targets.Target.SequentialScan;
+                    $result | Add-Member -MemberType NoteProperty -Name "RandomAccess" -Value $xml.Results.Profile.TimeSpans.TimeSpan.Targets.Target.RandomAccess;
+                    $result | Add-Member -MemberType NoteProperty -Name "DisableOsCache" -Value $xml.Results.Profile.TimeSpans.TimeSpan.Targets.Target.DisableOSCache;
+                    $result | Add-Member -MemberType NoteProperty -Name "WriteBufferContentPattern" -Value $xml.Results.Profile.TimeSpans.TimeSpan.Targets.Target.WriteBufferContent.Pattern;
+                    $result | Add-Member -MemberType NoteProperty -Name "FileSize" -Value $xml.Results.Profile.TimeSpans.TimeSpan.Targets.Target.FileSize;
+                    $result | Add-Member -MemberType NoteProperty -Name "RequestCount" -Value $xml.Results.Profile.TimeSpans.TimeSpan.Targets.Target.RequestCount;
+                    $result | Add-Member -MemberType NoteProperty -Name "WriteRatio" -Value $xml.Results.Profile.TimeSpans.TimeSpan.Targets.Target.WriteRatio;
+
+                    # Performance metrics
+                    $bytesTotal = 0;
+                    $bytesRead = 0;
+                    $bytesWrite = 0;
+                    $ioTotal = 0;
+                    $ioRead = 0;
+                    $ioWrite = 0;
+
+                    foreach($thread in $xml.Results.TimeSpan.GetElementsByTagName("Thread"))
+                    {
+                        $bytesTotal += $thread.Target.BytesCount;
+                        $bytesRead += $thread.Target.ReadBytes;
+                        $bytesWrite += $thread.Target.WriteBytes;
+                        $ioTotal += $thread.Target.IOCOunt;
+                        $ioRead += $thread.Target.ReadCount;
+                        $ioWrite += $thread.Target.WriteCount;
+                    }
+
+                    $bytesPerSecondTotal = [int][Math]::Round($bytesTotal / $duration);
+                    $bytesPerSecondRead = [int][Math]::Round($bytesRead / $duration);
+                    $bytesPerSecondWrite = [int][Math]::Round($bytesWrite / $duration);
+
+                    $bytesTotal /= 1000000;
+                    $bytesRead /= 1000000;
+                    $bytesWrite /= 1000000;
+
+                    $bytesPerSecondTotal /= 1000000;
+                    $bytesPerSecondRead /= 1000000;
+                    $bytesPerSecondWrite /= 1000000;
+
+                    $ioPerSecondTotal = [int][Math]::Round($ioTotal / $duration);
+                    $ioPerSecondRead = [int][Math]::Round($ioRead / $duration);
+                    $ioPerSecondWrite = [int][Math]::Round($ioWrite / $duration);
+
+                    $result | Add-Member -MemberType NoteProperty -Name "MbTotal" -Value $bytesTotal;
+                    $result | Add-Member -MemberType NoteProperty -Name "MbRead" -Value $bytesRead;
+                    $result | Add-Member -MemberType NoteProperty -Name "MbWrite" -Value $bytesWrite;
+                    $result | Add-Member -MemberType NoteProperty -Name "IoTotal" -Value $ioTotal;
+                    $result | Add-Member -MemberType NoteProperty -Name "IoRead" -Value $ioRead;
+                    $result | Add-Member -MemberType NoteProperty -Name "IoWrite" -Value $ioWrite;
+
+                    $result | Add-Member -MemberType NoteProperty -Name "MbSecondTotal" -Value $bytesPerSecondTotal;
+                    $result | Add-Member -MemberType NoteProperty -Name "MbSecondRead" -Value $bytesPerSecondRead;
+                    $result | Add-Member -MemberType NoteProperty -Name "MbSecondWrite" -Value $bytesPerSecondWrite;
+                    $result | Add-Member -MemberType NoteProperty -Name "IoSecondTotal" -Value $ioPerSecondTotal;
+                    $result | Add-Member -MemberType NoteProperty -Name "IoSecondRead" -Value $ioPerSecondRead;
+                    $result | Add-Member -MemberType NoteProperty -Name "IoSecondWrite" -Value $ioPerSecondWrite;
+                    
+                    # Only available if latency collection was enabled
+                    # read/write latency only available if 0 > write ratio < 100
+                    $latency = $xml.Results.TimeSpan["Latency"];
+                    if($null -ne $latency)
+                    {
+                        $readLatency = 0;
+                        $writeLatency = 0;
+
+                        if($null -ne $latency["AverageReadMilliseconds"])
+                        {
+                            $readLatency = $latency["AverageReadMilliseconds"].'#text';
+                        }
+
+                        if($null -ne $latency["AverageWriteMilliseconds"])
+                        {
+                            $writeLatency = $latency["AverageWriteMilliseconds"].'#text';
+                        }
+                        
+                        $result | Add-Member -MemberType NoteProperty -Name "AvgLatencyRead" -Value $readLatency;
+                        $result | Add-Member -MemberType NoteProperty -Name "AvgLatencyWrite" -Value $writelatency;
+                    }
+                    
+                    $results += $result;
                 }
-
-                $bytesPerSecondTotal = [int][Math]::Round($bytesTotal / $duration);
-                $bytesPerSecondRead = [int][Math]::Round($bytesRead / $duration);
-                $bytesPerSecondWrite = [int][Math]::Round($bytesWrite / $duration);
-
-                $bytesTotal /= 1000000;
-                $bytesRead /= 1000000;
-                $bytesWrite /= 1000000;
-
-                $bytesPerSecondTotal /= 1000000;
-                $bytesPerSecondRead /= 1000000;
-                $bytesPerSecondWrite /= 1000000;
-
-                $ioPerSecondTotal = [int][Math]::Round($ioTotal / $duration);
-                $ioPerSecondRead = [int][Math]::Round($ioRead / $duration);
-                $ioPerSecondWrite = [int][Math]::Round($ioWrite / $duration);
-
-                $result | Add-Member -MemberType NoteProperty -Name "MB (total)" -Value $bytesTotal;
-                $result | Add-Member -MemberType NoteProperty -Name "MB (read)" -Value $bytesRead;
-                $result | Add-Member -MemberType NoteProperty -Name "MB (write)" -Value $bytesWrite;
-                $result | Add-Member -MemberType NoteProperty -Name "IO (total)" -Value $ioTotal;
-                $result | Add-Member -MemberType NoteProperty -Name "IO (read)" -Value $ioRead;
-                $result | Add-Member -MemberType NoteProperty -Name "IO (write)" -Value $ioWrite;
-
-                $result | Add-Member -MemberType NoteProperty -Name "MB/s (total)" -Value $bytesPerSecondTotal;
-                $result | Add-Member -MemberType NoteProperty -Name "MB/s(read)" -Value $bytesPerSecondRead;
-                $result | Add-Member -MemberType NoteProperty -Name "MB/s (write)" -Value $bytesPerSecondWrite;
-                $result | Add-Member -MemberType NoteProperty -Name "IOPS (total)" -Value $ioPerSecondTotal;
-                $result | Add-Member -MemberType NoteProperty -Name "IOPS (read)" -Value $ioPerSecondRead;
-                $result | Add-Member -MemberType NoteProperty -Name "IOPS (write)" -Value $ioPerSecondWrite;
-                $results += $result;
             }
         }
 
@@ -334,50 +366,90 @@ function Invoke-Analysis
     }
 }
 
+$logicalProcessors = (Get-ComputerInfo -Property CsProcessors).CsProcessors.NumberOfLogicalProcessors;
+
+# Tests with diskspd have shown that running it with threads per file equal to the number of logical processors (-t8) and a queue depth (-o1) of 1
+# is sufficient achieve maximum througput/IOs while increasing the number of outstanding IOs and/or logical processors beyond that just increases
+# IO latency witout yielding more performance. This is probably due to rate limiting of the PDs
 $scenarios = @{
+    # Based on https://cloud.google.com/compute/docs/disks/benchmarking-pd-performance
     "write_throughput" = @{
         "ratio" = 100
         "blockSizeValue" = 1
         "blockSizeUnit" = 'M'
         "accessHint" = 's'
         "accesspattern" = 's'
-        "outstandingIo" = 64
+        "outstandingIo" = 1
         "enableSoftwarCache" = $false
-        "enableWriteTrough" = $true
-        "threads" = 8
+        "enableWriteThrough" = $true
+        "threads" = $logicalProcessors
     }
+    # Based on https://cloud.google.com/compute/docs/disks/benchmarking-pd-performance
     "write_iops" = @{
         "ratio" = 100
         "blockSizeValue" = 4
         "blockSizeUnit" = 'K'
         "accessHint" = 'r'
         "accesspattern" = 'r'
-        "outstandingIo" = 64
+        "outstandingIo" = 1
         "enableSoftwarCache" = $false
-        "enableWriteTrough" = $true
-        "threads" = 1
+        "enableWriteThrough" = $true
+        "threads" = $logicalProcessors
     }
+    # Based on https://cloud.google.com/compute/docs/disks/benchmarking-pd-performance
     "read_throughput" = @{
         "ratio" = 0
         "blockSizeValue" = 1
         "blockSizeUnit" = 'M'
         "accessHint" = 's'
         "accesspattern" = 's'
-        "outstandingIo" = 64
+        "outstandingIo" = 1
         "enableSoftwarCache" = $false
-        "enableWriteTrough" = $true
-        "threads" = 8
+        "enableWriteThrough" = $true
+        "threads" = $logicalProcessors
     }
+    # Based on https://cloud.google.com/compute/docs/disks/benchmarking-pd-performance
     "read_iops" = @{
         "ratio" = 0
         "blockSizeValue" = 4
         "blockSizeUnit" = 'K'
         "accessHint" = 'r'
         "accesspattern" = 'r'
-        "outstandingIo" = 64
+        "outstandingIo" = 1
         "enableSoftwarCache" = $false
-        "enableWriteTrough" = $true
+        "enableWriteThrough" = $true
+        "threads" = $logicalProcessors
+    }
+    # Based on 
+    # https://www.sqlshack.com/using-diskspd-to-test-sql-server-storage-subsystems/
+    # https://docs.microsoft.com/en-us/azure-stack/hci/manage/diskspd-overview#online-transaction-processing-oltp-workload
+    # 
+    # OLTP workloads are latency sensitive (more IOPS = better performance)
+    "sql_oltp" = @{
+        "ratio" = 30
+        "blockSizeValue" = 8 # 8K block size is used by SQL Server for data files
+        "blockSizeUnit" = 'K'
+        "accessHint" = 'r'
+        "accesspattern" = 'r'
+        "outstandingIo" = 1
+        "enableSoftwarCache" = $false
+        "enableWriteThrough" = $true
         "threads" = 1
+    }
+    # Based on https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-R2-and-2012/dn894707(v=ws.11)#random-small-io-test-1-vary-outstanding-ios-per-thread
+    #
+    # OLAP workloads are throughput sensitive (better throughput = faster transactions)
+    "sql_olap" = @{
+        "ratio" = 0
+        "blockSizeValue" = 512 # 512K blocks is a common I/O size for SQL Server loading a batch of 64 pages with read-ahead
+        "blockSizeUnit" = 'K'
+        "accessHint" = 's'
+        "accesspattern" = 's'
+        "outstandingIo" = 1
+        "enableSoftwarCache" = $false
+        "enableWriteThrough" = $true
+        "threads" = 1
+        "otherParameters" = "-si"
     }
 }
 
@@ -437,14 +509,14 @@ $outputFolder = "c:\tools";
 if(-not $SkipBenchmark)
 {
     $driveLetter = "t";
-    $fileSize = "10G";
+    $fileSize = "64G";
     $duration = 60;
-    $warmup = 5;
-    $cooldown = 60;
-    $enableLatencyCollection = $false;
+    $warmup = 15;
+    $cooldown = 15;
+    $enableLatencyCollection = $true;
 
     Invoke-Benchmark -Scenarios $scenarios -Configurations $configurations -DriveLetter $driveLetter -OutputFolder $outputFolder `
-        -FileSize $fileSize -Duration $duration -Warumup $warmup -Cooldown $cooldown -EnableLatencyCollection $enableLatencyCollection;
+        -FileSize $fileSize -Duration $duration -Warmup $warmup -Cooldown $cooldown -EnableLatencyCollection $enableLatencyCollection;
 }
 
 if(-not $SkipAnalysis)
