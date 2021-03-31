@@ -367,6 +367,15 @@ function Invoke-Analysis
 }
 
 $logicalProcessors = (Get-ComputerInfo -Property CsProcessors).CsProcessors.NumberOfLogicalProcessors;
+if($logicalProcessors -is [array])
+{
+    $cores = 0;
+    foreach($socket in $logicalProcessors)
+    {
+        $cores += $socket;
+    }
+    $logicalProcessors = $cores;
+}
 
 # Tests with diskspd have shown that running it with threads per file equal to the number of logical processors (-t8) and a queue depth (-o1) of 1
 # is sufficient achieve maximum througput/IOs while increasing the number of outstanding IOs and/or logical processors beyond that just increases
