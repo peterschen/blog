@@ -443,7 +443,7 @@ $scenarios = @{
         "outstandingIo" = 1
         "enableSoftwarCache" = $false
         "enableWriteThrough" = $true
-        "threads" = 1
+        "threads" = $logicalProcessors
     }
     # Based on https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-R2-and-2012/dn894707(v=ws.11)#random-small-io-test-1-vary-outstanding-ios-per-thread
     #
@@ -457,7 +457,7 @@ $scenarios = @{
         "outstandingIo" = 1
         "enableSoftwarCache" = $false
         "enableWriteThrough" = $true
-        "threads" = 1
+        "threads" = $logicalProcessors
         "otherParameters" = "-si"
     }
 }
