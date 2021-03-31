@@ -118,6 +118,8 @@ resource "google_compute_instance" "perf-nodes" {
     ignore_changes = [attached_disk]
   }
 
+  allow_stopping_for_update = true
+
   depends_on = [module.apis]
 }
 
