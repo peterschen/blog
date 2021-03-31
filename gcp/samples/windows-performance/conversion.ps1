@@ -16,12 +16,15 @@ process
     $records = @();
     foreach($result in $Results)
     {
+        $ratioWrite = [float] $result.WriteRatio / 100;
+        $ratioRead = 1.0 - $ratioWrite;
+
         $record = New-Object psobject;
         $record | Add-Member -MemberType NoteProperty -Name "SKU" -Value $Sku;
         $record | Add-Member -MemberType NoteProperty -Name "Scenario" -Value $result.Scenario;
         $record | Add-Member -MemberType NoteProperty -Name "Size" -Value $Size;
-        $record | Add-Member -MemberType NoteProperty -Name "WriteRatio" -Value $result.WriteRatio;
-        $record | Add-Member -MemberType NoteProperty -Name "ReadRatio" -Value (100 - $result.WriteRatio);
+        $record | Add-Member -MemberType NoteProperty -Name "WriteRatio" -Value $ratioWrite;
+        $record | Add-Member -MemberType NoteProperty -Name "ReadRatio" -Value $ratioRead;
         $record | Add-Member -MemberType NoteProperty -Name "Duration" -Value $result.DurationSeconds;
         $record | Add-Member -MemberType NoteProperty -Name "Threads" -Value $result.ThreadCount;
         $record | Add-Member -MemberType NoteProperty -Name "QueueDepth" -Value $result.RequestCount;
