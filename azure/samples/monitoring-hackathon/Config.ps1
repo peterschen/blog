@@ -51,7 +51,7 @@ configuration Config
 
         Archive "PSTools"
         {
-            Path = "c:\tools\DiskSpd\DiskSpd-2.0.21a.zip"
+            Path = "c:\tools\DiskSpd\DiskSpd.zip"
             Destination = "C:\tools\DiskSpd"
             DependsOn = "[xRemoteFile]DiskSpd"
         }
