@@ -124,13 +124,24 @@
             }
         },
         "AdminUsername": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "vmadmin"
         },
-        "AdminPassword": {
+        "AdminUserPassword": {
             "type": "securestring"
         },
-        "AdminSshKey": {
-            "type": "securestring"
+        "AdminSshPubKey": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Add here your public ssh key"
+            }        
+        },
+        "PasswordAuthenticationDisabled": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Should password-based authentication thorugh SSH be disabled"
+            }
         },
         "VmAutoShutdown": {
             "type": "bool",
@@ -147,10 +158,11 @@
             }
         }
     },
+    
     "variables": {
         "gitBranch": "master",
         "nameSample": "monitoring-hackathon",
-        "urlBase": "[concat('https://raw.githubusercontent.com/peterschen/blog/', variables('gitBranch'))]",
+        "urlBase": "[concat('https://raw.githubusercontent.com/msghaleb/blog/', variables('gitBranch'))]",
         "urlTemplates": "[concat(variables('urlBase'), '/azure/templates')]",
         "urlSamples": "[concat(variables('urlBase'), '/azure/samples/', variables('nameSample'))]",
         "urlDsc": "[concat(variables('urlSamples'), '/Config.ps1.zip')]",
@@ -196,7 +208,7 @@
         {
             "type": "Microsoft.Resources/deployments",
             "name": "[variables('nameDeploymentVnetHub')]",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2020-10-01",
             "resourceGroup": "[variables('nameResourceGroup')]",
             "properties": {
                 "mode": "Incremental",
@@ -228,7 +240,7 @@
         {
             "type": "Microsoft.Resources/deployments",
             "name": "[variables('nameDeploymentVnetSpoke')]",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2020-10-01",
             "resourceGroup": "[variables('nameResourceGroup')]",
             "properties": {
                 "mode": "Incremental",
@@ -257,7 +269,7 @@
         {
             "type": "Microsoft.Resources/deployments",
             "name": "[variables('nameDeploymentVnetPeering')]",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2020-10-01",
             "resourceGroup": "[variables('nameResourceGroup')]",
             "properties": {
                 "mode": "Incremental",
@@ -281,7 +293,7 @@
         {
             "type": "Microsoft.Resources/deployments",
             "name": "[concat(variables('nameDeploymentVmWindows'), copyIndex())]",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2020-10-01",
             "resourceGroup": "[variables('nameResourceGroup')]",
             "properties": {
                 "mode": "Incremental",
@@ -299,7 +311,7 @@
                         "value": "[parameters('AdminUsername')]"
                     },
                     "AdminPassword": {
-                        "value": "[parameters('AdminPassword')]"
+                        "value": "[parameters('AdminUserPassword')]"
                     },
                     "VmSize": {
                         "value": "[parameters('VmSize')]"
@@ -320,7 +332,7 @@
         {
             "type": "Microsoft.Resources/deployments",
             "name": "[concat(variables('nameDeploymentVmLinux'), copyIndex())]",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2020-10-01",
             "resourceGroup": "[variables('nameResourceGroup')]",
             "properties": {
                 "mode": "Incremental",
@@ -338,7 +350,13 @@
                         "value": "[parameters('AdminUsername')]"
                     },
                     "AdminSshKey": {
-                        "value": "[parameters('AdminSshKey')]"
+                        "value": "[parameters('AdminSshPubKey')]"
+                    },
+                    "AdminPassword": {
+                        "value": "[parameters('AdminUserPassword')]"
+                    },
+                    "PasswordAuthenticationDisabled": {
+                        "value": "[parameters('PasswordAuthenticationDisabled')]"
                     },
                     "VmSize": {
                         "value": "[parameters('VmSize')]"
@@ -359,7 +377,7 @@
         {
             "type": "Microsoft.Resources/deployments",
             "name": "[variables('nameDeploymentDnszone')]",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2020-10-01",
             "resourceGroup": "[variables('nameResourceGroup')]",
             "properties": {
                 "mode": "Incremental",
@@ -379,7 +397,7 @@
         {
             "type": "Microsoft.Resources/deployments",
             "name": "[variables('nameDeploymentFirewall')]",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2020-10-01",
             "resourceGroup": "[variables('nameResourceGroup')]",
             "properties": {
                 "mode": "Incremental",
@@ -408,7 +426,7 @@
         {
             "type": "Microsoft.Resources/deployments",
             "name": "[variables('nameDeploymentRecoveryvault')]",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2020-10-01",
             "resourceGroup": "[variables('nameResourceGroup')]",
             "properties": {
                 "mode": "Incremental",
@@ -431,7 +449,7 @@
         {
             "type": "Microsoft.Resources/deployments",
             "name": "[variables('nameDeploymentStorage')]",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2020-10-01",
             "resourceGroup": "[variables('nameResourceGroup')]",
             "properties": {
                 "mode": "Incremental",
@@ -454,7 +472,7 @@
         {
             "type": "Microsoft.Resources/deployments",
             "name": "[variables('nameDeploymentAutomationaccount')]",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2020-10-01",
             "resourceGroup": "[variables('nameResourceGroup')]",
             "properties": {
                 "mode": "Incremental",
@@ -477,7 +495,7 @@
         {
             "type": "Microsoft.Resources/deployments",
             "name": "[concat(variables('nameDeploymentDsc'), '-', copyIndex())]",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2020-10-01",
             "resourceGroup": "[variables('nameResourceGroup')]",
             "properties": {
                 "mode": "Incremental",
@@ -517,7 +535,7 @@
             "condition": "[parameters('VmAutoShutdown')]",
             "type": "Microsoft.Resources/deployments",
             "name": "[concat(variables('nameDeploymentScheduleWindows'), '-', copyIndex())]",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2020-10-01",
             "resourceGroup": "[variables('nameResourceGroup')]",
             "properties": {
                 "mode": "Incremental",
@@ -545,7 +563,7 @@
             "condition": "[parameters('VmAutoShutdown')]",
             "type": "Microsoft.Resources/deployments",
             "name": "[concat(variables('nameDeploymentScheduleLinux'), '-', copyIndex())]",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2020-10-01",
             "resourceGroup": "[variables('nameResourceGroup')]",
             "properties": {
                 "mode": "Incremental",
@@ -574,6 +592,10 @@
         "adminUsername": {
             "type": "string",
             "value": "[parameters('AdminUsername')]"
+        },
+        "url": {
+            "type": "string",
+            "value": "[variables('urlDsc')]"
         }
     }
 }
