@@ -4,7 +4,7 @@
     "parameters": {
         "NameResourceGroup": {
             "type": "string",
-            "defaultValue": "mh",
+            "defaultValue": "azmh",
             "metadata": {
                 "Description": "Resource group containing the resources"
             }
