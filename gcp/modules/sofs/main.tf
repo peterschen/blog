@@ -101,7 +101,7 @@ resource "google_compute_instance" "sofs" {
   metadata = {
     type = "sofs"
     enable-wsfc = "true"
-    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
+    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize-nupkg, { 
         nameHost = "sofs-${count.index}", 
         password = local.password,
         parametersConfiguration = jsonencode({
@@ -116,8 +116,7 @@ resource "google_compute_instance" "sofs" {
           modulesDsc = [
             {
               Name = "xFailOverCluster",
-              Version = "1.14.1"
-              Uri = "https://github.com/dsccommunity/xFailOverCluster/archive/v1.14.1.zip"
+              Version = "1.16.0"
             }
           ]
         })

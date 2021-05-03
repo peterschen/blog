@@ -98,7 +98,7 @@ resource "google_compute_instance" "sql" {
   metadata = {
     type = "sql"
     enable-wsfc = "true"
-    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
+    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize-nupkg, { 
         nameHost = "sql-${count.index}", 
         password = local.password,
         parametersConfiguration = jsonencode({
@@ -115,13 +115,11 @@ resource "google_compute_instance" "sql" {
           modulesDsc = [
             {
               Name = "xFailOverCluster",
-              Version = "1.14.1"
-              Uri = "https://github.com/dsccommunity/xFailOverCluster/archive/v1.14.1.zip"
+              Version = "1.16.0"
             },
             { 
               Name = "SqlServerDsc",
-              Version = "13.5.0"
-              Uri = "https://github.com/dsccommunity/SqlServerDsc/archive/v13.5.0.zip"
+              Version = "15.1.1"
             }
           ]
         })

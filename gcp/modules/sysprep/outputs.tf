@@ -5,3 +5,7 @@ output "path-meta" {
 output "path-specialize" {
   value = "${path.module}/specialize.ps1"
 }
+
+output "path-specialize-nupkg" {
+  value = "${path.module}/specialize-nupkg.ps1"
+}
