@@ -59,7 +59,6 @@ module "activedirectory" {
   ]
   name-domain = local.name-domain
   password = local.password
-  machine-type = "n2-standard-2"
   depends_on = [module.cloud-nat]
 }
 
@@ -341,6 +340,7 @@ resource "google_compute_instance_group_manager" "adjoin-stateful" {
 
   stateful_disk {
     device_name = "boot"
+    delete_rule = "ON_PERMANENT_INSTANCE_DELETION"
   }
 
   target_size = local.instances-stateful
