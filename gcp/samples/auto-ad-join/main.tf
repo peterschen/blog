@@ -105,6 +105,7 @@ resource "google_compute_firewall" "allow-all-internal" {
 
 resource "google_vpc_access_connector" "adjoin-connector" {
   name = "adjoin-connector"
+  region = local.regions[0]
   ip_cidr_range = local.network-range-serverless
   network = google_compute_network.network.name
   depends_on = [module.apis]
