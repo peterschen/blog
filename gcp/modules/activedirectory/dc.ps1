@@ -202,9 +202,9 @@ configuration ConfigurationWorkload
                 DependsOn = "[ADGroup]ADG-g-ClusterResources"
             }
 
-            xDnsServerSetting "DSS-DnsConfiguration"
-            { 
-                Name = "dns-server-forwarders"
+            xDnsServerSetting "DnsForwarders"
+            {
+                DnsServer = "localhost"
                 Forwarders = "8.8.8.8", "8.8.4.4"
                 DependsOn = "[WaitForADDomain]WFAD-CreateDomain"
             }

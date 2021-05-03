@@ -148,7 +148,7 @@ resource "google_compute_instance" "dc" {
 
   metadata = {
     type = "dc"
-    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
+    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize-nupkg, { 
         nameHost = "dc-${count.index}", 
         password = local.password,
         parametersConfiguration = jsonencode({
@@ -162,8 +162,7 @@ resource "google_compute_instance" "dc" {
           modulesDsc = [
             {
               Name = "xDnsServer",
-              Version = "1.16.0"
-              Uri = "https://github.com/dsccommunity/xDnsServer/archive/v1.16.0.zip"
+              Version = "2.0.0"
             }
           ]
         })
