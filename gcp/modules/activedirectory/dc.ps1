@@ -53,7 +53,8 @@ configuration ConfigurationWorkload
         @{Name = "Accounts"; Path = $ou},
         @{Name = "Services"; Path = "ou=Accounts,$ou"},
         @{Name = "Users"; Path = "ou=Accounts,$ou"},
-        @{Name = "Projects"; Path = $ou}
+        @{Name = "Projects"; Path = $ou},
+        @{Name = $Parameters.projectName; Path = "OU=Projects,$ou"}
     );
 
     $userJohndoe = @{Name = "johndoe"; Path = "ou=Users,ou=Accounts,$ou"};

@@ -8,6 +8,8 @@ locals {
   machine-type = var.machine-type
 }
 
+data "google_project" "project" {}
+
 data "google_compute_network" "network" {
   name = local.network
 }
@@ -152,6 +154,7 @@ resource "google_compute_instance" "dc" {
         nameHost = "dc-${count.index}", 
         password = local.password,
         parametersConfiguration = jsonencode({
+          "projectName" = data.google_project.project.name,
           domainName = local.name-domain,
           zone = local.zones[count.index],
           zones = local.zones,
