@@ -176,5 +176,7 @@ resource "google_compute_instance" "dc" {
     scopes = module.gce-default-scopes.scopes
   }
 
+  allow_stopping_for_update = true
+
   depends_on = [module.apis]
 }
