@@ -128,10 +128,10 @@ configuration ConfigurationWorkload
             DependsOn = "[Script]DownloadVscode"
         }
 
-        Script "DownloadIometer"
+        Script "DownloadSsms"
         {
             GetScript = {
-                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "iometer.zip";
+                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "SSMS-Setup-ENU.exe";
                 if((Test-Path -Path $path))
                 {
                     $result = "Present";
@@ -150,18 +150,19 @@ configuration ConfigurationWorkload
             }
 
             SetScript = {
-                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "iometer.zip";
-                $timestamp = Get-Date -UFormat %s -Millisecond 0;
-                $uri = "https://downloads.sourceforge.net/project/iometer/iometer-stable/1.1.0/iometer-1.1.0-win64.x86_64-bin.zip?r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Fiometer%2Ffiles%2Fiometer-stable%2F1.1.0%2Fiometer-1.1.0-win64.x86_64-bin.zip%2Fdownload&ts=$timestamp";
-                Invoke-WebRequest -Uri $uri -OutFile $path;
+                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "SSMS-Setup-ENU.exe";
+                Start-BitsTransfer -Source "https://aka.ms/ssmsfullsetup" -Destination $path;
             }
         }
 
-        Archive "ExpandIometer"
+        Package "InstallSsms"
         {
-            Destination = "c:\tools\iometer"
-            Path = "C:\Windows\temp\iometer.zip"
-            DependsOn = "[Script]DownloadIometer"
+            Ensure = "Present"
+            Name = "Microsoft SQL Server Management Studio 18.8"
+            ProductID = ""
+            Path = "C:\Windows\temp\SSMS-Setup-ENU.exe"
+            Arguments = "/install /quiet"
+            DependsOn = "[Script]DownloadSsms"
         }
 
         Script "DownloadDiskspd"
@@ -197,6 +198,40 @@ configuration ConfigurationWorkload
             Destination = "c:\tools\diskspd"
             Path = "C:\Windows\temp\diskspd.zip"
             DependsOn = "[Script]DownloadDiskspd"
+        }
+
+        Script "DownloadHammerdb"
+        {
+            GetScript = {
+                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "hammerdb.zip";
+                if((Test-Path -Path $path))
+                {
+                    $result = "Present";
+                }
+                else
+                {
+                    $result = "Absent";
+                }
+
+                return @{Ensure = $result};
+            }
+
+            TestScript = {
+                $state = [scriptblock]::Create($GetScript).Invoke();
+                return $state.Ensure -eq "Present";
+            }
+
+            SetScript = {
+                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "hammerdb.zip";
+                Start-BitsTransfer -Source "https://github.com/TPC-Council/HammerDB/releases/download/v4.0/HammerDB-4.0-Win.zip" -Destination $path;
+            }
+        }
+
+        Archive "ExpandHammerdb"
+        {
+            Destination = "c:\tools\hammerdb"
+            Path = "C:\Windows\temp\hammerdb.zip"
+            DependsOn = "[Script]DownloadHammerdb"
         }
 
         File "benchmark.b64"

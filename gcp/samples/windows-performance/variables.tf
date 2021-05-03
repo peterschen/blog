@@ -18,8 +18,3 @@ variable "machine-type" {
 
 variable "password" {
 }
-
-variable "node-count" {
-  type = number
-  default = 1
-}

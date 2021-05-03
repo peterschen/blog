@@ -17,7 +17,6 @@ locals {
   password = var.password
   network-range = "10.0.0.0/16"
   machine-type = var.machine-type
-  count-nodes = var.node-count
   count-disks = 1
   size-disks = 1000
 }
@@ -75,10 +74,9 @@ resource "google_compute_firewall" "allow-all-internal" {
   source_ranges = [local.network-range]
 }
 
-resource "google_compute_instance" "perf-nodes" {
-  count = local.count-nodes
+resource "google_compute_instance" "runner" {
   zone = local.zone
-  name = "perf-node-${count.index}"
+  name = "runner"
   machine_type = local.machine-type
 
   tags = ["rdp"]
@@ -96,13 +94,13 @@ resource "google_compute_instance" "perf-nodes" {
   }
 
   metadata = {
-    type = "perf-node"
+    type = "runner"
     sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
-        nameHost = "perf-node-${count.index}", 
+        nameHost = "runner", 
         password = local.password,
         parametersConfiguration = jsonencode({
           inlineMeta = filebase64(module.sysprep.path-meta),
-          inlineConfiguration = filebase64("${path.module}/perf-node.ps1"),
+          inlineConfiguration = filebase64("${path.module}/dsc/runner.ps1"),
           scriptBenchmark = filebase64("${path.module}/benchmark.ps1"),
           scriptConversion = filebase64("${path.module}/conversion.ps1")
         })
@@ -122,17 +120,88 @@ resource "google_compute_instance" "perf-nodes" {
   depends_on = [module.apis]
 }
 
-resource "google_compute_disk" "perf-node-ssd" {
-  count = local.count-nodes * local.count-disks
-  zone = google_compute_instance.perf-nodes[floor(count.index / local.count-disks)].zone
-  name = "perf-node-ssd-${format("%02g", count.index)}"
+resource "google_compute_instance" "sql" {
+  zone = local.zone
+  name = "sql"
+  machine_type = local.machine-type
+
+  tags = ["rdp"]
+
+  boot_disk {
+    initialize_params {
+      image = "windows-sql-cloud/sql-ent-2019-win-2019"
+      type = "pd-balanced"
+    }
+  }
+
+  network_interface {
+    network = google_compute_network.network.self_link
+    subnetwork = google_compute_subnetwork.subnetwork.self_link
+  }
+
+  metadata = {
+    type = "sql"
+    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
+        nameHost = "sql", 
+        password = local.password,
+        parametersConfiguration = jsonencode({
+          inlineMeta = filebase64(module.sysprep.path-meta),
+          inlineConfiguration = filebase64("${path.module}/dsc/sql.ps1"),
+          modulesDsc = [
+            {
+              Name = "StorageDsc",
+              Version = "5.0.1"
+              Uri = "https://github.com/dsccommunity/StorageDsc/archive/v5.0.1.zip"
+            },
+            {
+              Name = "SqlServerDsc",
+              Version = "15.1.1"
+              Uri = "https://github.com/dsccommunity/SqlServerDsc/archive/v15.1.1.zip"
+            }
+          ]
+        })
+      })
+  }
+
+  service_account {
+    scopes = module.gce-default-scopes.scopes
+  }
+
+  lifecycle {
+    ignore_changes = [attached_disk]
+  }
+
+  allow_stopping_for_update = true
+
+  depends_on = [module.apis]
+}
+
+resource "google_compute_disk" "runner-ssd" {
+  count = local.count-disks
+  zone = google_compute_instance.runner.zone
+  name = "runner-ssd-${format("%02g", count.index)}"
   type = "pd-ssd"
   size = local.size-disks
 }
 
-resource "google_compute_attached_disk" "perf-node-ssd" {
-  count = local.count-nodes * local.count-disks
-  disk = google_compute_disk.perf-node-ssd[count.index].self_link
-  instance = google_compute_instance.perf-nodes[floor(count.index / local.count-disks)].self_link
+resource "google_compute_attached_disk" "runner-ssd" {
+  count = local.count-disks
+  disk = google_compute_disk.runner-ssd[count.index].self_link
+  instance = google_compute_instance.runner.self_link
+  device_name = "pd-${count.index}"
+}
+
+resource "google_compute_disk" "sql-ssd" {
+  count = local.count-disks
+  zone = google_compute_instance.sql.zone
+  name = "sql-ssd-${format("%02g", count.index)}"
+  type = "pd-ssd"
+  size = local.size-disks
+}
+
+resource "google_compute_attached_disk" "sql-ssd" {
+  count = local.count-disks
+  disk = google_compute_disk.sql-ssd[count.index].self_link
+  instance = google_compute_instance.sql.self_link
   device_name = "pd-${count.index}"
 }
