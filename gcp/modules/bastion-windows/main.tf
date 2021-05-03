@@ -57,7 +57,7 @@ resource "google_compute_instance" "bastion" {
   }
 
   metadata = {
-    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
+    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize-nupkg, { 
       nameHost = local.machine-name, 
       password = local.password,
       parametersConfiguration = jsonencode({
