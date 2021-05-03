@@ -22,3 +22,13 @@ variable "domain-name" {
 
 variable "password" {
 }
+
+variable "instances-stateful" {
+  type = number
+  default = 0
+}
+
+variable "instances-stateless" {
+  type = number
+  default = 0
+}
