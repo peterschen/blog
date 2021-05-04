@@ -13,6 +13,7 @@ provider "google" {
 locals {
   regions = var.regions
   zones = var.zones
+  region-scheduler = var.region-scheduler
   name-sample = "auto-ad-join"
   name-domain = var.domain-name
   password = var.password
@@ -37,7 +38,14 @@ data "google_compute_default_service_account" "default" {}
 
 module "apis" {
   source = "../../modules/apis"
-  apis = ["secretmanager.googleapis.com", "vpcaccess.googleapis.com", "run.googleapis.com", "cloudbuild.googleapis.com"]
+  apis = [
+    "appengine.googleapis.com",
+    "cloudbuild.googleapis.com",
+    "cloudscheduler.googleapis.com",
+    "run.googleapis.com",
+    "secretmanager.googleapis.com",
+    "vpcaccess.googleapis.com"
+  ]
 }
 
 module "cloud-nat" {
@@ -356,4 +364,25 @@ resource "google_compute_instance_group_manager" "adjoin-stateless" {
   }
 
   target_size = local.instances-stateless
+}
+
+resource "google_cloud_scheduler_job" "adjoin" {
+  name = "adjoin"
+  region = local.region-scheduler
+  description = "Remove stale objects in Active Directory"
+  schedule = "0 0 * * *"
+  time_zone = "Europe/Berlin"
+
+  retry_config {
+    retry_count = 1
+  }
+
+  http_target {
+    uri = "${google_cloud_run_service.adjoin.status[0].url}/cleanup"
+
+    oidc_token {
+      service_account_email = google_service_account.adjoin.email
+      audience = "${google_cloud_run_service.adjoin.status[0].url}/"
+    }
+  }
 }

@@ -17,6 +17,11 @@ variable "zones" {
   ]
 }
 
+variable "region-scheduler" {
+  type = string
+  default = "europe-west1"
+}
+
 variable "domain-name" {
 }
 
