@@ -1,12 +1,12 @@
-provider "google" {
-  version = "~> 3.1"
-  project = var.project
-  region = var.region
-  zone = var.zone
+terraform {
+  required_providers {
+    google = {
+      version = "~> 3.1"
+    }
+  }
 }
 
-provider "google-beta" {
-  version = "~> 3.1"
+provider "google" {
   project = var.project
   region = var.region
   zone = var.zone
@@ -28,13 +28,12 @@ locals {
 }
 
 module "apis" {
-  source = "github.com/peterschen/blog//gcp/modules/apis"
-  project = local.project
+  source = "../../modules/apis"
   apis = ["cloudresourcemanager.googleapis.com", "cloudbuild.googleapis.com", "containerregistry.googleapis.com", "compute.googleapis.com"]
 }
 
 module "gce-default-scopes" {
-  source = "github.com/peterschen/blog//gcp/modules/gce-default-scopes"
+  source = "../../modules/gce-default-scopes"
 }
 
 resource "google_container_registry" "registry" {
@@ -42,7 +41,6 @@ resource "google_container_registry" "registry" {
 }
 
 resource "google_cloudbuild_trigger" "master" {
-  provider = google-beta
   name = "build-master"
   included_files = ["/gcp/samples/openttd/**"]
 
@@ -69,12 +67,12 @@ resource "google_cloudbuild_trigger" "master" {
 
     step {
       name = "gcr.io/cloud-builders/gcloud"
-      args = ["compute", "instances", "stop", "${google_compute_instance.openttd.name}", "--zone", "${google_compute_instance.openttd.zone}"]
+      args = ["compute", "instances", "stop", google_compute_instance.openttd.name, "--zone", google_compute_instance.openttd.zone]
     }
 
     step {
       name = "gcr.io/cloud-builders/gcloud"
-      args = ["compute", "instances", "start", "${google_compute_instance.openttd.name}", "--zone", "${google_compute_instance.openttd.zone}"]
+      args = ["compute", "instances", "start", google_compute_instance.openttd.name, "--zone", google_compute_instance.openttd.zone]
     }
 
     images = ["gcr.io/$PROJECT_ID/openttd:$SHORT_SHA"]
