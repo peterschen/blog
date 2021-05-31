@@ -28,8 +28,25 @@ locals {
     for prefix in local.network-prefixes:
     "${prefix}.2"
   ]
-  instances-stateful = var.instances-stateful
-  instances-stateless = var.instances-stateless
+
+  image-families = [
+    "gce-uefi-images/windows-1809-core-for-containers",
+    "gce-uefi-images/windows-1809-core",
+    "gce-uefi-images/windows-1903-core-for-containers",
+    "gce-uefi-images/windows-1903-core",
+    "gce-uefi-images/windows-1909-core-for-containers",
+    "gce-uefi-images/windows-1909-core",
+    "windows-cloud/windows-2004-core",
+    "windows-cloud/windows-2012-r2-core",
+    "windows-cloud/windows-2012-r2",
+    "windows-cloud/windows-2016",
+    "windows-cloud/windows-2016-core",
+    "windows-cloud/windows-2019-core-for-containers",
+    "windows-cloud/windows-2019-core",
+    "windows-cloud/windows-2019-for-containers",
+    "windows-cloud/windows-2019",
+    "windows-cloud/windows-20h2-core"
+  ]
 }
 
 data "google_project" "project" {}
@@ -260,24 +277,16 @@ resource "google_cloud_run_service_iam_binding" "adjoin" {
   ]
 }
 
-resource "google_compute_disk" "adjoin-stateful" {
-  name  = "adjoin-stateful"
-  zone  = google_compute_instance_group_manager.adjoin-stateful.zone
-  image = "windows-cloud/windows-20h2-core"
-  type  = "pd-ssd"
-  size = 100
-}
-
-resource "google_compute_instance_template" "adjoin-stateful" {
-  name = "adjoin-stateful"
+resource "google_compute_instance_template" "adjoin" {
+  count = length(local.image-families)
+  name = split("/",local.image-families[count.index])[1]
   region = local.regions[0]
   machine_type = "n2-standard-4"
 
   tags = ["rdp"]
 
   disk {
-    device_name = "boot"
-    source_image = "windows-cloud/windows-20h2-core"
+    source_image = local.image-families[count.index]
     auto_delete = true
     boot = true
     disk_type = "pd-ssd"
@@ -303,67 +312,17 @@ resource "google_compute_instance_template" "adjoin-stateful" {
   }
 }
 
-resource "google_compute_instance_template" "adjoin-stateless" {
-  name = "adjoin-stateless"
-  region = local.regions[0]
-  machine_type = "n2-standard-4"
-
-  tags = ["rdp"]
-
-  disk {
-    source_image = "windows-cloud/windows-20h2-core"
-    auto_delete = true
-    boot = true
-    disk_type = "pd-ssd"
-    disk_size_gb = 100
-  }
-
-  network_interface {
-    network = google_compute_network.network.self_link
-    subnetwork = google_compute_subnetwork.subnetworks[0].self_link
-  }
-
-  metadata = {
-    sysprep-specialize-script-ps1 = "iex((New-Object System.Net.WebClient).DownloadString('${google_cloud_run_service.adjoin.status[0].url}'))"
-  }
-
-  service_account {
-    email  = data.google_compute_default_service_account.default.email
-    scopes = ["cloud-platform"]
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource "google_compute_instance_group_manager" "adjoin-stateful" {
-  name = "adjoin-stateful"
+resource "google_compute_instance_group_manager" "adjoin" {
+  count = length(local.image-families)
+  name = split("/",local.image-families[count.index])[1]
   zone = local.zones[0]
-  base_instance_name = "adjoin-stateful"
+  base_instance_name = split("/",local.image-families[count.index])[1]
   
   version {
-    instance_template = google_compute_instance_template.adjoin-stateful.id
+    instance_template = google_compute_instance_template.adjoin[count.index].id
   }
 
-  stateful_disk {
-    device_name = "boot"
-    delete_rule = "ON_PERMANENT_INSTANCE_DELETION"
-  }
-
-  target_size = local.instances-stateful
-}
-
-resource "google_compute_instance_group_manager" "adjoin-stateless" {
-  name = "adjoin-stateless"
-  zone = local.zones[0]
-  base_instance_name = "adjoin-stateless"
-  
-  version {
-    instance_template = google_compute_instance_template.adjoin-stateless.id
-  }
-
-  target_size = local.instances-stateless
+  target_size = 0
 }
 
 resource "google_cloud_scheduler_job" "adjoin" {
