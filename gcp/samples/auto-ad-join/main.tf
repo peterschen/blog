@@ -100,7 +100,6 @@ module "bastion" {
   depends_on = [module.cloud-nat]
 }
 
-
 module "firewall-iap" {
   source = "../../modules/firewall-iap"
   network = google_compute_network.network.name
