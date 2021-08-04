@@ -56,6 +56,12 @@ resource "google_compute_instance" "bastion" {
     subnetwork = local.subnetwork
   }
 
+  shielded_instance_config {
+    enable_secure_boot = true
+    enable_vtpm = true
+    enable_integrity_monitoring = true
+  }
+
   metadata = {
     sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize-nupkg, { 
       nameHost = local.machine-name, 
@@ -74,6 +80,8 @@ resource "google_compute_instance" "bastion" {
   service_account {
     scopes = module.gce-default-scopes.scopes
   }
+
+  allow_stopping_for_update = true
 
   depends_on = [module.apis]
 }

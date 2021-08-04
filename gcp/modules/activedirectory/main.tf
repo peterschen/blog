@@ -148,6 +148,12 @@ resource "google_compute_instance" "dc" {
     network_ip = google_compute_address.dc[count.index].address
   }
 
+  shielded_instance_config {
+    enable_secure_boot = true
+    enable_vtpm = true
+    enable_integrity_monitoring = true
+  }
+
   metadata = {
     type = "dc"
     sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize-nupkg, { 

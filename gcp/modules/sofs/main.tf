@@ -98,6 +98,12 @@ resource "google_compute_instance" "sofs" {
     network_ip = google_compute_address.sofs[count.index].address
   }
 
+  shielded_instance_config {
+    enable_secure_boot = true
+    enable_vtpm = true
+    enable_integrity_monitoring = true
+  }
+
   metadata = {
     type = "sofs"
     enable-wsfc = "true"
@@ -130,6 +136,8 @@ resource "google_compute_instance" "sofs" {
   lifecycle {
     ignore_changes = [attached_disk]
   }
+
+  allow_stopping_for_update = true
 
   depends_on = [module.apis]
 }

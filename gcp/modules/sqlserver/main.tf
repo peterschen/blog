@@ -95,6 +95,12 @@ resource "google_compute_instance" "sql" {
     network_ip = google_compute_address.sql[count.index].address
   }
 
+  shielded_instance_config {
+    enable_secure_boot = true
+    enable_vtpm = true
+    enable_integrity_monitoring = true
+  }
+
   metadata = {
     type = "sql"
     enable-wsfc = "true"
@@ -133,6 +139,8 @@ resource "google_compute_instance" "sql" {
   lifecycle {
     ignore_changes = [attached_disk]
   }
+
+  allow_stopping_for_update = true
 
   depends_on = [module.apis]
 }
