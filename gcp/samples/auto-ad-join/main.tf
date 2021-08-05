@@ -284,7 +284,7 @@ resource "google_cloud_run_service_iam_binding" "adjoin" {
 
 resource "google_compute_instance_template" "adjoin" {
   count = length(local.image-families)
-  name = data.google_compute_image.windows[count.index].family
+  name_prefix = "${data.google_compute_image.windows[count.index].family}-"
   region = local.regions[0]
   machine_type = "n2-standard-4"
 
@@ -301,6 +301,12 @@ resource "google_compute_instance_template" "adjoin" {
   network_interface {
     network = google_compute_network.network.self_link
     subnetwork = google_compute_subnetwork.subnetworks[0].self_link
+  }
+
+  shielded_instance_config {
+    enable_secure_boot = true
+    enable_vtpm = true
+    enable_integrity_monitoring = true
   }
 
   metadata = {
