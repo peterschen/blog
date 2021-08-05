@@ -53,6 +53,12 @@ data "google_project" "project" {}
 
 data "google_compute_default_service_account" "default" {}
 
+data "google_compute_image" "windows" {
+  count = length(local.image-families)
+  project = split("/",local.image-families[count.index])[0]
+  family = split("/",local.image-families[count.index])[1]
+}
+
 module "apis" {
   source = "../../modules/apis"
   apis = [
@@ -278,14 +284,14 @@ resource "google_cloud_run_service_iam_binding" "adjoin" {
 
 resource "google_compute_instance_template" "adjoin" {
   count = length(local.image-families)
-  name = split("/",local.image-families[count.index])[1]
+  name = data.google_compute_image.windows[count.index].family
   region = local.regions[0]
   machine_type = "n2-standard-4"
 
   tags = ["rdp"]
 
   disk {
-    source_image = local.image-families[count.index]
+    source_image = data.google_compute_image.windows[count.index].self_link
     auto_delete = true
     boot = true
     disk_type = "pd-ssd"
@@ -313,9 +319,9 @@ resource "google_compute_instance_template" "adjoin" {
 
 resource "google_compute_instance_group_manager" "adjoin" {
   count = length(local.image-families)
-  name = split("/",local.image-families[count.index])[1]
+  name = data.google_compute_image.windows[count.index].family
   zone = local.zones[0]
-  base_instance_name = split("/",local.image-families[count.index])[1]
+  base_instance_name = data.google_compute_image.windows[count.index].family
   
   version {
     instance_template = google_compute_instance_template.adjoin[count.index].id
