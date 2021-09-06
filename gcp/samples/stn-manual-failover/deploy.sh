@@ -5,7 +5,7 @@ gcloud config set compute/region europe-west4
 gcloud config set compute/zone europe-west4-a
 
 # Create node template
-gcloud compute sole-tenancy node-templates create prod --node-type=n1-node-96-624 --node-affinity-labels environment=prod
+gcloud compute sole-tenancy node-templates create prod --node-type=n1-node-96-624
 
 # Create node group
 gcloud compute sole-tenancy node-groups create prod --node-template=prod --target-size=3 --maintenance-policy=migrate-within-node-group
