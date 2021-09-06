@@ -15,7 +15,7 @@ for number in 01 02 03 04 05 06 07 08 09 10 11 12; do
     gcloud compute instances create small-vm-$number --machine-type=n1-highmem-16 --network-interface=subnet=europe-west4,no-address --node-affinity-file affinity.json --enable-display-device --image=debian-11-bullseye-v20210817 --image-project=debian-cloud --boot-disk-size=10GB --boot-disk-type=pd-balanced --boot-disk-device-name=small-vm-$number --shielded-secure-boot --shielded-vtpm --shielded-integrity-monitoring
 done
 
-# Create some holes by deleting some smaller VMs
+# Create some holes by deleting some VMs
 for number in 01 02 03 10 11 12; do
     gcloud compute instances delete small-vm-$number --quiet
 done
