@@ -31,7 +31,10 @@ configuration ConfigurationWorkload
         "RemoteEventLogSvc-RPCSS-In-TCP",
         "RemoteSvcAdmin-In-TCP",
         "RemoteSvcAdmin-NP-In-TCP",
-        "RemoteSvcAdmin-RPCSS-In-TCP"
+        "RemoteSvcAdmin-RPCSS-In-TCP",
+        "WMI-RPCSS-In-TCP",
+        "WMI-WINMGMT-In-TCP",
+        "WMI-ASYNC-In-TCP"
     );
 
     $components = $Parameters.domainName.Split(".");

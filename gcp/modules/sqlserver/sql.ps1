@@ -35,6 +35,12 @@ configuration ConfigurationWorkload
         "RSAT-Clustering-PowerShell"
     );
 
+    $rules = @(
+        "WMI-RPCSS-In-TCP",
+        "WMI-WINMGMT-In-TCP",
+        "WMI-ASYNC-In-TCP"
+    );
+
     $admins = @(
         "$($Parameters.domainName)\g-LocalAdmins"
     );
@@ -51,6 +57,16 @@ configuration ConfigurationWorkload
             { 
                 Name = $feature
                 Ensure = "Present"
+            }
+        }
+
+        foreach($rule in $rules)
+        {
+            Firewall "$rule"
+            {
+                Name = "$rule"
+                Ensure = "Present"
+                Enabled = "True"
             }
         }
 

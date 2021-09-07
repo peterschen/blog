@@ -20,6 +20,9 @@ configuration ConfigurationWorkload
     );
 
     $rules = @(
+        "WMI-RPCSS-In-TCP",
+        "WMI-WINMGMT-In-TCP",
+        "WMI-ASYNC-In-TCP"
     );
 
     $admins = @(
