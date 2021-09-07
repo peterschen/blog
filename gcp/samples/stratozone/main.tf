@@ -13,14 +13,13 @@ provider "google" {
 locals {
   region = var.region
   zone = var.zone
-  nameSample = "stratozone"
   nameNetwork = var.networkName
   nameDomain = var.domainName
   nameServer = "stratozone"
-  networkRange = var.networkRange
   machineType = var.machineType
   password = var.password
   enableDomain = var.enableDomain
+  enableStratozone = var.enableStratozone
 }
 
 module "gceDefaultScopes" {
@@ -74,6 +73,7 @@ resource "google_compute_instance" "stratozone" {
         inlineConfiguration = filebase64("${path.module}/dsc.ps1"),
         nameDomain = local.nameDomain,
         enableDomain = local.enableDomain,
+        enableStratozone = local.enableStratozone
       })
     })
   }

@@ -90,5 +90,64 @@ configuration ConfigurationWorkload
                 DependsOn = "[Computer]JoinDomain"
             }
         }
+
+        if($Parameters.enableStratozone)
+        {
+            Script "DownloadStratozone"
+            {
+                GetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "stratozone.exe";
+                    if((Test-Path -Path $path))
+                    {
+                        $result = "Present";
+                    }
+                    else
+                    {
+                        $result = "Absent";
+                    }
+
+                    return @{Ensure = $result};
+                }
+
+                TestScript = {
+                    $state = [scriptblock]::Create($GetScript).Invoke();
+                    return $state.Ensure -eq "Present";
+                }
+
+                SetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "stratozone.exe";
+                    Start-BitsTransfer -Source "https://portal.stratozone.com/Home/DownloadAppliance.aspx?folder=collector" -Destination $path;
+                }
+            }
+
+            Script "InstallStratozone"
+            {
+                GetScript = {
+                    $path  = "C:\Program Files\StratoProbe";
+                    if((Test-Path -Path $path))
+                    {
+                        $result = "Present";
+                    }
+                    else
+                    {
+                        $result = "Absent";
+                    }
+
+                    return @{Ensure = $result};
+                }
+
+                TestScript = {
+                    $state = [scriptblock]::Create($GetScript).Invoke();
+                    return $state.Ensure -eq "Present";
+                }
+
+                SetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "stratozone.exe";
+                    & "$path /VERYSILENT /SUPPRESSMSGBOXES"
+                }
+
+                DependsOn = "[Script]DownloadStratozone"
+            }
+        }
     }
 }

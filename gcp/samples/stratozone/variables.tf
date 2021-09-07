@@ -16,19 +16,9 @@ variable "networkName" {
   default = "stratozone"
 }
 
-variable "networkRange" {
-  type = string
-  default = "10.0.0.0/16"
-}
-
 variable "machineType"  {
   type = string
   default = "n2-standard-4"
-}
-
-variable "enableDomain" {
-  type = bool
-  default = true
 }
 
 variable "domainName" {
@@ -38,4 +28,14 @@ variable "domainName" {
 variable "password" {
   type = string
   sensitive = true
+}
+
+variable "enableDomain" {
+  type = bool
+  default = true
+}
+
+variable "enableStratozone" {
+  type = bool
+  default = true
 }
