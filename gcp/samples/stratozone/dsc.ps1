@@ -93,6 +93,60 @@ configuration ConfigurationWorkload
 
         if($Parameters.enableStratozone)
         {
+            $redistributables = @{
+                "2013" = @{
+                    "uri" = "https://download.microsoft.com/download/2/E/6/2E61CFA4-993B-4DD4-91DA-3737CD5CD6E3/vcredist_x64.exe"
+                    "productName" = "Microsoft Visual C++ 2013 x64 Minimum Runtime - 12.0.21005"
+                }
+                "2015" = @{
+                    "uri" = "http://download.microsoft.com/download/2/a/2/2a2ef9ab-1b4b-49f0-9131-d33f79544e70/vc_redist.x64.exe"
+                    "productName" = "Microsoft Visual C++ 2015 x64 Minimum Runtime - 14.0.24212"
+                }
+            };
+
+            foreach($version in $redistributables.Keys)
+            {
+                $uri = $redistributables[$version]["uri"];
+                $productName = $redistributables[$version]["productName"];
+
+                Script "DownloadVcRedistributable-$version"
+                {
+                    GetScript = {
+                        $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "vc_redist_$Using:version.exe";
+                        if((Test-Path -Path $path))
+                        {
+                            $result = "Present";
+                        }
+                        else
+                        {
+                            $result = "Absent";
+                        }
+
+                        return @{Ensure = $result};
+                    }
+
+                    TestScript = {
+                        $state = [scriptblock]::Create($GetScript).Invoke();
+                        return $state.Ensure -eq "Present";
+                    }
+
+                    SetScript = {
+                        $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "vc_redist_$Using:version.exe";
+                        Start-BitsTransfer -Source $Using:uri -Destination $path;
+                    }
+                }
+
+                Package "InstallVcRedistributable-$version"
+                {
+                    Ensure = "Present"
+                    Name = $productName
+                    ProductID = ""
+                    Path = "C:\Windows\temp\vc_redist_$version.exe"
+                    Arguments = "/install /quiet"
+                    DependsOn = "[Script]DownloadVcRedistributable-$version"
+                }
+            }
+            
             Script "DownloadStratozone"
             {
                 GetScript = {
@@ -143,10 +197,10 @@ configuration ConfigurationWorkload
 
                 SetScript = {
                     $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "stratozone.exe";
-                    & "$path /VERYSILENT /SUPPRESSMSGBOXES"
+                    Start-Process -FilePath $path -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES" -Wait;
                 }
 
-                DependsOn = "[Script]DownloadStratozone"
+                DependsOn = "[Package]InstallVcRedistributable-2013","[Package]InstallVcRedistributable-2015","[Script]DownloadStratozone"
             }
         }
     }
