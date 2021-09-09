@@ -6,6 +6,7 @@
 
 # Terraform
 .terraform
+.terraform.*
 .terraform.tfstate.lock.info
 .terraform.lock.hcl
 terraform.tfstate

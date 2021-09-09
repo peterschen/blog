@@ -321,9 +321,47 @@ configuration ConfigurationWorkload
 
             Archive "ExpandHammerdb"
             {
-                Destination = "c:\tools"
+                Destination = "c:\tools\hammerdb"
                 Path = "C:\Windows\temp\hammerdb.zip"
                 DependsOn = "[Script]DownloadHammerdb"
+            }
+        }
+
+        if($Parameters.enableDiskspd)
+        {
+            Script "DownloadDiskspd"
+            {
+                GetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "diskspd.zip";
+                    if((Test-Path -Path $path))
+                    {
+                        $result = "Present";
+                    }
+                    else
+                    {
+                        $result = "Absent";
+                    }
+
+                    return @{Ensure = $result};
+                }
+
+                TestScript = {
+                    $state = [scriptblock]::Create($GetScript).Invoke();
+                    return $state.Ensure -eq "Present";
+                }
+
+                SetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "diskspd.zip";
+                    $uri = "https://github.com/microsoft/diskspd/releases/download/v2.0.21a/DiskSpd.zip";
+                    Invoke-WebRequest -Uri $uri -OutFile $path;
+                }
+            }
+
+            Archive "ExpandDiskspd"
+            {
+                Destination = "c:\tools\diskspd"
+                Path = "C:\Windows\temp\diskspd.zip"
+                DependsOn = "[Script]DownloadDiskspd"
             }
         }
     }
