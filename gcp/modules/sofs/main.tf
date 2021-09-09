@@ -98,10 +98,16 @@ resource "google_compute_instance" "sofs" {
     network_ip = google_compute_address.sofs[count.index].address
   }
 
+  shielded_instance_config {
+    enable_secure_boot = true
+    enable_vtpm = true
+    enable_integrity_monitoring = true
+  }
+
   metadata = {
     type = "sofs"
     enable-wsfc = "true"
-    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
+    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize-nupkg, { 
         nameHost = "sofs-${count.index}", 
         password = local.password,
         parametersConfiguration = jsonencode({
@@ -116,8 +122,7 @@ resource "google_compute_instance" "sofs" {
           modulesDsc = [
             {
               Name = "xFailOverCluster",
-              Version = "1.14.1"
-              Uri = "https://github.com/dsccommunity/xFailOverCluster/archive/v1.14.1.zip"
+              Version = "1.16.0"
             }
           ]
         })
@@ -131,6 +136,8 @@ resource "google_compute_instance" "sofs" {
   lifecycle {
     ignore_changes = [attached_disk]
   }
+
+  allow_stopping_for_update = true
 
   depends_on = [module.apis]
 }

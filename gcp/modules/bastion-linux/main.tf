@@ -48,9 +48,17 @@ resource "google_compute_instance" "bastion" {
     subnetwork = local.subnetwork
   }
 
+  shielded_instance_config {
+    enable_secure_boot = true
+    enable_vtpm = true
+    enable_integrity_monitoring = true
+  }
+
   metadata = {
     startup-script = templatefile("${path.module}/startup.sh", {})
   }
+
+  allow_stopping_for_update = true
 
   depends_on = [module.apis]
 }

@@ -8,6 +8,8 @@ locals {
   machine-type = var.machine-type
 }
 
+data "google_project" "project" {}
+
 data "google_compute_network" "network" {
   name = local.network
 }
@@ -146,12 +148,19 @@ resource "google_compute_instance" "dc" {
     network_ip = google_compute_address.dc[count.index].address
   }
 
+  shielded_instance_config {
+    enable_secure_boot = true
+    enable_vtpm = true
+    enable_integrity_monitoring = true
+  }
+
   metadata = {
     type = "dc"
-    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
+    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize-nupkg, { 
         nameHost = "dc-${count.index}", 
         password = local.password,
         parametersConfiguration = jsonencode({
+          "projectName" = data.google_project.project.name,
           domainName = local.name-domain,
           zone = local.zones[count.index],
           zones = local.zones,
@@ -162,8 +171,7 @@ resource "google_compute_instance" "dc" {
           modulesDsc = [
             {
               Name = "xDnsServer",
-              Version = "1.16.0"
-              Uri = "https://github.com/dsccommunity/xDnsServer/archive/v1.16.0.zip"
+              Version = "2.0.0"
             }
           ]
         })
@@ -173,6 +181,8 @@ resource "google_compute_instance" "dc" {
   service_account {
     scopes = module.gce-default-scopes.scopes
   }
+
+  allow_stopping_for_update = true
 
   depends_on = [module.apis]
 }

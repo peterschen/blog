@@ -31,7 +31,10 @@ configuration ConfigurationWorkload
         "RemoteEventLogSvc-RPCSS-In-TCP",
         "RemoteSvcAdmin-In-TCP",
         "RemoteSvcAdmin-NP-In-TCP",
-        "RemoteSvcAdmin-RPCSS-In-TCP"
+        "RemoteSvcAdmin-RPCSS-In-TCP",
+        "WMI-RPCSS-In-TCP",
+        "WMI-WINMGMT-In-TCP",
+        "WMI-ASYNC-In-TCP"
     );
 
     $components = $Parameters.domainName.Split(".");
@@ -53,7 +56,8 @@ configuration ConfigurationWorkload
         @{Name = "Accounts"; Path = $ou},
         @{Name = "Services"; Path = "ou=Accounts,$ou"},
         @{Name = "Users"; Path = "ou=Accounts,$ou"},
-        @{Name = "Projects"; Path = $ou}
+        @{Name = "Projects"; Path = $ou},
+        @{Name = $Parameters.projectName; Path = "OU=Projects,$ou"}
     );
 
     $userJohndoe = @{Name = "johndoe"; Path = "ou=Users,ou=Accounts,$ou"};
@@ -202,9 +206,9 @@ configuration ConfigurationWorkload
                 DependsOn = "[ADGroup]ADG-g-ClusterResources"
             }
 
-            xDnsServerSetting "DSS-DnsConfiguration"
-            { 
-                Name = "dns-server-forwarders"
+            xDnsServerSetting "DnsForwarders"
+            {
+                DnsServer = "localhost"
                 Forwarders = "8.8.8.8", "8.8.4.4"
                 DependsOn = "[WaitForADDomain]WFAD-CreateDomain"
             }

@@ -1,0 +1,7 @@
+[
+  {
+    "key" : "compute.googleapis.com/node-group-name",
+    "operator" : "IN",
+    "values" : ["prod"]
+  }
+]

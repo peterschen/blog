@@ -1,5 +1,12 @@
+terraform {
+  required_providers {
+    google = {
+      version = "~> 3.1"
+    }
+  }
+}
+
 provider "google" {
-  version = "~> 3.1"
   project = var.project
 }
 
