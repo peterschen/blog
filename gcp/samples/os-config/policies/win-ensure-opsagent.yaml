@@ -1,0 +1,33 @@
+osPolicies:
+  - id: win-ensure-opsagent
+    mode: ENFORCEMENT
+    resourceGroups:
+      - resources:
+          id: ensure-opsagent
+          exec:
+            validate:
+              interpreter: POWERSHELL
+              script: |
+                $nodeExists = Test-Path -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\GooGet - google-cloud-ops-agent";
+                
+                if($nodeExists)
+                {
+                  exit 100;
+                }
+                
+                exit 101;
+            enforce:
+              interpreter: POWERSHELL
+              script: |
+                cd $env:TEMP;
+                (New-Object Net.WebClient).DownloadFile("https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.ps1", "${$env:TEMP}\add-google-cloud-ops-agent-repo.ps1");
+                Invoke-Expression "${$env:TEMP}\add-google-cloud-ops-agent-repo.ps1 -AlsoInstall";
+                exit 100;
+
+instanceFilter:
+  osShortNames:
+    - windows
+rollout:
+  disruptionBudget:
+    fixed: 10
+  minWaitDuration: 300s
