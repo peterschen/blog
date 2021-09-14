@@ -34,7 +34,7 @@ variable "password" {
 
 variable "domain-name" {
     type = string
-    default = ""
+    default = null
 }
 
 variable "enable-domain" {
