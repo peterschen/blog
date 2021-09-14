@@ -1,3 +1,8 @@
+variable "project" {
+    type = string
+    default = null
+}
+
 variable "projectNetwork" {
     type = string
     default = null

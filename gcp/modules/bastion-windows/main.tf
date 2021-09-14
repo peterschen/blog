@@ -1,4 +1,5 @@
 locals {
+  project = var.project
   projectNetwork = var.projectNetwork
   region = var.region
   zone = var.zone
@@ -35,10 +36,12 @@ module "sysprep" {
 
 module "apis" {
   source = "../apis"
+  project = local.project
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com"]
 }
 
 resource "google_compute_instance" "bastion" {
+  project = local.project
   zone = local.zone
   name = local.machineName
   machine_type = local.machineType
