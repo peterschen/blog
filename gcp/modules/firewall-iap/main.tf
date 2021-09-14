@@ -1,4 +1,5 @@
 locals {
+  project = var.project
   network = var.network
   enable-rdp = var.enable-rdp
   enable-ssh = var.enable-ssh
@@ -7,6 +8,7 @@ locals {
 resource "google_compute_firewall" "allow-rdp-iap" {
   count = local.enable-rdp ? 1 : 0
 
+  project = local.project
   name = "allow-rdp-iap"
   network = local.network
   priority = 5000
@@ -26,6 +28,7 @@ resource "google_compute_firewall" "allow-rdp-iap" {
 resource "google_compute_firewall" "allow-ssh-iap" {
   count = local.enable-ssh ? 1 : 0
   
+  project = local.project
   name = "allow-ssh-iap"
   network = local.network
   priority = 5000

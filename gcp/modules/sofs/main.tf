@@ -1,4 +1,6 @@
 locals {
+  project = var.project
+  projectNetwork = var.projectNetwork
   region = var.region
   zone = var.zone
   name-domain = var.domain-name
@@ -14,10 +16,12 @@ locals {
 }
 
 data "google_compute_network" "network" {
+  project = var.projectNetwork
   name = local.network
 }
 
 data "google_compute_subnetwork" "subnetwork" {
+  project = var.projectNetwork
   region = local.region
   name = local.subnetwork
 }
@@ -25,6 +29,7 @@ data "google_compute_subnetwork" "subnetwork" {
 module "apis" {
   # source = "github.com/peterschen/blog//gcp/modules/apis"
   source = "../apis"
+  project = local.project
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com"]
 }
 
@@ -40,6 +45,7 @@ module "sysprep" {
 
 module "firewall-sofs" {
   # source = "github.com/peterschen/blog//gcp/modules/firewall-sofs"
+  project = local.project
   source = "../firewall-sofs"
   name = "allow-sofs"
   network = data.google_compute_network.network
@@ -48,6 +54,7 @@ module "firewall-sofs" {
 
 resource "google_compute_address" "sofs" {
   count = local.count-nodes
+  project = local.project
   region = local.region
   subnetwork = data.google_compute_subnetwork.subnetwork.self_link
   name = "sofs-${count.index}"
@@ -56,12 +63,14 @@ resource "google_compute_address" "sofs" {
 
 resource "google_compute_address" "sofs-cl" {
   region = local.region
+  project = local.project
   name = "sofs-cl"
   address_type = "INTERNAL"
   subnetwork = data.google_compute_subnetwork.subnetwork.self_link
 }
 
 resource "google_compute_firewall" "allow-healthcheck-sofs-gcp" {
+  project = local.projectNetwork
   name = "allow-healthcheck-sofs-gcp"
   network = data.google_compute_network.network.self_link
   priority = 5000
@@ -79,6 +88,7 @@ resource "google_compute_firewall" "allow-healthcheck-sofs-gcp" {
 
 resource "google_compute_instance" "sofs" {
   count = local.count-nodes
+  project = local.project
   zone = local.zone
   name = "sofs-${count.index}"
   machine_type = local.machine-type
@@ -144,6 +154,7 @@ resource "google_compute_instance" "sofs" {
 
 resource "google_compute_disk" "sofs-hdd" {
   count = local.enable-hdd ? local.count-nodes * local.count-disks : 0
+  project = local.project
   zone = google_compute_instance.sofs[floor(count.index / local.count-disks)].zone
   name = "sofs-hdd-${count.index}"
   type = "pd-standard"
@@ -152,12 +163,14 @@ resource "google_compute_disk" "sofs-hdd" {
 
 resource "google_compute_attached_disk" "sofs-hdd" {
   count = local.enable-hdd ? local.count-nodes * local.count-disks : 0
+  project = local.project
   disk = google_compute_disk.sofs-hdd[count.index].self_link
   instance = google_compute_instance.sofs[floor(count.index / local.count-disks)].self_link
 }
 
 resource "google_compute_disk" "sofs-ssd" {
   count = local.count-nodes * local.count-disks
+  project = local.project
   zone = google_compute_instance.sofs[floor(count.index / local.count-disks)].zone
   name = "sofs-ssd-${count.index}"
   type = "pd-ssd"
@@ -166,12 +179,14 @@ resource "google_compute_disk" "sofs-ssd" {
 
 resource "google_compute_attached_disk" "sofs-ssd" {
   count = local.count-nodes * local.count-disks
+  project = local.project
   disk = google_compute_disk.sofs-ssd[count.index].self_link
   instance = google_compute_instance.sofs[floor(count.index / local.count-disks)].self_link
 }
 
 resource "google_compute_instance_group" "sofs" {
   count = local.count-nodes
+  project = local.project
   zone = local.zone
   name = "sofs-${count.index}"
   instances = [google_compute_instance.sofs[count.index].self_link]
@@ -180,6 +195,7 @@ resource "google_compute_instance_group" "sofs" {
 
 resource "google_compute_health_check" "sofs" {
   name = "sofs"
+  project = local.project
   timeout_sec = 1
   check_interval_sec = 2
 
@@ -192,6 +208,7 @@ resource "google_compute_health_check" "sofs" {
 
 resource "google_compute_region_backend_service" "sofs" {
   region = local.region
+  project = local.project
   name = "sofs"
   health_checks = [google_compute_health_check.sofs.self_link]
 
@@ -205,6 +222,7 @@ resource "google_compute_region_backend_service" "sofs" {
 
 resource "google_compute_forwarding_rule" "sofs" {
   region = local.region
+  project = local.project
   name = "sofs"
   ip_address = google_compute_address.sofs-cl.address
   load_balancing_scheme = "INTERNAL"
