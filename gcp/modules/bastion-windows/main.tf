@@ -53,8 +53,8 @@ resource "google_compute_instance" "bastion" {
   }
 
   network_interface {
-    network = local.network
-    subnetwork = local.subnetwork
+    network = data.google_compute_network.network.self_link
+    subnetwork = data.google_compute_subnetwork.subnetwork.self_link
   }
 
   shielded_instance_config {
