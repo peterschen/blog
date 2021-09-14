@@ -1,3 +1,8 @@
+variable "projectNetwork" {
+    type = string
+    default = null
+}
+
 variable "region" {
     type = string
 }

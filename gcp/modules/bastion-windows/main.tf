@@ -1,4 +1,5 @@
 locals {
+  projectNetwork = var.projectNetwork
   region = var.region
   zone = var.zone
   network = var.network
@@ -14,10 +15,12 @@ locals {
 }
 
 data "google_compute_network" "network" {
+  project = local.projectNetwork
   name = local.network
 }
 
 data "google_compute_subnetwork" "subnetwork" {
+  project = local.projectNetwork
   region = local.region
   name = local.subnetwork
 }
