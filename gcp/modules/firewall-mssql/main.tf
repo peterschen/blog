@@ -1,10 +1,12 @@
 locals {
+  project = var.project
   name = var.name
   network = var.network
   cidr-ranges = var.cidr-ranges
 }
 
 resource "google_compute_firewall" "sqlserver" {
+  project = local.project
   name = local.name
   network = local.network.name
   priority = 1000
