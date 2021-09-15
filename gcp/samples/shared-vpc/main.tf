@@ -113,6 +113,9 @@ module "cloudNat" {
   source = "../../modules/cloud-nat"
   region = local.region
   network = google_compute_network.network.name
+  depends_on = [
+    google_compute_network.network
+  ]
 }
 
 module "firewall-iap" {
