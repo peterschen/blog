@@ -3,10 +3,17 @@ terraform {
     google = {
       version = "~> 3.1"
     }
+    google-beta = {
+      version = "~> 3.1"
+    }
   }
 }
 
 provider "google" {
+  project = var.hostProjectName
+}
+
+provider "google-beta" {
   project = var.hostProjectName
 }
 
@@ -109,6 +116,19 @@ resource "google_active_directory_domain" "ad-domain" {
   ]
 }
 
+resource "google_project_service_identity" "sqladmin" {
+  provider = google-beta
+  project = data.google_project.service.project_id
+  service = "sqladmin.googleapis.com"
+}
+
+resource "google_project_iam_binding" "sqladmin_sqlintegrator" {
+  role = "roles/managedidentities.sqlintegrator"
+  members = [
+    "serviceAccount:${google_project_service_identity.sqladmin.email}",
+  ]
+}
+
 module "cloudNat" {
   source = "../../modules/cloud-nat"
   region = local.region
@@ -132,8 +152,10 @@ module "bastion" {
   zone = local.zone
   network = google_compute_network.network.name
   subnetwork = google_compute_subnetwork.subnetwork.name
+  machine-type = "n2-standard-4"
   machine-name = "bastion"
   password = local.password
   enable-domain = false
+  enable-ssms = true
   depends_on = [module.cloudNat]
 }
