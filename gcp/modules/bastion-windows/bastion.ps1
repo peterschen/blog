@@ -23,6 +23,7 @@ configuration ConfigurationWorkload
         "RSAT-AD-PowerShell",
         "RSAT-DNS-Server",
         "RSAT-File-Services",
+        "RSAT-ADCS",
         "Web-Mgmt-Console",
         "GPMC"
     );
