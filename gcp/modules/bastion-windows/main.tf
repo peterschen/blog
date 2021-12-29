@@ -13,6 +13,7 @@ locals {
   enableSsms = var.enable-ssms
   enableHammerdb = var.enable-hammerdb
   enableDiskspd = var.enable-diskspd
+  enablePython = var.enablePython
 }
 
 data "google_compute_network" "network" {
@@ -77,7 +78,8 @@ resource "google_compute_instance" "bastion" {
         enableDomain = local.enableDomain,
         enableSsms = local.enableSsms,
         enableHammerdb = local.enableHammerdb,
-        enableDiskspd = local.enableDiskspd
+        enableDiskspd = local.enableDiskspd,
+        enablePython = local.enablePython
       })
     })
   }

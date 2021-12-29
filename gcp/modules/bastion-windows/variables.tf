@@ -64,3 +64,8 @@ variable "enable-diskspd" {
     default = true
 }
 
+# Enabled by default
+variable "enablePython" {
+    type = bool
+    default = true
+}

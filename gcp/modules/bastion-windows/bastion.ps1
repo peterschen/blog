@@ -364,5 +364,46 @@ configuration ConfigurationWorkload
                 DependsOn = "[Script]DownloadDiskspd"
             }
         }
+
+        if($Parameters.enablePython)
+        {
+            Script "DownloadPython"
+            {
+                GetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "python.exe";
+                    if((Test-Path -Path $path))
+                    {
+                        $result = "Present";
+                    }
+                    else
+                    {
+                        $result = "Absent";
+                    }
+
+                    return @{Ensure = $result};
+                }
+
+                TestScript = {
+                    $state = [scriptblock]::Create($GetScript).Invoke();
+                    return $state.Ensure -eq "Present";
+                }
+
+                SetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "python.exe";
+                    $uri = "https://www.python.org/ftp/python/3.10.1/python-3.10.1-amd64.exe";
+                    Start-BitsTransfer -Source $uri -Destination $path;
+                }
+            }
+
+            Package "InstallPython"
+            {
+                Ensure = "Present"
+                Name = "Python 3.10.1 Executables (64-bit)"
+                ProductID = ""
+                Path = "C:\Windows\temp\python.exe"
+                Arguments = "/quiet InstallAllUsers=1 PrependPath=1 Include_test=0"
+                DependsOn = "[Script]DownloadPython"
+            }
+        }
     }
 }
