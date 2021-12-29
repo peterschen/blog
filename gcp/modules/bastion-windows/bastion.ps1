@@ -102,6 +102,7 @@ configuration ConfigurationWorkload
             }
         }
 
+#region Chrome
         Script "DownloadChrome"
         {
             GetScript = {
@@ -138,7 +139,9 @@ configuration ConfigurationWorkload
             Arguments = "/quiet"
             DependsOn = "[Script]DownloadChrome"
         }
+#endregion
 
+#region mRemoteNG
         Script "DownloadMremoteng"
         {
             GetScript = {
@@ -212,7 +215,9 @@ configuration ConfigurationWorkload
             Arguments = "/VERYSILENT"
             DependsOn = "[Script]DownloadVscode"
         }
+#endregion
 
+#region SQL Server Management Studio
         if($Parameters.enableSsms)
         {
             Script "DownloadSsms"
@@ -252,7 +257,9 @@ configuration ConfigurationWorkload
                 DependsOn = "[Script]DownloadSsms"
             }
         }
+#endregion
 
+#region HammerDB
         if($Parameters.enableHammerdb)
         {
             Script "DownloadMsoledbsql"
@@ -326,7 +333,9 @@ configuration ConfigurationWorkload
                 DependsOn = "[Script]DownloadHammerdb"
             }
         }
+#endregion
 
+#region Diskspd
         if($Parameters.enableDiskspd)
         {
             Script "DownloadDiskspd"
@@ -364,7 +373,9 @@ configuration ConfigurationWorkload
                 DependsOn = "[Script]DownloadDiskspd"
             }
         }
+#endregion
 
+#region Python
         if($Parameters.enablePython)
         {
             Script "DownloadPython"
@@ -405,5 +416,6 @@ configuration ConfigurationWorkload
                 DependsOn = "[Script]DownloadPython"
             }
         }
+#endregion
     }
 }
