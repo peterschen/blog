@@ -285,7 +285,7 @@ configuration ConfigurationWorkload
 
                 SetScript = {
                     $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "msoledbsql.msi";
-                    Start-BitsTransfer -Source "https://go.microsoft.com/fwlink/?linkid=2117515" -Destination $path;
+                    Start-BitsTransfer -Source "https://go.microsoft.com/fwlink/?linkid=2183083" -Destination $path;
                 }
             }
 
@@ -295,7 +295,7 @@ configuration ConfigurationWorkload
                 Name = "Microsoft OLE DB Driver for SQL Server"
                 ProductID = ""
                 Path = "C:\Windows\temp\msoledbsql.msi"
-                Arguments = "/install /quiet"
+                Arguments = "/quiet /log c:\windows\temp\oledb.log IACCEPTMSOLEDBSQLLICENSETERMS=YES"
                 DependsOn = "[Script]DownloadMsoledbsql"
             }
 
