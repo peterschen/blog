@@ -60,8 +60,8 @@ configuration ConfigurationWorkload
         @{Name = $Parameters.projectName; Path = "OU=Projects,$ou"}
     );
 
-    $userJohndoe = @{Name = "johndoe"; Path = "ou=Users,ou=Accounts,$ou"};
-    $userAdjoiner = @{Name = "s-adjoiner"; Path = "ou=Services,ou=Accounts,$ou"};
+    $userJohndoe = @{Name = "johndoe"; Path = "ou=Users,ou=Accounts,$ou"; TrustedForDelegation = $false};
+    $userAdjoiner = @{Name = "s-adjoiner"; Path = "ou=Services,ou=Accounts,$ou"; TrustedForDelegation = $false};
 
     $users = @(
         $userJohndoe,
@@ -73,6 +73,7 @@ configuration ConfigurationWorkload
         @{Name = "g-RemoteDesktopUsers"; Path = "ou=Groups,$ou"; Members = @("$($userJohndoe.Name)")}
         @{Name = "g-RemoteManagementUsers"; Path = "ou=Groups,$ou"; Members = @("$($userJohndoe.Name)")}
         @{Name = "g-ClusterResources"; Path = "ou=Groups,$ou"; Members = @()}
+        @{Name = "g-IisUsers"; Path = "ou=Groups,$ou"; Members = @()}
     );
 
     $builtinGroups = @(
@@ -162,6 +163,7 @@ configuration ConfigurationWorkload
                     Password = $credentialAdmin
                     PasswordNeverExpires = $true
                     Ensure = "Present"
+                    TrustedForDelegation = $_.TrustedForDelegation
                     Path = $_.Path
                     DependsOn = "[ADOrganizationalUnit]ADOU-Services","[ADOrganizationalUnit]ADOU-Users"
                 }
