@@ -17,6 +17,9 @@ locals {
   name-sample = "auto-ad-join"
   name-domain = var.domain-name
   password = var.password
+
+  enableCertificateAuthority = var.enableCertificateAuthority
+
   network-prefixes = ["10.0.0", "10.1.0"]
   network-mask = 16
   network-ranges = [
@@ -93,6 +96,18 @@ module "activedirectory" {
   depends_on = [module.cloud-nat]
 }
 
+module "certificateauthority" {
+  count = local.enableCertificateAuthority ? 1 : 0
+  source = "../../modules/certificateauthority"
+  region = local.regions[0]
+  zone = local.zones[0]
+  network = google_compute_network.network.name
+  subnetwork = google_compute_subnetwork.subnetworks[0].name
+  nameDomain = local.name-domain
+  password = local.password
+  depends_on = [module.activedirectory]
+}
+
 module "bastion" {
   source = "../../modules/bastion-windows"
   region = local.regions[0]
@@ -103,7 +118,7 @@ module "bastion" {
   password = local.password
   domain-name = local.name-domain
   enable-domain = true
-  depends_on = [module.cloud-nat]
+  depends_on = [module.activedirectory]
 }
 
 module "firewall-iap" {
@@ -190,22 +205,40 @@ resource "google_project_iam_binding" "cloudbuild-runadmin" {
   ]
 }
 
-resource "google_secret_manager_secret" "adjoin" {
-  secret_id = "adjoin"
+resource "google_secret_manager_secret" "adjoin_adpassword" {
+  secret_id = "adjoin-adpassword"
 
   replication {
     automatic = true
   }
 
   provisioner "local-exec" {
-    command = "printf '${local.password}' | gcloud secrets versions add ${google_secret_manager_secret.adjoin.secret_id} --data-file=-"
+    command = "printf '${local.password}' | gcloud secrets versions add ${google_secret_manager_secret.adjoin_adpassword.secret_id} --data-file=-"
   }
 
   depends_on = [module.apis]
 }
 
-resource "google_secret_manager_secret_iam_binding" "binding" {
-  secret_id = google_secret_manager_secret.adjoin.secret_id
+resource "google_secret_manager_secret" "adjoin_cacert" {
+  secret_id = "adjoin-cacert"
+
+  replication {
+    automatic = true
+  }
+
+  depends_on = [module.apis]
+}
+
+resource "google_secret_manager_secret_iam_binding" "adjoin_adpassword" {
+  secret_id = google_secret_manager_secret.adjoin_adpassword.secret_id
+  role = "roles/secretmanager.secretAccessor"
+  members = [
+    "serviceAccount:${google_service_account.adjoin.email}",
+  ]
+}
+
+resource "google_secret_manager_secret_iam_binding" "adjoin_cacert" {
+  secret_id = google_secret_manager_secret.adjoin_cacert.secret_id
   role = "roles/secretmanager.secretAccessor"
   members = [
     "serviceAccount:${google_service_account.adjoin.email}",
@@ -232,17 +265,32 @@ resource "google_cloud_run_service" "adjoin" {
         }
 
         env {
-          name = "SECRET_PROJECT_ID"
+          name = "USE_LDAPS"
+          value = local.enableCertificateAuthority
+        }
+
+        env {
+          name = "SM_PROJECT"
           value = data.google_project.project.name
         }
 
         env {
-          name = "SECRET_NAME"
-          value = google_secret_manager_secret.adjoin.secret_id
+          name = "SM_NAME_ADPASSWORD"
+          value = google_secret_manager_secret.adjoin_adpassword.secret_id
         }
 
         env {
-          name = "SECRET_VERSION"
+          name = "SM_VERSION_ADPASSWORD"
+          value = "latest"
+        }
+
+        env {
+          name = "SM_NAME_CACERT"
+          value = google_secret_manager_secret.adjoin_cacert.secret_id
+        }
+
+        env {
+          name = "SM_VERSION_CACERT"
           value = "latest"
         }
 

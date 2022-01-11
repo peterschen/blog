@@ -27,3 +27,8 @@ variable "domain-name" {
 
 variable "password" {
 }
+
+variable "enableCertificateAuthority" {
+  type = bool
+  default = true
+}
