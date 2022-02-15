@@ -25,7 +25,8 @@ locals {
   nameProjectService = var.serviceProjectName
   nameDomain = ""
   networkRange = "10.0.0.0/16"
-  networkRangeActiveDirectory = "10.8.0.0/24"
+  networkRangeActiveDirectory = "192.168.0.0/24"
+  networkRangePrivateServiceAcccess = "192.168.1.0/24"
   password = var.password
   enableDomain = false
 }
@@ -83,10 +84,11 @@ resource "google_compute_subnetwork" "subnetwork" {
 
 resource "google_compute_global_address" "privateServiceAccess" {
   project = data.google_project.host.project_id
-  name = "private-service-access"
+  name = "${local.nameSample}-psa"
   purpose = "VPC_PEERING"
   address_type = "INTERNAL"
-  prefix_length = 16
+  address = split("/", local.networkRangePrivateServiceAcccess)[0]
+  prefix_length = split("/", local.networkRangePrivateServiceAcccess)[1]
   network = google_compute_network.network.id
 }
 
@@ -158,4 +160,36 @@ module "bastion" {
   enable-domain = false
   enable-ssms = true
   depends_on = [module.cloudNat]
+}
+
+resource "google_compute_firewall" "allow-all-mad" {
+  name    = "allow-all-mad"
+  network = google_compute_network.network.name
+  priority = 5000
+
+  allow {
+    protocol = "all"
+  }
+
+  direction = "INGRESS"
+
+  source_ranges = [
+    local.networkRangeActiveDirectory
+  ]
+}
+
+resource "google_compute_firewall" "allow-all-psa" {
+  name    = "allow-all-psa"
+  network = google_compute_network.network.name
+  priority = 5000
+
+  allow {
+    protocol = "all"
+  }
+
+  direction = "INGRESS"
+
+  source_ranges = [
+    local.networkRangePrivateServiceAcccess
+  ]
 }
