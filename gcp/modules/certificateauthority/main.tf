@@ -49,14 +49,6 @@ resource "google_compute_address" "ca_root" {
   address = cidrhost(data.google_compute_subnetwork.subnetwork.ip_cidr_range, 3)
 }
 
-resource "google_compute_address" "ca_web" {
-  region = local.region
-  subnetwork = data.google_compute_subnetwork.subnetwork.self_link
-  name = "ca-web"
-  address_type = "INTERNAL"
-  address = cidrhost(data.google_compute_subnetwork.subnetwork.ip_cidr_range, 4)
-}
-
 resource "google_compute_instance" "ca_root" {
   zone = local.zone
   name = "ca-root"
