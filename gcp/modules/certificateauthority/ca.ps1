@@ -18,7 +18,9 @@ configuration ConfigurationWorkload
     $features = @(
         "ADCS-Cert-Authority",
         "ADCS-Online-Cert"
-        "RSAT-ADCS"
+        "RSAT-ADCS",
+        "RSAT-AD-PowerShell",
+        "RSAT-ADDS-Tools"
     );
 
     $rules = @(
@@ -123,12 +125,13 @@ configuration ConfigurationWorkload
             GetScript = {
                 $filter = "(cn=WebServer)";
                 $context = "CN=Certificate Templates,CN=Public Key Services,CN=Services,$(([ADSI]"LDAP://RootDSE").configurationNamingContext)";
-                $searcher = New-object System.DirectoryServices.DirectorySearcher([ADSI]"LDAP://$context", $filter);
-                $template = $searcher.Findone().GetDirectoryEntry();
+                $searcher = New-Object System.DirectoryServices.DirectorySearcher([ADSI]"LDAP://$context", $filter);
+                $template = $searcher.FindOne().GetDirectoryEntry();
                 
                 if ($template -ne $null)
                 {
-                    $account = New-Object System.Security.Principal.NTAccount((Get-ADDomain).NetBIOSName, "Domain Computers");
+                    $domain = (Get-ADDomain).NetBIOSName;
+                    $account = New-Object System.Security.Principal.NTAccount($domain, "Domain Computers");
                     $guid = [Guid]::Parse("0e10c968-78fb-11d2-90d4-00c04f79dc55");
                     
                     foreach($rule in $template.ObjectSecurity.Access)
@@ -137,7 +140,7 @@ configuration ConfigurationWorkload
                         {
                             if($rule.ObjectType -eq $guid)
                             {
-                                Write-Verbose "TestScript: WebServer Template Enroll permission for Domain Computers exists. Returning True"
+                                Write-Verbose "TestScript: Enroll permissions for Domain Computers on WebServer template exists"
                                 return @{Ensure = "Present"};
                             }
                         }
@@ -155,12 +158,13 @@ configuration ConfigurationWorkload
             SetScript = {
                 $filter = "(cn=WebServer)";
                 $context = "CN=Certificate Templates,CN=Public Key Services,CN=Services,$(([ADSI]"LDAP://RootDSE").configurationNamingContext)";
-                $searcher = New-object System.DirectoryServices.DirectorySearcher([ADSI]"LDAP://$context", $filter);
-                $template = $searcher.Findone().GetDirectoryEntry();
+                $searcher = New-Object System.DirectoryServices.DirectorySearcher([ADSI]"LDAP://$context", $filter);
+                $template = $searcher.FindOne().GetDirectoryEntry();
                 
                 if ($template -ne $null)
                 {
-                    $account = New-Object System.Security.Principal.NTAccount((Get-ADDomain).NetBIOSName, "Domain Computers");
+                    $domain = (Get-ADDomain).NetBIOSName;
+                    $account = New-Object System.Security.Principal.NTAccount($domain, "Domain Computers");
                     $guid = [Guid]::Parse("0e10c968-78fb-11d2-90d4-00c04f79dc55");
                     
                     $right = [System.DirectoryServices.ActiveDirectoryRights]"ExtendedRight";
@@ -169,10 +173,17 @@ configuration ConfigurationWorkload
                     $template.ObjectSecurity.AddAccessRule($rule);
                     $template.CommitChanges();
                     
-                    Write-Verbose "SetScript: Completed WebServer additional permission"
+                    $dcs = (Get-ADDomainController -Filter *).Name;
+                    foreach($dc in $dcs)
+                    {
+                        repadmin /syncall $dc (Get-ADDomain).DistinguishedName /e /A
+                    }
+
+                    Write-Verbose "SetScript: Set Enroll permissions for Domain Computers in WebServer template"
                 }
             }
             
+            PsDscRunAsCredential = $domainCredential
             DependsOn = "[AdcsCertificationAuthority]CertificateAuthority"
         }
     }
