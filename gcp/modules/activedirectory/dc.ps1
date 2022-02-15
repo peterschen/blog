@@ -62,10 +62,12 @@ configuration ConfigurationWorkload
 
     $userJohndoe = @{Name = "johndoe"; Path = "ou=Users,ou=Accounts,$ou"; TrustedForDelegation = $false};
     $userAdjoiner = @{Name = "s-adjoiner"; Path = "ou=Services,ou=Accounts,$ou"; TrustedForDelegation = $false};
+    $userAdfs = @{Name = "s-adfs"; Path = "ou=Services,ou=Accounts,$ou"; TrustedForDelegation = $false};
 
     $users = @(
         $userJohndoe,
-        $userAdjoiner
+        $userAdjoiner,
+        $userAdfs
     );
 
     $groups = @(
