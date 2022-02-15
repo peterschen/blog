@@ -41,20 +41,20 @@ module "firewall_ca" {
   ]
 }
 
-resource "google_compute_address" "ca_root" {
+resource "google_compute_address" "ca" {
   region = local.region
   subnetwork = data.google_compute_subnetwork.subnetwork.self_link
-  name = "ca-root"
+  name = "ca"
   address_type = "INTERNAL"
   address = cidrhost(data.google_compute_subnetwork.subnetwork.ip_cidr_range, 3)
 }
 
-resource "google_compute_instance" "ca_root" {
+resource "google_compute_instance" "ca" {
   zone = local.zone
-  name = "ca-root"
+  name = "ca"
   machine_type = local.machineType
 
-  tags = ["ca-root", "rdp"]
+  tags = ["ca", "rdp"]
 
   boot_disk {
     initialize_params {
@@ -66,7 +66,7 @@ resource "google_compute_instance" "ca_root" {
   network_interface {
     network = data.google_compute_network.network.self_link
     subnetwork = data.google_compute_subnetwork.subnetwork.self_link
-    network_ip = google_compute_address.ca_root.address
+    network_ip = google_compute_address.ca.address
   }
 
   shielded_instance_config {
@@ -77,11 +77,11 @@ resource "google_compute_instance" "ca_root" {
 
   metadata = {
     sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize-nupkg, { 
-        nameHost = "ca-root", 
+        nameHost = "ca", 
         password = local.password,
         parametersConfiguration = jsonencode({
           inlineMeta = filebase64(module.sysprep.path-meta),
-          inlineConfiguration = filebase64("${path.module}/ca-root.ps1"),
+          inlineConfiguration = filebase64("${path.module}/ca.ps1"),
           nameDomain = local.nameDomain,
           modulesDsc = [
             {

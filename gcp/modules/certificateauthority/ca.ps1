@@ -117,5 +117,63 @@ configuration ConfigurationWorkload
             Credential = $domainCredential
             DependsOn = "[AdcsCertificationAuthority]CertificateAuthority"
         }
+
+        Script EnableWebServerTemplate
+        {
+            GetScript = {
+                $filter = "(cn=WebServer)";
+                $context = "CN=Certificate Templates,CN=Public Key Services,CN=Services,$(([ADSI]"LDAP://RootDSE").configurationNamingContext)";
+                $searcher = New-object System.DirectoryServices.DirectorySearcher([ADSI]"LDAP://$context", $filter);
+                $template = $searcher.Findone().GetDirectoryEntry();
+                
+                if ($template -ne $null)
+                {
+                    $account = New-Object System.Security.Principal.NTAccount((Get-ADDomain).NetBIOSName, "Domain Computers");
+                    $guid = [Guid]::Parse("0e10c968-78fb-11d2-90d4-00c04f79dc55");
+                    
+                    foreach($rule in $template.ObjectSecurity.Access)
+                    {
+                        if($rule.IdentityReference -eq $account)
+                        {
+                            if($rule.ObjectType -eq $guid)
+                            {
+                                Write-Verbose "TestScript: WebServer Template Enroll permission for Domain Computers exists. Returning True"
+                                return @{Ensure = "Present"};
+                            }
+                        }
+                    }
+                }
+                
+                return @{Ensure = "Absent"};
+            }
+
+            TestScript = {
+                $state = [scriptblock]::Create($GetScript).Invoke();
+                return $state.Ensure -eq "Present";
+            }
+
+            SetScript = {
+                $filter = "(cn=WebServer)";
+                $context = "CN=Certificate Templates,CN=Public Key Services,CN=Services,$(([ADSI]"LDAP://RootDSE").configurationNamingContext)";
+                $searcher = New-object System.DirectoryServices.DirectorySearcher([ADSI]"LDAP://$context", $filter);
+                $template = $searcher.Findone().GetDirectoryEntry();
+                
+                if ($template -ne $null)
+                {
+                    $account = New-Object System.Security.Principal.NTAccount((Get-ADDomain).NetBIOSName, "Domain Computers");
+                    $guid = [Guid]::Parse("0e10c968-78fb-11d2-90d4-00c04f79dc55");
+                    
+                    $right = [System.DirectoryServices.ActiveDirectoryRights]"ExtendedRight";
+                    $type = [System.Security.AccessControl.AccessControlType]"Allow";
+                    $rule = New-Object System.DirectoryServices.ActiveDirectoryAccessRule -ArgumentList $account, $right, $type, $guid;
+                    $template.ObjectSecurity.AddAccessRule($rule);
+                    $template.CommitChanges();
+                    
+                    Write-Verbose "SetScript: Completed WebServer additional permission"
+                }
+            }
+            
+            DependsOn = "[AdcsCertificationAuthority]CertificateAuthority"
+        }
     }
 }
