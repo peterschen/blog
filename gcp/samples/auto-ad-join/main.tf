@@ -29,7 +29,8 @@ locals {
     for prefix in local.network-prefixes:
     "${prefix}.0/${local.network-mask}"
   ]
-  network-range-serverless = "10.8.0.0/28"
+  network-range-adjoin = "10.8.0.0/28"
+  network-range-directorysync = "10.9.0.0/28"
   ip-dcs = [
     for prefix in local.network-prefixes:
     "${prefix}.2"
@@ -72,7 +73,8 @@ module "apis" {
     "cloudscheduler.googleapis.com",
     "run.googleapis.com",
     "secretmanager.googleapis.com",
-    "vpcaccess.googleapis.com"
+    "vpcaccess.googleapis.com",
+    "dataconnectors.googleapis.com"
   ]
 }
 
@@ -147,7 +149,8 @@ module "firewall-ad" {
   name = "allow-ad-serverless"
   network = google_compute_network.network.name
   cidr-ranges = [
-    local.network-range-serverless
+    local.network-range-adjoin,
+    local.network-range-directorysync
   ]
 }
 
@@ -185,7 +188,15 @@ resource "google_compute_firewall" "allow-all-internal" {
 resource "google_vpc_access_connector" "adjoin" {
   name = "adjoin"
   region = local.regions[0]
-  ip_cidr_range = local.network-range-serverless
+  ip_cidr_range = local.network-range-adjoin
+  network = google_compute_network.network.name
+  depends_on = [module.apis]
+}
+
+resource "google_vpc_access_connector" "directorysync" {
+  name = "directorysync"
+  region = "europe-west1"
+  ip_cidr_range = local.network-range-directorysync
   network = google_compute_network.network.name
   depends_on = [module.apis]
 }
