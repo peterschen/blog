@@ -34,7 +34,7 @@ module "sysprep" {
 
 module "firewall_ca" {
   source = "../firewall-ca"
-  namePrefix = "allow-ca"
+  name = "allow-ca"
   network = data.google_compute_network.network.self_link
   cidrRanges = [
     data.google_compute_subnetwork.subnetwork.ip_cidr_range

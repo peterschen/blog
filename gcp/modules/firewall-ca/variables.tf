@@ -3,7 +3,7 @@ variable "project" {
   default = null
 }
 
-variable "namePrefix" {
+variable "name" {
   type = string
 }
 

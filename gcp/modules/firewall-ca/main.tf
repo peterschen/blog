@@ -1,13 +1,13 @@
 locals {
   project = var.project
-  namePrefix = var.namePrefix
+  name = var.name
   network = var.network
   cidrRanges = var.cidrRanges
 }
 
-resource "google_compute_firewall" "ca-root" {
+resource "google_compute_firewall" "ca" {
   project = local.project
-  name = "${local.namePrefix}-ca-root"
+  name = local.name
   network = local.network
   priority = 1000
 
@@ -24,5 +24,5 @@ resource "google_compute_firewall" "ca-root" {
 
   source_ranges = local.cidrRanges
 
-  target_tags = ["ca-root"]
+  target_tags = ["ca"]
 }
