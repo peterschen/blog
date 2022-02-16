@@ -16,9 +16,12 @@ locals {
   region-scheduler = var.region-scheduler
   name-sample = "auto-ad-join"
   name-domain = var.domain-name
+  cloudIdentityDomain = var.cloudIdentityDomain
   password = var.password
 
-  enableCertificateAuthority = var.enableCertificateAuthority
+  # If ADFS is requested we need a CA
+  enableCertificateAuthority = var.enableCertificateAuthority || var.enableAdfs ? true : false
+  enableAdfs = var.enableAdfs
 
   network-prefixes = ["10.0.0", "10.1.0"]
   network-mask = 16
@@ -95,14 +98,27 @@ module "activedirectory" {
   depends_on = [module.cloud-nat]
 }
 
-module "certificateauthority" {
+module "adcs" {
   count = local.enableCertificateAuthority ? 1 : 0
-  source = "../../modules/certificateauthority"
+  source = "../../modules/adcs"
   region = local.regions[0]
   zone = local.zones[0]
   network = google_compute_network.network.name
   subnetwork = google_compute_subnetwork.subnetworks[0].name
   nameDomain = local.name-domain
+  password = local.password
+  depends_on = [module.activedirectory]
+}
+
+module "adfs" {
+  count = local.enableAdfs ? 1 : 0
+  source = "../../modules/adfs"
+  region = local.regions[0]
+  zone = local.zones[0]
+  network = google_compute_network.network.name
+  subnetwork = google_compute_subnetwork.subnetworks[0].name
+  nameDomain = local.name-domain
+  cloudIdentityDomain = local.cloudIdentityDomain
   password = local.password
   depends_on = [module.activedirectory]
 }

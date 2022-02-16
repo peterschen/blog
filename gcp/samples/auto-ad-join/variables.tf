@@ -28,7 +28,17 @@ variable "domain-name" {
 variable "password" {
 }
 
+variable "cloudIdentityDomain" {
+  type = string
+  default = null
+}
+
 variable "enableCertificateAuthority" {
   type = bool
-  default = true
+  default = false
+}
+
+variable "enableAdfs" {
+  type = bool
+  default = false
 }
