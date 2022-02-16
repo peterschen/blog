@@ -53,6 +53,7 @@ configuration ConfigurationWorkload
     $ous = @(
         @{Name = $Parameters.domainName; Path = $dc},
         @{Name = "Groups"; Path = $ou},
+        @{Name = "Cloud Identity"; Path = "ou=Groups,$ou"},
         @{Name = "Accounts"; Path = $ou},
         @{Name = "Services"; Path = "ou=Accounts,$ou"},
         @{Name = "Users"; Path = "ou=Accounts,$ou"},
@@ -71,6 +72,7 @@ configuration ConfigurationWorkload
     );
 
     $groups = @(
+        @{Name = "g-DirectorySync"; Path = "$ou"; Members = @()},
         @{Name = "g-LocalAdmins"; Path = "ou=Groups,$ou"; Members = @("$($userJohndoe.Name)")}
         @{Name = "g-RemoteDesktopUsers"; Path = "ou=Groups,$ou"; Members = @("$($userJohndoe.Name)")}
         @{Name = "g-RemoteManagementUsers"; Path = "ou=Groups,$ou"; Members = @("$($userJohndoe.Name)")}
