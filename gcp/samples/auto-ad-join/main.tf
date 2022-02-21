@@ -22,6 +22,7 @@ locals {
   # If ADFS is requested we need a CA
   enableCertificateAuthority = var.enableCertificateAuthority || var.enableAdfs ? true : false
   enableAdfs = var.enableAdfs
+  enableDirectorySync = var.enableDirectorySync
 
   network-prefixes = ["10.0.0", "10.1.0"]
   network-mask = 16
@@ -197,6 +198,7 @@ resource "google_vpc_access_connector" "adjoin" {
 }
 
 resource "google_vpc_access_connector" "directorysync" {
+  count = local.enableDirectorySync
   name = "directorysync"
   region = "europe-west1"
   ip_cidr_range = local.network-range-directorysync

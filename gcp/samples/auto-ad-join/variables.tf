@@ -42,3 +42,10 @@ variable "enableAdfs" {
   type = bool
   default = false
 }
+
+# This adds a Serverless VPC access in europe-west1 while
+# Directory Sync is in preview and only supports west1
+variable "enableDirectorySync" {
+  type = bool
+  default = false
+}
