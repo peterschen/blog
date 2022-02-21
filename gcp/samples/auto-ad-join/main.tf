@@ -198,7 +198,7 @@ resource "google_vpc_access_connector" "adjoin" {
 }
 
 resource "google_vpc_access_connector" "directorysync" {
-  count = local.enableDirectorySync
+  count = local.enableDirectorySync ? 1 : 0
   name = "directorysync"
   region = "europe-west1"
   ip_cidr_range = local.network-range-directorysync
