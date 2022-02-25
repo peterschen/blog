@@ -28,9 +28,9 @@ locals {
   ]
 }
 
-module "cloud-nat" {
+module "nat" {
   count = length(local.regions)
-  source = "../../modules/cloud-nat"
+  source = "../../modules/nat"
   region = local.regions[count.index]
   network = google_compute_network.network.name
   depends_on = [google_compute_network.network]
@@ -47,7 +47,7 @@ module "ad" {
   ]
   domain_name = local.name-domain
   password = local.password
-  depends_on = [module.cloud-nat]
+  depends_on = [module.nat]
 }
 
 module "bastion" {
@@ -60,7 +60,7 @@ module "bastion" {
   password = local.password
   domain-name = local.name-domain
   enable-domain = true
-  depends_on = [module.cloud-nat]
+  depends_on = [module.nat]
 }
 
 module "firewall-iap" {

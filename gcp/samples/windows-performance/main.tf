@@ -34,8 +34,8 @@ module "sysprep" {
   source = "../../modules/sysprep"
 }
 
-module "cloud-nat" {
-  source = "../../modules/cloud-nat"
+module "nat" {
+  source = "../../modules/nat"
   region = local.region
   network = google_compute_network.network.name
   depends_on = [google_compute_network.network]

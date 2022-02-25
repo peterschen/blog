@@ -131,8 +131,8 @@ resource "google_project_iam_binding" "sqladmin_sqlintegrator" {
   ]
 }
 
-module "cloudNat" {
-  source = "../../modules/cloud-nat"
+module "nat" {
+  source = "../../modules/nat"
   region = local.region
   network = google_compute_network.network.name
   depends_on = [
