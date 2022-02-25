@@ -31,8 +31,8 @@ locals {
   sizeDiskLog = 10
 }
 
-module "gceDefaultScopes" {
-  source = "../../modules/gce-default-scopes"
+module "gce_scopes" {
+  source = "../../modules/gce_scopes"
 }
 
 module "sysprep" {

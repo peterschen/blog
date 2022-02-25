@@ -27,8 +27,8 @@ data "google_compute_subnetwork" "subnetwork" {
   name = local.subnetwork
 }
 
-module "gceDefaultScopes" {
-  source = "../gce-default-scopes"
+module "gce_scopes" {
+  source = "../gce_scopes"
 }
 
 module "sysprep" {

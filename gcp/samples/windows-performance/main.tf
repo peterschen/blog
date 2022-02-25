@@ -21,8 +21,8 @@ locals {
   size-disks = 1000
 }
 
-module "gce-default-scopes" {
-  source = "../../modules/gce-default-scopes"
+module "gce_scopes" {
+  source = "../../modules/gce_scopes"
 }
 
 module "apis" {
@@ -108,7 +108,7 @@ resource "google_compute_instance" "runner" {
   }
 
   service_account {
-    scopes = module.gce-default-scopes.scopes
+    scopes = module.gce_scopes.scopes
   }
 
   lifecycle {
@@ -164,7 +164,7 @@ resource "google_compute_instance" "sql" {
   }
 
   service_account {
-    scopes = module.gce-default-scopes.scopes
+    scopes = module.gce_scopes.scopes
   }
 
   lifecycle {

@@ -32,8 +32,8 @@ module "apis" {
   apis = ["cloudresourcemanager.googleapis.com", "cloudbuild.googleapis.com", "containerregistry.googleapis.com", "compute.googleapis.com"]
 }
 
-module "gce-default-scopes" {
-  source = "../../modules/gce-default-scopes"
+module "gce_scopes" {
+  source = "../../modules/gce_scopes"
 }
 
 resource "google_container_registry" "registry" {
@@ -169,7 +169,7 @@ resource "google_compute_instance" "openttd" {
   }
 
   service_account {
-    scopes = module.gce-default-scopes.scopes
+    scopes = module.gce_scopes.scopes
   }
 
   lifecycle {

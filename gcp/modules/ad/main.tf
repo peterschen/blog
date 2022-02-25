@@ -26,8 +26,8 @@ module "apis" {
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
 }
 
-module "gce_default_scopes" {
-  source = "../gce-default-scopes"
+module "gce_scopes" {
+  source = "../gce_scopes"
 }
 
 module "sysprep" {
@@ -175,7 +175,7 @@ resource "google_compute_instance" "dc" {
   }
 
   service_account {
-    scopes = module.gce_default_scopes.scopes
+    scopes = module.gce_scopes.scopes
   }
 
   allow_stopping_for_update = true

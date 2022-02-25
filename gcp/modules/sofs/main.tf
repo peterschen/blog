@@ -33,9 +33,8 @@ module "apis" {
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com"]
 }
 
-module "gce-default-scopes" {
-  # source = "github.com/peterschen/blog//gcp/modules/gce-default-scopes"
-  source = "../gce-default-scopes"
+module "gce_scopes" {
+  source = "../gce_scopes"
 }
 
 module "sysprep" {
@@ -140,7 +139,7 @@ resource "google_compute_instance" "sofs" {
   }
 
   service_account {
-    scopes = module.gce-default-scopes.scopes
+    scopes = module.gce_scopes.scopes
   }
 
   lifecycle {
