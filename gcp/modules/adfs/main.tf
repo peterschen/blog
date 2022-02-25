@@ -9,6 +9,8 @@ locals {
 
   # If Cloud Identity domain is not provided use the domain name
   cloudIdentityDomain = var.cloudIdentityDomain != null ? var.cloudIdentityDomain : local.nameDomain
+  
+  windows_image = var.windows_image
 }
 
 data "google_project" "project" {}
@@ -52,7 +54,7 @@ resource "google_compute_instance" "fs" {
 
   boot_disk {
     initialize_params {
-      image = "windows-cloud/windows-2019"
+      image = local.windows_image
       type = "pd-ssd"
     }
   }

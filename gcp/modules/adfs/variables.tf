@@ -19,6 +19,11 @@ variable "machineType" {
   default = "n2-standard-2"
 }
 
+variable "windows_image" {
+  type = string
+  default = "windows-cloud/windows-2022-core"
+}
+
 variable "nameDomain" {
   type = string
 }
