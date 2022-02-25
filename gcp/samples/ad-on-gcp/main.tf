@@ -36,9 +36,8 @@ module "cloud-nat" {
   depends_on = [google_compute_network.network]
 }
 
-module "activedirectory" {
-  # source = "github.com/peterschen/blog//gcp/modules/activedirectory"
-  source = "../../modules/activedirectory"
+module "ad" {
+  source = "../../modules/ad"
   regions = local.regions
   zones = local.zones
   network = google_compute_network.network.name

@@ -35,9 +35,8 @@ module "cloud-nat" {
   depends_on = [google_compute_network.network]
 }
 
-module "activedirectory" {
-  # source = "github.com/peterschen/blog//gcp/modules/activedirectory"
-  source = "../../modules/activedirectory"
+module "ad" {
+  source = "../../modules/ad"
   regions = local.regions
   zones = local.zones
   network = google_compute_network.network.name
@@ -59,7 +58,7 @@ module "sofs" {
   subnetwork = google_compute_subnetwork.subnetworks[0].name
   domain-name = local.name-domain
   password = local.password
-  depends_on = [module.activedirectory]
+  depends_on = [module.ad]
 }
 
 module "bastion" {
@@ -73,7 +72,7 @@ module "bastion" {
   password = local.password
   domain-name = local.name-domain
   enable-domain = true
-  depends_on = [module.activedirectory]
+  depends_on = [module.ad]
 }
 
 module "firewall-iap" {

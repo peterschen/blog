@@ -5,7 +5,7 @@ locals {
   cidr-ranges = var.cidr-ranges
 }
 
-resource "google_compute_firewall" "activedirectory" {
+resource "google_compute_firewall" "ad" {
   project = local.project
   name = local.name
   network = local.network

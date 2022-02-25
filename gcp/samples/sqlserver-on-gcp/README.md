@@ -1,5 +1,5 @@
 # SQL Server on GCP #
-This sample deploys SQL Server (Cluster) on Google Cloud. It relies on the [`activedirectory`](../../modules/activedirectory/) and [`sqlserver`](../../modules/sqlserver/) modules. This sample is very opinionated and only leaves a few parameters to configure. It is meant for rapid deployment for development environments to validate capabilities or test things out.
+This sample deploys SQL Server (Cluster) on Google Cloud. It relies on the [`ad`](../../modules/ad/) and [`sqlserver`](../../modules/sqlserver/) modules. This sample is very opinionated and only leaves a few parameters to configure. It is meant for rapid deployment for development environments to validate capabilities or test things out.
 
 * VPC Network
 * Cloud NAT (with Cloud Router)
@@ -55,8 +55,8 @@ terraform destroy -var project=$PROJECT -var name-domain=$DOMAIN -var password=$
 If you need to redeploy the VM instances you need to taint them first. You may need to do this if you have changed the DSC configuration which does not invalidate the Terraform state.
 
 ```
-terraform taint module.activedirectory.google_compute_instance.dc\[0\]
-terraform taint module.activedirectory.google_compute_instance.dc\[1\]
+terraform taint module.ad.google_compute_instance.dc\[0\]
+terraform taint module.ad.google_compute_instance.dc\[1\]
 terraform taint module.bastion-windows.google_compute_instance.bastion
 terraform taint module.sofs.google_compute_instance.sql\[0\]
 terraform taint module.sofs.google_compute_instance.sql\[1\]
