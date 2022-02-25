@@ -147,8 +147,8 @@ module "firewall-iap" {
   enable-ssh = false
 }
 
-module "firewall-ad" {
-  source = "../../modules/firewall-ad"
+module "firewall_ad" {
+  source = "../../modules/firewall_ad"
   name = "allow-ad-serverless"
   network = google_compute_network.network.name
   cidr-ranges = [
