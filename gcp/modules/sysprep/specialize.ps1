@@ -1,5 +1,4 @@
-# Strict mode breaks DSC configuration compilation due to bugs in DSC modules
-# Set-StrictMode -Version Latest;
+Set-StrictMode -Version Latest;
 $ErrorActionPreference = "Stop";
 $VerbosePreference = "SilentlyContinue";
 $DebugPreference = "SilentlyContinue";
@@ -10,8 +9,6 @@ $passwordSecure = ConvertTo-SecureString -String $password -AsPlainText -Force;
 $parametersConfiguration = ConvertFrom-Json -InputObject '${parametersConfiguration}';
 $pathTemp = "$($env:SystemDrive)\Windows\Temp";
 
-$uriMeta = $parametersConfiguration.uriMeta;
-$uriConfiguration = $parametersConfiguration.uriConfiguration;
 $inlineMeta = $parametersConfiguration.inlineMeta;
 $inlineConfiguration = $parametersConfiguration.inlineConfiguration;
 
@@ -45,7 +42,7 @@ $modules = @(
     }
 );
 
-if($parametersConfiguration.modulesDsc -ne $null)
+if([bool]$parametersConfiguration.PSObject.Properties["modulesDsc"])
 {
     foreach($module in $parametersConfiguration.modulesDsc)
     {
@@ -102,23 +99,30 @@ else
 $pathDscMetaDefinition = (Join-Path -Path $pathTemp -ChildPath "meta.ps1");
 $pathDscConfigurationDefinition = (Join-Path -Path $pathTemp -ChildPath "configuration.ps1");
 
-if([string]::IsNullOrEmpty($inlineMeta))
+if(-not [string]::IsNullOrEmpty($inlineMeta))
 {
-    Invoke-WebRequest -Uri "$uriMeta/meta.ps1" -OutFile $pathDscMetaDefinition;
+    # Only write inlineMeta if file does not exist on disk
+    if(-not (Test-Path -Path $pathDscMetaDefinition))
+    {
+        [IO.File]::WriteAllBytes($pathDscMetaDefinition, [Convert]::FromBase64String($inlineMeta));
+    }
 }
 else
 {
-    [IO.File]::WriteAllBytes($pathDscMetaDefinition, [Convert]::FromBase64String($inlineMeta));
+    throw [System.ArgumentException]::New("inlineMeta data is missing"); 
 }
 
-if([string]::IsNullOrEmpty($inlineConfiguration))
+if(-not [string]::IsNullOrEmpty($inlineConfiguration))
 {
-    $nameConfiguration = $parametersConfiguration.nameConfiguration;
-    Invoke-WebRequest -Uri "$uriConfiguration/$nameConfiguration.ps1" -OutFile $pathDscConfigurationDefinition;
+    # Only write inlineConfiguration if file does not exist on disk
+    if(-not (Test-Path -Path $pathDscConfigurationDefinition))
+    {
+        [IO.File]::WriteAllBytes($pathDscConfigurationDefinition, [Convert]::FromBase64String($inlineConfiguration));
+    }
 }
 else
 {
-    [IO.File]::WriteAllBytes($pathDscConfigurationDefinition, [Convert]::FromBase64String($inlineConfiguration));
+    throw [System.ArgumentException]::New("inlineConfiguration data is missing"); 
 }
 
 # Source DSC (meta) configuration
@@ -139,10 +143,10 @@ ConfigurationWorkload `
     -Parameters $parametersConfiguration `
     -ConfigurationData @{AllNodes = @(@{NodeName = "$nameHost"; PSDscAllowDomainUser = $true; CertificateFile = $pathDscCertificate; Thumbprint = $certificate.Thumbprint})} `
     -OutputPath $pathDscConfigurationOutput | Out-Null;
+    
+# Enact meta configuration
+Set-DscLocalConfigurationManager -Path $pathDscConfigurationOutput -ComputerName "localhost";
 
 # Make DSC configuration pending
 $pathDscConfigurationPending = Join-Path -Path "C:\Windows\system32\Configuration" -ChildPath "pending.mof";
 Move-Item -Path (Join-Path -Path $pathDscConfigurationOutput -ChildPath "$($nameHost).mof") -Destination $pathDscConfigurationPending;
-
-# Enact meta configuration
-Set-DscLocalConfigurationManager -Path $pathDscConfigurationOutput -ComputerName "localhost";
