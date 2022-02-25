@@ -3,5 +3,5 @@ output "path-meta" {
 }
 
 output "path_specialize" {
-  value = "${path.module}/specialize-nupkg.ps1"
+  value = "${path.module}/specialize.ps1"
 }
