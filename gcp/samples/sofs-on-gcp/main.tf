@@ -66,10 +66,10 @@ module "bastion" {
   zone = local.zones[0]
   network = google_compute_network.network.name
   subnetwork = google_compute_subnetwork.subnetworks[0].name
-  machine-name = "bastion"
+  machine_name = "bastion"
   password = local.password
-  domain-name = local.name-domain
-  enable-domain = true
+  domain_name = local.name-domain
+  enable_domain = true
   depends_on = [module.ad]
 }
 

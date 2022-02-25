@@ -149,17 +149,17 @@ module "firewall_iap" {
 module "bastion" {
   source = "../../modules/bastion_windows"
   project = data.google_project.service.project_id
-  projectNetwork = data.google_project.host.project_id
+  project_network = data.google_project.host.project_id
   region = local.region
   zone = local.zone
   network = google_compute_network.network.name
   subnetwork = google_compute_subnetwork.subnetwork.name
-  machine-type = "n2-standard-4"
-  machine-name = "bastion"
+  machine_type = "n2-standard-4"
+  machine_name = "bastion"
   password = local.password
-  enable-domain = false
-  enable-ssms = true
-  depends_on = [module.cloudNat]
+  enable_domain = false
+  enable_ssms = true
+  depends_on = [module.nat]
 }
 
 resource "google_compute_firewall" "allow-all-mad" {

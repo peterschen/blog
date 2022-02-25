@@ -3,7 +3,7 @@ variable "project" {
     default = null
 }
 
-variable "projectNetwork" {
+variable "project_network" {
     type = string
     default = null
 }
@@ -24,12 +24,12 @@ variable "subnetwork" {
     type = string
 }
 
-variable "machine-type" {
+variable "machine_type" {
     type = string
     default = "n2-standard-2"
 }
 
-variable "machine-name" {
+variable "machine_name" {
     type = string
 }
 
@@ -37,7 +37,7 @@ variable "password" {
     type = string
 }
 
-variable "domain-name" {
+variable "domain_name" {
     type = string
     default = null
 }
@@ -47,30 +47,30 @@ variable "windows_image" {
     default = "windows-cloud/windows-2022"
 }
 
-variable "enable-domain" {
+variable "enable_domain" {
     type = bool
     default = false
 }
 
-variable "enable-ssms" {
+variable "enable_ssms" {
     type = bool
     default = false
 }
 
 # Enabled by default
-variable "enable-hammerdb" {
+variable "enable_hammerdb" {
     type = bool
     default = true
 }
 
 # Enabled by default
-variable "enable-diskspd" {
+variable "enable_diskspd" {
     type = bool
     default = true
 }
 
 # Enabled by default
-variable "enablePython" {
+variable "enable_python" {
     type = bool
     default = true
 }

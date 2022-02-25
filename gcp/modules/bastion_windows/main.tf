@@ -1,31 +1,31 @@
 locals {
   project = var.project
-  projectNetwork = var.projectNetwork
+  project_network = var.project_network
   region = var.region
   zone = var.zone
   network = var.network
   subnetwork = var.subnetwork
   password = var.password
-  machineType = var.machine-type
-  machineName = var.machine-name
-  nameDomain = var.domain-name
+  machine_type = var.machine_type
+  machine_name = var.machine_name
+  domain_name = var.domain_name
 
   windows_image = var.windows_image
 
-  enableDomain = var.enable-domain
-  enableSsms = var.enable-ssms
-  enableHammerdb = var.enable-hammerdb
-  enableDiskspd = var.enable-diskspd
-  enablePython = var.enablePython
+  enable_domain = var.enable_domain
+  enable_ssms = var.enable_ssms
+  enable_hammerdb = var.enable_hammerdb
+  enable_diskspd = var.enable_diskspd
+  enable_python = var.enable_python
 }
 
 data "google_compute_network" "network" {
-  project = local.projectNetwork
+  project = local.project_network
   name = local.network
 }
 
 data "google_compute_subnetwork" "subnetwork" {
-  project = local.projectNetwork
+  project = local.project_network
   region = local.region
   name = local.subnetwork
 }
@@ -47,8 +47,8 @@ module "apis" {
 resource "google_compute_instance" "bastion" {
   project = local.project
   zone = local.zone
-  name = local.machineName
-  machine_type = local.machineType
+  name = local.machine_name
+  machine_type = local.machine_type
 
   tags = ["bastion-windows", "rdp"]
 
@@ -72,17 +72,17 @@ resource "google_compute_instance" "bastion" {
 
   metadata = {
     sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize-nupkg, { 
-      nameHost = local.machineName, 
+      nameHost = local.machine_name, 
       password = local.password,
       parametersConfiguration = jsonencode({
         inlineMeta = filebase64(module.sysprep.path-meta),
         inlineConfiguration = filebase64("${path.module}/bastion.ps1"),
-        nameDomain = local.nameDomain,
-        enableDomain = local.enableDomain,
-        enableSsms = local.enableSsms,
-        enableHammerdb = local.enableHammerdb,
-        enableDiskspd = local.enableDiskspd,
-        enablePython = local.enablePython
+        nameDomain = local.domain_name,
+        enableDomain = local.enable_domain,
+        enableSsms = local.enable_ssms,
+        enableHammerdb = local.enable_hammerdb,
+        enableDiskspd = local.enable_diskspd,
+        enablePython = local.enable_python
       })
     })
   }
