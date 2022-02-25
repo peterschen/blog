@@ -3,7 +3,7 @@ variable "project" {
   default = null
 }
 
-variable "projectNetwork" {
+variable "project_network" {
   type = string
   default = null
 }
@@ -24,12 +24,12 @@ variable "subnetwork" {
   type = string
 }
 
-variable "machine-type" {
+variable "machine_type" {
   type = string
   default = "n2-standard-2"
 }
 
-variable "domain-name" {
+variable "domain_name" {
   type = string
 }
 
@@ -42,17 +42,17 @@ variable "windows_image" {
   default = "windows-cloud/windows-2022-core"
 }
 
-variable "node-count" {
+variable "node_count" {
   type = number
   default = 2
 }
 
-variable "enable-cluster" {
+variable "enable_cluster" {
   type = bool
   default = true
 }
 
-variable "enable-hdd" {
+variable "enable_hdd" {
   type = bool
   default = false
 }

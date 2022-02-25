@@ -1,30 +1,30 @@
 locals {
   project = var.project
-  projectNetwork = var.projectNetwork
+  project_network = var.project_network
   region = var.region
   zone = var.zone
-  name-domain = var.domain-name
+  domain_name = var.domain_name
   password = var.password
   network = var.network
   subnetwork = var.subnetwork
-  machine-type = var.machine-type
+  machine_type = var.machine_type
 
   windows_image = var.windows_image
 
-  enable-cluster = var.enable-cluster
-  enable-hdd = var.enable-hdd
-  count-nodes = var.node-count
-  count-disks = 4
-  size-disks = 100
+  enable_cluster = var.enable_cluster
+  enable_hdd = var.enable_hdd
+  count_nodes = var.node_count
+  count_disks = 4
+  size_disks = 100
 }
 
 data "google_compute_network" "network" {
-  project = var.projectNetwork
+  project = var.project_network
   name = local.network
 }
 
 data "google_compute_subnetwork" "subnetwork" {
-  project = var.projectNetwork
+  project = var.project_network
   region = local.region
   name = local.subnetwork
 }
@@ -52,7 +52,7 @@ module "firewall_sofs" {
 }
 
 resource "google_compute_address" "sofs" {
-  count = local.count-nodes
+  count = local.count_nodes
   project = local.project
   region = local.region
   subnetwork = data.google_compute_subnetwork.subnetwork.self_link
@@ -60,7 +60,7 @@ resource "google_compute_address" "sofs" {
   address_type = "INTERNAL"
 }
 
-resource "google_compute_address" "sofs-cl" {
+resource "google_compute_address" "sofs_cl" {
   region = local.region
   project = local.project
   name = "sofs-cl"
@@ -68,7 +68,7 @@ resource "google_compute_address" "sofs-cl" {
   subnetwork = data.google_compute_subnetwork.subnetwork.self_link
 }
 
-resource "google_compute_firewall" "allow-healthcheck-sofs-gcp" {
+resource "google_compute_firewall" "allow_healthcheck_sofs_gcp" {
   project = local.projectNetwork
   name = "allow-healthcheck-sofs-gcp"
   network = data.google_compute_network.network.self_link
@@ -86,11 +86,11 @@ resource "google_compute_firewall" "allow-healthcheck-sofs-gcp" {
 }
 
 resource "google_compute_instance" "sofs" {
-  count = local.count-nodes
+  count = local.count_nodes
   project = local.project
   zone = local.zone
   name = "sofs-${count.index}"
-  machine_type = local.machine-type
+  machine_type = local.machine_type
 
   tags = ["sofs", "rdp"]
 
@@ -122,12 +122,12 @@ resource "google_compute_instance" "sofs" {
         parametersConfiguration = jsonencode({
           inlineMeta = filebase64(module.sysprep.path-meta),
           inlineConfiguration = filebase64("${path.module}/sofs.ps1"),
-          domainName = local.name-domain,
+          domainName = local.domain_name,
           isFirst = (count.index == 0),
           nodePrefix = "sofs",
-          nodeCount = local.count-nodes,
-          enableCluster = local.enable-cluster,
-          ipCluster = google_compute_address.sofs-cl.address,
+          nodeCount = local.count_nodes,
+          enableCluster = local.enable_cluster,
+          ipCluster = google_compute_address.sofs_cl.address,
           modulesDsc = [
             {
               Name = "xFailOverCluster",
@@ -151,40 +151,40 @@ resource "google_compute_instance" "sofs" {
   depends_on = [module.apis]
 }
 
-resource "google_compute_disk" "sofs-hdd" {
-  count = local.enable-hdd ? local.count-nodes * local.count-disks : 0
+resource "google_compute_disk" "sofs_hdd" {
+  count = local.enable_hdd ? local.count_nodes * local.count_disks : 0
   project = local.project
-  zone = google_compute_instance.sofs[floor(count.index / local.count-disks)].zone
+  zone = google_compute_instance.sofs[floor(count.index / local.count_disks)].zone
   name = "sofs-hdd-${count.index}"
   type = "pd-standard"
-  size = local.size-disks
+  size = local.size_disks
 }
 
-resource "google_compute_attached_disk" "sofs-hdd" {
-  count = local.enable-hdd ? local.count-nodes * local.count-disks : 0
+resource "google_compute_attached_disk" "sofs_hdd" {
+  count = local.enable_hdd ? local.count_nodes * local.count_disks : 0
   project = local.project
-  disk = google_compute_disk.sofs-hdd[count.index].self_link
-  instance = google_compute_instance.sofs[floor(count.index / local.count-disks)].self_link
+  disk = google_compute_disk.sofs_hdd[count.index].self_link
+  instance = google_compute_instance.sofs[floor(count.index / local.count_disks)].self_link
 }
 
-resource "google_compute_disk" "sofs-ssd" {
-  count = local.count-nodes * local.count-disks
+resource "google_compute_disk" "sofs_ssd" {
+  count = local.count_nodes * local.count_disks
   project = local.project
-  zone = google_compute_instance.sofs[floor(count.index / local.count-disks)].zone
+  zone = google_compute_instance.sofs[floor(count.index / local.count_disks)].zone
   name = "sofs-ssd-${count.index}"
   type = "pd-ssd"
-  size = local.size-disks
+  size = local.size_disks
 }
 
-resource "google_compute_attached_disk" "sofs-ssd" {
-  count = local.count-nodes * local.count-disks
+resource "google_compute_attached_disk" "sofs_ssd" {
+  count = local.count_nodes * local.count_disks
   project = local.project
-  disk = google_compute_disk.sofs-ssd[count.index].self_link
-  instance = google_compute_instance.sofs[floor(count.index / local.count-disks)].self_link
+  disk = google_compute_disk.sofs_ssd[count.index].self_link
+  instance = google_compute_instance.sofs[floor(count.index / local.count_disks)].self_link
 }
 
 resource "google_compute_instance_group" "sofs" {
-  count = local.count-nodes
+  count = local.count_nodes
   project = local.project
   zone = local.zone
   name = "sofs-${count.index}"
@@ -200,7 +200,7 @@ resource "google_compute_health_check" "sofs" {
 
   tcp_health_check {
     port = 59998
-    request = google_compute_address.sofs-cl.address
+    request = google_compute_address.sofs_cl.address
     response = "1"
   }
 }
@@ -223,7 +223,7 @@ resource "google_compute_forwarding_rule" "sofs" {
   region = local.region
   project = local.project
   name = "sofs"
-  ip_address = google_compute_address.sofs-cl.address
+  ip_address = google_compute_address.sofs_cl.address
   load_balancing_scheme = "INTERNAL"
   all_ports = true
   allow_global_access = true

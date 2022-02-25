@@ -55,7 +55,7 @@ module "sofs" {
   zone = local.zones[0]
   network = google_compute_network.network.name
   subnetwork = google_compute_subnetwork.subnetworks[0].name
-  domain-name = local.name-domain
+  domain_name = local.name-domain
   password = local.password
   depends_on = [module.ad]
 }
