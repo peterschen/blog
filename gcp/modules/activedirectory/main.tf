@@ -1,7 +1,7 @@
 locals {
   regions = var.regions
   zones = var.zones
-  name-domain = var.name-domain
+  name_domain = var.name-domain
   password = var.password
   network = var.network
   subnetworks = var.subnetworks
@@ -105,7 +105,7 @@ resource "google_compute_firewall" "allow-dns-internal" {
 
 resource "google_dns_managed_zone" "ad-dns-forward" {
   name = "ad-dns-forward"
-  dns_name = "${local.name-domain}."
+  dns_name = "${local.name_domain}."
 
   visibility = "private"
 
@@ -161,7 +161,7 @@ resource "google_compute_instance" "dc" {
         password = local.password,
         parametersConfiguration = jsonencode({
           "projectName" = data.google_project.project.name,
-          domainName = local.name-domain,
+          domainName = local.name_domain,
           zone = local.zones[count.index],
           zones = local.zones,
           networkRange = data.google_compute_subnetwork.subnetworks[count.index].ip_cidr_range,
