@@ -45,7 +45,7 @@ module "firewall_mssql" {
   project = local.project
   name = "allow-mssql"
   network = data.google_compute_network.network
-  cidr-ranges = [data.google_compute_subnetwork.subnetwork.ip_cidr_range]
+  cidr_ranges = [data.google_compute_subnetwork.subnetwork.ip_cidr_range]
 }
 
 resource "google_compute_address" "sql" {
