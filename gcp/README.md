@@ -2,7 +2,7 @@
 
 This directory contains Google Cloud Platform specific samples and templates.
 
-## [Module](modules/) ##
+## [Modules](modules/) ##
 
 Reusable Terraform modules used by implementation samples.
 
