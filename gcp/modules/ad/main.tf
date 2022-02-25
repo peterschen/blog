@@ -38,7 +38,7 @@ module "firewall_ad" {
   source = "../firewall_ad"
   name = "allow-ad"
   network = data.google_compute_network.network.self_link
-  cidr-ranges = [
+  cidr_ranges = [
     for subnet in data.google_compute_subnetwork.subnetworks:
     subnet.ip_cidr_range
   ]

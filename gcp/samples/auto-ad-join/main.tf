@@ -151,7 +151,7 @@ module "firewall_ad" {
   source = "../../modules/firewall_ad"
   name = "allow-ad-serverless"
   network = google_compute_network.network.name
-  cidr-ranges = [
+  cidr_ranges = [
     local.network-range-adjoin,
     local.network-range-directorysync
   ]
