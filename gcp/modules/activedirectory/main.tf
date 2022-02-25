@@ -21,23 +21,19 @@ data "google_compute_subnetwork" "subnetworks" {
 }
 
 module "apis" {
-  # source = "github.com/peterschen/blog//gcp/modules/apis"
   source = "../apis"
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
 }
 
 module "gce-default-scopes" {
-  # source = "github.com/peterschen/blog//gcp/modules/gce-default-scopes"
   source = "../gce-default-scopes"
 }
 
 module "sysprep" {
-  # source = "github.com/peterschen/blog//gcp/modules/sysprep"
   source = "../sysprep"
 }
 
 module "firewall-ad" {
-  # source = "github.com/peterschen/blog//gcp/modules/firewall-ad"
   source = "../firewall-ad"
   name = "allow-ad"
   network = data.google_compute_network.network.self_link
