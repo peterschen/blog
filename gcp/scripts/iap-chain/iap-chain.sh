@@ -119,7 +119,10 @@ done
 if [[ ! -z "$localPort" && -z "$error" ]]; then
   echo "LOCAL_PORT    = $localPort"
   echo ""
+
   runChainCommand "$CHAIN_COMMAND" $localPort
+
+  kill $iappid
 else
   echo "$error";
   exit $EXIT_IAPERROR;
