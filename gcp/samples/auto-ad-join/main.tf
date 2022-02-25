@@ -13,31 +13,32 @@ provider "google" {
 locals {
   regions = var.regions
   zones = var.zones
-  region-scheduler = var.region-scheduler
-  name-sample = "auto-ad-join"
-  name-domain = var.domain-name
-  cloudIdentityDomain = var.cloudIdentityDomain
+  region_scheduler = var.region_scheduler
+  name_sample = "auto-ad-join"
+  domain_name = var.domain_name
+  cloud_identity_domain = var.cloud_identity_domain
   password = var.password
 
   # If ADFS is requested we need a CA
-  enableCertificateAuthority = var.enableCertificateAuthority || var.enableAdfs ? true : false
-  enableAdfs = var.enableAdfs
-  enableDirectorySync = var.enableDirectorySync
+  enable_adjoin = var.enable_adjoin
+  enable_adcs = var.enable_adcs || var.enable_adfs ? true : false
+  enable_adfs = var.enable_adfs
+  enable_directorysync = var.enable_directorysync
 
-  network-prefixes = ["10.0.0", "10.1.0"]
-  network-mask = 16
-  network-ranges = [
-    for prefix in local.network-prefixes:
-    "${prefix}.0/${local.network-mask}"
+  network_prefixes = ["10.0.0", "10.1.0"]
+  network_mask = 16
+  network_ranges = [
+    for prefix in local.network_prefixes:
+    "${prefix}.0/${local.network_mask}"
   ]
-  network-range-adjoin = "10.8.0.0/28"
-  network-range-directorysync = "10.9.0.0/28"
-  ip-dcs = [
-    for prefix in local.network-prefixes:
+  network_range_adjoin = "10.8.0.0/28"
+  network_range_directorysync = "10.9.0.0/28"
+  ips_dcs = [
+    for prefix in local.network_prefixes:
     "${prefix}.2"
   ]
 
-  image-families = [
+  image_families = [
     "gce-uefi-images/windows-1809-core",
     "gce-uefi-images/windows-1809-core-for-containers",
     "gce-uefi-images/windows-1903-core",
@@ -63,9 +64,9 @@ data "google_project" "project" {}
 data "google_compute_default_service_account" "default" {}
 
 data "google_compute_image" "windows" {
-  count = length(local.image-families)
-  project = split("/",local.image-families[count.index])[0]
-  family = split("/",local.image-families[count.index])[1]
+  count = local.enable_adjoin ? length(local.image_families) : 0
+  project = split("/",local.image_families[count.index])[0]
+  family = split("/",local.image_families[count.index])[1]
 }
 
 module "apis" {
@@ -98,31 +99,31 @@ module "ad" {
     for subnet in google_compute_subnetwork.subnetworks:
     subnet.name
   ]
-  domain_name = local.name-domain
+  domain_name = local.domain_name
   password = local.password
   depends_on = [module.nat]
 }
 
 module "adcs" {
-  count = local.enableCertificateAuthority ? 1 : 0
+  count = local.enable_adcs ? 1 : 0
   source = "../../modules/adcs"
   region = local.regions[0]
   zone = local.zones[0]
   network = google_compute_network.network.name
   subnetwork = google_compute_subnetwork.subnetworks[0].name
-  domain_name = local.name-domain
+  domain_name = local.domain_name
   password = local.password
   depends_on = [module.ad]
 }
 
 module "adfs" {
-  count = local.enableAdfs ? 1 : 0
+  count = local.enable_adfs ? 1 : 0
   source = "../../modules/adfs"
   region = local.regions[0]
   zone = local.zones[0]
   network = google_compute_network.network.name
   subnetwork = google_compute_subnetwork.subnetworks[0].name
-  domain_name = local.name-domain
+  domain_name = local.domain_name
   cloud_identity_domain = local.cloud_identity_domain
   password = local.password
   depends_on = [module.ad]
@@ -136,7 +137,7 @@ module "bastion" {
   subnetwork = google_compute_subnetwork.subnetworks[0].name
   machine_name = "bastion"
   password = local.password
-  domain_name = local.name-domain
+  domain_name = local.domain_name
   enable_domain = true
   depends_on = [module.ad]
 }
@@ -152,13 +153,13 @@ module "firewall_ad" {
   name = "allow-ad-serverless"
   network = google_compute_network.network.name
   cidr_ranges = [
-    local.network-range-adjoin,
-    local.network-range-directorysync
+    local.network_range_adjoin,
+    local.network_range_directorysync
   ]
 }
 
 resource "google_compute_network" "network" {
-  name = local.name-sample
+  name = local.name_sample
   auto_create_subnetworks = false
 }
 
@@ -166,7 +167,7 @@ resource "google_compute_subnetwork" "subnetworks" {
   count = length(local.regions)
   region = local.regions[count.index]
   name = local.regions[count.index]
-  ip_cidr_range = local.network-ranges[count.index]
+  ip_cidr_range = local.network_ranges[count.index]
   network = google_compute_network.network.self_link
   private_ip_google_access = true
 }
@@ -183,43 +184,47 @@ resource "google_compute_firewall" "allow-all-internal" {
   direction = "INGRESS"
 
   source_ranges = [
-    for range in local.network-ranges:
+    for range in local.network_ranges:
     range
   ]
 }
 
 resource "google_vpc_access_connector" "adjoin" {
+  count = local.enable_adjoin ? 1 : 0
   name = "adjoin"
   region = local.regions[0]
-  ip_cidr_range = local.network-range-adjoin
+  ip_cidr_range = local.network_range_adjoin
   network = google_compute_network.network.name
   depends_on = [module.apis]
 }
 
 resource "google_vpc_access_connector" "directorysync" {
-  count = local.enableDirectorySync ? 1 : 0
+  count = local.enable_directorysync ? 1 : 0
   name = "directorysync"
   region = "europe-west1"
-  ip_cidr_range = local.network-range-directorysync
+  ip_cidr_range = local.network_range_directorysync
   network = google_compute_network.network.name
   depends_on = [module.apis]
 }
 
 resource "google_service_account" "adjoin" {
+  count = local.enable_adjoin ? 1 : 0
   account_id = "adjoin"
   display_name = "Service Account for adjoin operations"
 }
 
-resource "google_project_iam_binding" "adjoin-computeviewer" {
+resource "google_project_iam_binding" "adjoin_computeviewer" {
+  count = local.enable_adjoin ? 1 : 0
   role = "roles/compute.viewer"
 
   members = [
-    "serviceAccount:${google_service_account.adjoin.email}",
+    "serviceAccount:${google_service_account.adjoin[0].email}",
   ]
 }
 
-resource "google_service_account_iam_binding" "cloudbuild-serviceaccountuser" {
-  service_account_id = google_service_account.adjoin.name
+resource "google_service_account_iam_binding" "cloudbuild_serviceaccountuser" {
+  count = local.enable_adjoin ? 1 : 0
+  service_account_id = google_service_account.adjoin[0].name
   role = "roles/iam.serviceAccountUser"
 
   members = [
@@ -227,7 +232,8 @@ resource "google_service_account_iam_binding" "cloudbuild-serviceaccountuser" {
   ]
 }
 
-resource "google_project_iam_binding" "cloudbuild-runadmin" {
+resource "google_project_iam_binding" "cloudbuild_runadmin" {
+  count = local.enable_adjoin ? 1 : 0
   role = "roles/run.admin"
 
   members = [
@@ -236,6 +242,7 @@ resource "google_project_iam_binding" "cloudbuild-runadmin" {
 }
 
 resource "google_secret_manager_secret" "adjoin_adpassword" {
+  count = local.enable_adjoin ? 1 : 0
   secret_id = "adjoin-adpassword"
 
   replication {
@@ -243,13 +250,14 @@ resource "google_secret_manager_secret" "adjoin_adpassword" {
   }
 
   provisioner "local-exec" {
-    command = "printf '${local.password}' | gcloud secrets versions add ${google_secret_manager_secret.adjoin_adpassword.secret_id} --data-file=-"
+    command = "printf '${local.password}' | gcloud secrets versions add ${google_secret_manager_secret.adjoin_adpassword[0].secret_id} --data-file=-"
   }
 
   depends_on = [module.apis]
 }
 
 resource "google_secret_manager_secret" "adjoin_cacert" {
+  count = local.enable_adjoin ? 1 : 0
   secret_id = "adjoin-cacert"
 
   replication {
@@ -260,22 +268,25 @@ resource "google_secret_manager_secret" "adjoin_cacert" {
 }
 
 resource "google_secret_manager_secret_iam_binding" "adjoin_adpassword" {
-  secret_id = google_secret_manager_secret.adjoin_adpassword.secret_id
+  count = local.enable_adjoin ? 1 : 0
+  secret_id = google_secret_manager_secret.adjoin_adpassword[0].secret_id
   role = "roles/secretmanager.secretAccessor"
   members = [
-    "serviceAccount:${google_service_account.adjoin.email}",
+    "serviceAccount:${google_service_account.adjoin[0].email}",
   ]
 }
 
 resource "google_secret_manager_secret_iam_binding" "adjoin_cacert" {
-  secret_id = google_secret_manager_secret.adjoin_cacert.secret_id
+  count = local.enable_adjoin ? 1 : 0
+  secret_id = google_secret_manager_secret.adjoin_cacert[0].secret_id
   role = "roles/secretmanager.secretAccessor"
   members = [
-    "serviceAccount:${google_service_account.adjoin.email}",
+    "serviceAccount:${google_service_account.adjoin[0].email}",
   ]
 }
 
 resource "google_cloud_run_service" "adjoin" {
+  count = local.enable_adjoin ? 1 : 0
   name = "adjoin"
   location = local.regions[0]
 
@@ -286,17 +297,17 @@ resource "google_cloud_run_service" "adjoin" {
         
         env {
           name = "AD_DOMAIN"
-          value = local.name-domain
+          value = local.domain_name
         }
         
         env {
           name = "AD_USERNAME"
-          value = "${split(".", local.name-domain)[0]}\\s-adjoiner"
+          value = "${split(".", local.domain_name)[0]}\\s-adjoiner"
         }
 
         env {
           name = "USE_LDAPS"
-          value = local.enableCertificateAuthority
+          value = local.enable_adcs
         }
 
         env {
@@ -306,7 +317,7 @@ resource "google_cloud_run_service" "adjoin" {
 
         env {
           name = "SM_NAME_ADPASSWORD"
-          value = google_secret_manager_secret.adjoin_adpassword.secret_id
+          value = google_secret_manager_secret.adjoin_adpassword[0].secret_id
         }
 
         env {
@@ -316,7 +327,7 @@ resource "google_cloud_run_service" "adjoin" {
 
         env {
           name = "SM_NAME_CACERT"
-          value = google_secret_manager_secret.adjoin_cacert.secret_id
+          value = google_secret_manager_secret.adjoin_cacert[0].secret_id
         }
 
         env {
@@ -326,22 +337,22 @@ resource "google_cloud_run_service" "adjoin" {
 
         env {
           name = "FUNCTION_IDENTITY"
-          value = google_service_account.adjoin.email
+          value = google_service_account.adjoin[0].email
         }
 
         env {
           name = "PROJECTS_DN"
-          value = "OU=Projects,OU=${local.name-domain},DC=${join(",DC=", split(".", local.name-domain))}"
+          value = "OU=Projects,OU=${local.domain_name},DC=${join(",DC=", split(".", local.domain_name))}"
         }
       }
 
-      service_account_name = google_service_account.adjoin.email
+      service_account_name = google_service_account.adjoin[0].email
     }
 
     metadata {
       annotations = {
         "autoscaling.knative.dev/maxScale" = "5"
-        "run.googleapis.com/vpc-access-connector" = google_vpc_access_connector.adjoin.self_link
+        "run.googleapis.com/vpc-access-connector" = google_vpc_access_connector.adjoin[0].self_link
         "run.googleapis.com/vpc-access-egress" = "all-traffic"
       }
     }
@@ -351,8 +362,9 @@ resource "google_cloud_run_service" "adjoin" {
 }
 
 resource "google_cloud_run_service_iam_binding" "adjoin" {
-  service = google_cloud_run_service.adjoin.name
-  location = google_cloud_run_service.adjoin.location
+  count = local.enable_adjoin ? 1 : 0
+  service = google_cloud_run_service.adjoin[0].name
+  location = google_cloud_run_service.adjoin[0].location
   
   role = "roles/run.invoker"
   members = [
@@ -361,7 +373,7 @@ resource "google_cloud_run_service_iam_binding" "adjoin" {
 }
 
 resource "google_compute_instance_template" "adjoin" {
-  count = length(local.image-families)
+  count = local.enable_adjoin ? length(local.image_families) : 0
   name_prefix = "${data.google_compute_image.windows[count.index].family}-"
   region = local.regions[0]
   machine_type = "n2-standard-4"
@@ -388,7 +400,7 @@ resource "google_compute_instance_template" "adjoin" {
   }
 
   metadata = {
-    sysprep-specialize-script-ps1 = "iex((New-Object System.Net.WebClient).DownloadString('${google_cloud_run_service.adjoin.status[0].url}'))"
+    sysprep-specialize-script-ps1 = "iex((New-Object System.Net.WebClient).DownloadString('${google_cloud_run_service.adjoin[0].status[0].url}'))"
   }
 
   service_account {
@@ -402,7 +414,7 @@ resource "google_compute_instance_template" "adjoin" {
 }
 
 resource "google_compute_instance_group_manager" "adjoin" {
-  count = length(local.image-families)
+  count = local.enable_adjoin ? length(local.image_families) : 0
   name = data.google_compute_image.windows[count.index].family
   zone = local.zones[0]
   base_instance_name = data.google_compute_image.windows[count.index].family
@@ -415,8 +427,9 @@ resource "google_compute_instance_group_manager" "adjoin" {
 }
 
 resource "google_cloud_scheduler_job" "adjoin" {
+  count = local.enable_adjoin ? 1 : 0
   name = "adjoin"
-  region = local.region-scheduler
+  region = local.region_scheduler
   description = "Remove stale objects in Active Directory"
   schedule = "0 0 * * *"
   time_zone = "Europe/Berlin"
@@ -426,11 +439,11 @@ resource "google_cloud_scheduler_job" "adjoin" {
   }
 
   http_target {
-    uri = "${google_cloud_run_service.adjoin.status[0].url}/cleanup"
+    uri = "${google_cloud_run_service.adjoin[0].status[0].url}/cleanup"
 
     oidc_token {
-      service_account_email = google_service_account.adjoin.email
-      audience = "${google_cloud_run_service.adjoin.status[0].url}/"
+      service_account_email = google_service_account.adjoin[0].email
+      audience = "${google_cloud_run_service.adjoin[0].status[0].url}/"
     }
   }
 }
