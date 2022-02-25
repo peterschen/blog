@@ -15,32 +15,29 @@ ZONE=
 
 while [[ $# -gt 0 ]]; do
   case $1 in
-    -r|--rdp-command)
-      RDP_COMMAND="$2"
-      shift # past argument
-      shift # past value
-      ;;
     -z|--zone)
       ZONE="$2"
-      shift # past argument
-      shift # past value
+      shift
+      shift
+      ;;
+    --)
+      shift;
+      break
       ;;
     -*|--*)
       echo "Unknown option $1"
       exit $EXIT_SCRIPTERROR
       ;;
     *)
-      POSITIONAL_ARGS+=("$1") # save positional arg
-      shift # past argument
+      POSITIONAL_ARGS+=("$1")
+      shift
       ;;
   esac
 done
 
-set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
-
 printHelp()
 {
-  echo "Usage: $0 INSTANCE_NAME [INSTANCE_PORT;default=3389] --rdp-command RDP_COMMAND [--zone ZONE]"
+  echo "Usage: $0 INSTANCE_NAME [INSTANCE_PORT;default=3389] [--zone ZONE] -- RDP_COMMAND"
   echo ""
   echo "Parameters can also be set using environmental variables:"
   echo "  INSTANCE_NAME"
@@ -69,13 +66,14 @@ runRdp()
 
   echo "Executing '$command'"
   echo ""
-  
+
   $command
 }
 
 # Assign positional parameters
-INSTANCE_NAME=${POSITIONAL_ARGS[0]}
-INSTANCE_PORT=${POSITIONAL_ARGS[1]}
+INSTANCE_NAME="${POSITIONAL_ARGS[0]}"
+INSTANCE_PORT="${POSITIONAL_ARGS[1]}"
+RDP_COMMAND="$@"
 
 if [[ -z $INSTANCE_PORT ]]; then
   INSTANCE_PORT=3389
