@@ -10,7 +10,7 @@ POSITIONAL_ARGS=()
 
 INSTANCE_NAME=
 INSTANCE_PORT=
-RDP_COMMAND=
+CHAIN_COMMAND=
 ZONE=
 
 while [[ $# -gt 0 ]]; do
@@ -37,15 +37,15 @@ done
 
 printHelp()
 {
-  echo "Usage: $0 INSTANCE_NAME [INSTANCE_PORT;default=3389] [--zone ZONE] -- RDP_COMMAND"
+  echo "Usage: $0 INSTANCE_NAME INSTANCE_PORT [--zone ZONE] -- CHAIN_COMMAND"
   echo ""
   echo "Parameters can also be set using environmental variables:"
   echo "  INSTANCE_NAME"
   echo "  INSTANCE_PORT"
-  echo "  RDP_COMMAND"
   echo "  ZONE"
+  echo "  CHAIN_COMMAND"
   echo ""
-  echo "In the RDP_COMMAND use %SERVER% to specificy the target server which will be automatically"
+  echo "In the CHAIN_COMMAND use %SERVER% to specificy the target server which will be automatically"
   echo "replaced with the correct hostname and port when the IAP tunnel has been established"
 }
 
@@ -59,7 +59,7 @@ runIap()
   gcloud compute start-iap-tunnel $instanceName $instancePort --zone=$zone &> $tout
 }
 
-runRdp()
+runChainCommand()
 {
   port=$2
   command=$(echo "$1" | sed "s/%SERVER%/localhost:$port/")
@@ -73,20 +73,16 @@ runRdp()
 # Assign positional parameters
 INSTANCE_NAME="${POSITIONAL_ARGS[0]}"
 INSTANCE_PORT="${POSITIONAL_ARGS[1]}"
-RDP_COMMAND="$@"
+CHAIN_COMMAND="$@"
 
-if [[ -z $INSTANCE_PORT ]]; then
-  INSTANCE_PORT=3389
-fi
-
-if [[ -z "$INSTANCE_NAME" || -z "$RDP_COMMAND" ]]; then
+if [[ -z "$INSTANCE_NAME" || -z "$INSTANCE_PORT"  || -z "$CHAIN_COMMAND" ]]; then
   printHelp
   exit $EXIT_SCRIPTERROR
 fi
 
 echo "INSTANCE_NAME = ${INSTANCE_NAME}"
 echo "INSTANCE_PORT = ${INSTANCE_PORT}"
-echo "RDP_COMMAND   = ${RDP_COMMAND}"
+echo "CHAIN_COMMAND = ${CHAIN_COMMAND}"
 echo "ZONE          = ${ZONE}"
 
 trap 'rm -f $tout' EXIT
@@ -122,7 +118,7 @@ done
 if [[ ! -z "$localPort" && -z "$error" ]]; then
   echo "LOCAL_PORT    = $localPort"
   echo ""
-  runRdp "$RDP_COMMAND" $localPort
+  runChainCommand "$CHAIN_COMMAND" $localPort
 else
   echo "$error";
   exit $EXIT_IAPERROR;
