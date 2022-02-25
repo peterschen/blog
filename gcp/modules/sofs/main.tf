@@ -42,10 +42,9 @@ module "sysprep" {
   source = "../sysprep"
 }
 
-module "firewall-sofs" {
-  # source = "github.com/peterschen/blog//gcp/modules/firewall-sofs"
+module "firewall_sofs" {
   project = local.project
-  source = "../firewall-sofs"
+  source = "../firewall_sofs"
   name = "allow-sofs"
   network = data.google_compute_network.network
   cidr-ranges = [data.google_compute_subnetwork.subnetwork.ip_cidr_range]
