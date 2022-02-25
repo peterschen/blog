@@ -39,7 +39,7 @@ terraform apply -var project=$PROJECT -var domain-name=$DOMAIN -var password=$PA
 
 ### Scale MIGs to one instance
 ```
-migs=( windows-1809-core-for-containers windows-1809-core windows-1903-core-for-containers windows-1903-core windows-1909-core-for-containers windows-1909-core windows-2004-core windows-2012-r2-core windows-2012-r2 windows-2016 windows-2016-core windows-2019-core-for-containers windows-2019-core windows-2019-for-containers windows-2019 windows-20h2-core )
+migs=( windows-1809-core windows-1809-core-for-containers windows-1903-core windows-1903-core-for-containers windows-1909-core windows-1909-core-for-containers windows-2012-r2 windows-2012-r2-core windows-2016 windows-2016-core windows-2019-core-for-containers windows-2019 windows-2019-core windows-2019-for-containers windows-20h2-core windows-2022 windows-2022-core )
 
 for mig in "${migs[@]}"; do
   gcloud compute instance-groups managed resize $mig --size=1
@@ -53,7 +53,7 @@ terraform destroy -var project=$PROJECT -var domain-name=$DOMAIN -var password=$
 
 ### Scale MIGs to zero instances
 ```
-migs=( windows-1809-core-for-containers windows-1809-core windows-1903-core-for-containers windows-1903-core windows-1909-core-for-containers windows-1909-core windows-2004-core windows-2012-r2-core windows-2012-r2 windows-2016 windows-2016-core windows-2019-core-for-containers windows-2019-core windows-2019-for-containers windows-2019 windows-20h2-core )
+migs=( windows-1809-core windows-1809-core-for-containers windows-1903-core windows-1903-core-for-containers windows-1909-core windows-1909-core-for-containers windows-2012-r2 windows-2012-r2-core windows-2016 windows-2016-core windows-2019-core-for-containers windows-2019 windows-2019-core windows-2019-for-containers windows-20h2-core windows-2022 windows-2022-core )
 
 for mig in "${migs[@]}"; do
   gcloud compute instance-groups managed resize $mig --size=0
@@ -72,7 +72,7 @@ terraform apply -var project=$PROJECT -var name-domain=$DOMAIN -var password=$PA
 
 ### Replace MIG instances
 ```
-migs=( windows-1809-core-for-containers windows-1809-core windows-1903-core-for-containers windows-1903-core windows-1909-core-for-containers windows-1909-core windows-2004-core windows-2012-r2-core windows-2012-r2 windows-2016 windows-2016-core windows-2019-core-for-containers windows-2019-core windows-2019-for-containers windows-2019 windows-20h2-core )
+migs=( windows-1809-core windows-1809-core-for-containers windows-1903-core windows-1903-core-for-containers windows-1909-core windows-1909-core-for-containers windows-2012-r2 windows-2012-r2-core windows-2016 windows-2016-core windows-2019-core-for-containers windows-2019 windows-2019-core windows-2019-for-containers windows-20h2-core windows-2022 windows-2022-core )
 
 for mig in "${migs[@]}"; do
   gcloud compute instance-groups managed rolling-action replace $mig
