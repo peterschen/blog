@@ -2,7 +2,7 @@ locals {
   project = var.project
   name = var.name
   network = var.network
-  cidr-ranges = var.cidr-ranges
+  cidr_ranges = var.cidr_ranges
 }
 
 resource "google_compute_firewall" "sofs" {
@@ -23,7 +23,7 @@ resource "google_compute_firewall" "sofs" {
 
   direction = "INGRESS"
 
-  source_ranges = local.cidr-ranges
+  source_ranges = local.cidr_ranges
 
   target_tags = ["sofs"]
 }
