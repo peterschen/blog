@@ -37,7 +37,7 @@ module "firewall_ca" {
   source = "../firewall_ca"
   name = "allow-ca"
   network = data.google_compute_network.network.self_link
-  cidrRanges = [
+  cidr_ranges = [
     data.google_compute_subnetwork.subnetwork.ip_cidr_range
   ]
 }

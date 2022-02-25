@@ -11,6 +11,6 @@ variable "network" {
   type = string
 }
 
-variable "cidrRanges" {
+variable "cidr_ranges" {
   type = list(string)
 }
