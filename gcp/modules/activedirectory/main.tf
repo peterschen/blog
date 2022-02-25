@@ -153,7 +153,7 @@ resource "google_compute_instance" "dc" {
 
   metadata = {
     sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize-nupkg, { 
-        nameHost = "dc-${count.index}", 
+        nameHost = self.name, 
         password = local.password,
         parametersConfiguration = jsonencode({
           projectName = data.google_project.project.name,
