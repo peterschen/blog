@@ -26,7 +26,7 @@ variable "subnetwork" {
 
 variable "machine-type" {
     type = string
-    default = "n1-standard-2"
+    default = "n2-standard-2"
 }
 
 variable "machine-name" {
