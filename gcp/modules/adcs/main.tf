@@ -81,7 +81,7 @@ resource "google_compute_instance" "ca" {
         nameHost = "ca", 
         password = local.password,
         parametersConfiguration = jsonencode({
-          inlineMeta = filebase64(module.sysprep.path-meta),
+          inlineMeta = filebase64(module.sysprep.path_meta),
           inlineConfiguration = filebase64("${path.module}/ca.ps1"),
           nameDomain = local.domain_name,
           modulesDsc = [

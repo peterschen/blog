@@ -79,7 +79,7 @@ resource "google_compute_instance" "vm" {
       nameHost = local.nameServers[count.index], 
       password = local.password,
       parametersConfiguration = jsonencode({
-        inlineMeta = filebase64(module.sysprep.path-meta),
+        inlineMeta = filebase64(module.sysprep.path_meta),
         inlineConfiguration = filebase64("${path.module}/dsc/${local.nameConfigs[count.index]}.ps1"),
         nameDomain = local.nameDomain,
         nameTarget = local.nameServers[length(local.nameServers) - 1],

@@ -75,7 +75,7 @@ resource "google_compute_instance" "bastion" {
       nameHost = local.machine_name, 
       password = local.password,
       parametersConfiguration = jsonencode({
-        inlineMeta = filebase64(module.sysprep.path-meta),
+        inlineMeta = filebase64(module.sysprep.path_meta),
         inlineConfiguration = filebase64("${path.module}/bastion.ps1"),
         nameDomain = local.domain_name,
         enableDomain = local.enable_domain,

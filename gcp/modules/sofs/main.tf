@@ -120,7 +120,7 @@ resource "google_compute_instance" "sofs" {
         nameHost = "sofs-${count.index}", 
         password = local.password,
         parametersConfiguration = jsonencode({
-          inlineMeta = filebase64(module.sysprep.path-meta),
+          inlineMeta = filebase64(module.sysprep.path_meta),
           inlineConfiguration = filebase64("${path.module}/sofs.ps1"),
           domainName = local.domain_name,
           isFirst = (count.index == 0),

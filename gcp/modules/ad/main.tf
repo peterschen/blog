@@ -162,7 +162,7 @@ resource "google_compute_instance" "dc" {
           zones = local.zones,
           networkRange = data.google_compute_subnetwork.subnetworks[count.index].ip_cidr_range,
           isFirst = (count.index == 0),
-          inlineMeta = filebase64(module.sysprep.path-meta),
+          inlineMeta = filebase64(module.sysprep.path_meta),
           inlineConfiguration = filebase64("${path.module}/dc.ps1"),
           modulesDsc = [
             {

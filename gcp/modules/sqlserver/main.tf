@@ -124,7 +124,7 @@ resource "google_compute_instance" "sql" {
           nodePrefix = "sql",
           nodeCount = local.node_count,
           ipCluster = google_compute_address.sql_cl.address,
-          inlineMeta = filebase64(module.sysprep.path-meta),
+          inlineMeta = filebase64(module.sysprep.path_meta),
           inlineConfiguration = filebase64("${path.module}/sql.ps1"),
           enableAag = local.enable_aag,
           modulesDsc = [

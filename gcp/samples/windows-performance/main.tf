@@ -99,7 +99,7 @@ resource "google_compute_instance" "runner" {
         nameHost = "runner", 
         password = local.password,
         parametersConfiguration = jsonencode({
-          inlineMeta = filebase64(module.sysprep.path-meta),
+          inlineMeta = filebase64(module.sysprep.path_meta),
           inlineConfiguration = filebase64("${path.module}/dsc/runner.ps1"),
           scriptBenchmark = filebase64("${path.module}/benchmark.ps1"),
           scriptConversion = filebase64("${path.module}/conversion.ps1")
@@ -145,7 +145,7 @@ resource "google_compute_instance" "sql" {
         nameHost = "sql", 
         password = local.password,
         parametersConfiguration = jsonencode({
-          inlineMeta = filebase64(module.sysprep.path-meta),
+          inlineMeta = filebase64(module.sysprep.path_meta),
           inlineConfiguration = filebase64("${path.module}/dsc/sql.ps1"),
           modulesDsc = [
             {

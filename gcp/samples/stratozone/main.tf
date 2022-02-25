@@ -69,7 +69,7 @@ resource "google_compute_instance" "stratozone" {
       nameHost = local.nameServer, 
       password = local.password,
       parametersConfiguration = jsonencode({
-        inlineMeta = filebase64(module.sysprep.path-meta),
+        inlineMeta = filebase64(module.sysprep.path_meta),
         inlineConfiguration = filebase64("${path.module}/dsc.ps1"),
         nameDomain = local.nameDomain,
         enableDomain = local.enableDomain,

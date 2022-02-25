@@ -1,4 +1,4 @@
-output "path-meta" {
+output "path_meta" {
   value = "${path.module}/meta.ps1"
 }
 
