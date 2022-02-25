@@ -39,9 +39,8 @@ module "sysprep" {
   source = "../sysprep"
 }
 
-module "firewall-mssql" {
-  # source = "github.com/peterschen/blog//gcp/modules/firewall-mssql"
-  source = "../firewall-mssql"
+module "firewall_mssql" {
+  source = "../firewall_mssql"
   project = local.project
   name = "allow-mssql"
   network = data.google_compute_network.network
