@@ -3,25 +3,25 @@ locals {
   projectNetwork = var.projectNetwork
   region = var.region
   zone = var.zone
-  name-domain = var.domain-name
+  domain_name = var.domain_name
   password = var.password
   network = var.network
   subnetwork = var.subnetwork
-  machine-type = var.machine-type
+  machine_type = var.machine_type
 
   windows_image = var.windows_image
 
-  enable-aag = var.enable-aag
-  node-count = 2
+  enable_aag = var.enable_aag
+  node_count = 2
 }
 
 data "google_compute_network" "network" {
-  project = local.projectNetwork
+  project = local.project_network
   name = local.network
 }
 
 data "google_compute_subnetwork" "subnetwork" {
-  project = local.projectNetwork
+  project = local.project_network
   region = local.region
   name = local.subnetwork
 }
@@ -57,7 +57,7 @@ resource "google_compute_address" "sql" {
   address_type = "INTERNAL"
 }
 
-resource "google_compute_address" "sql-cl" {
+resource "google_compute_address" "sql_cl" {
   region = local.region
   project = local.project
   name = "sql-cl"
@@ -65,7 +65,7 @@ resource "google_compute_address" "sql-cl" {
   subnetwork = data.google_compute_subnetwork.subnetwork.self_link
 }
 
-resource "google_compute_firewall" "allow-mssqlhealthcheck-gcp" {
+resource "google_compute_firewall" "allow_mssqlhealthcheck_gcp" {
   name = "allow-mssqlhealthcheck-gcp"
   project = local.project
   network = data.google_compute_network.network.self_link
@@ -83,11 +83,11 @@ resource "google_compute_firewall" "allow-mssqlhealthcheck-gcp" {
 }
 
 resource "google_compute_instance" "sql" {
-  count = local.node-count
+  count = local.node_count
   project = local.project
   zone = local.zone
   name = "sql-${count.index}"
-  machine_type = local.machine-type
+  machine_type = local.machine_type
 
   tags = ["mssql", "rdp"]
 
@@ -117,16 +117,16 @@ resource "google_compute_instance" "sql" {
         nameHost = "sql-${count.index}", 
         password = local.password,
         parametersConfiguration = jsonencode({
-          domainName = local.name-domain,
+          domainName = local.domain_name,
           zone = local.zone
           networkRange = data.google_compute_subnetwork.subnetwork.ip_cidr_range,
           isFirst = (count.index == 0),
           nodePrefix = "sql",
-          nodeCount = local.node-count,
-          ipCluster = google_compute_address.sql-cl.address,
+          nodeCount = local.node_count,
+          ipCluster = google_compute_address.sql_cl.address,
           inlineMeta = filebase64(module.sysprep.path-meta),
           inlineConfiguration = filebase64("${path.module}/sql.ps1"),
-          enableAag = local.enable-aag,
+          enableAag = local.enable_aag,
           modulesDsc = [
             {
               Name = "xFailOverCluster",
@@ -155,7 +155,7 @@ resource "google_compute_instance" "sql" {
 }
 
 resource "google_compute_instance_group" "sql" {
-  count = local.node-count
+  count = local.node_count
   project = local.project
   zone = local.zone
   name = "sql-${count.index}"
@@ -171,7 +171,7 @@ resource "google_compute_health_check" "sql" {
 
   tcp_health_check {
     port = 59998
-    request = google_compute_address.sql-cl.address
+    request = google_compute_address.sql_cl.address
     response = "1"
   }
 }
@@ -194,7 +194,7 @@ resource "google_compute_forwarding_rule" "sql" {
   region = local.region
   project = local.project
   name = "sql"
-  ip_address = google_compute_address.sql-cl.address
+  ip_address = google_compute_address.sql_cl.address
   load_balancing_scheme = "INTERNAL"
   all_ports = true
   allow_global_access = true

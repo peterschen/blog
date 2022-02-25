@@ -3,7 +3,7 @@ variable "project" {
   default = null
 }
 
-variable "projectNetwork" {
+variable "project_network" {
   type = string
   default = null
 }
@@ -24,7 +24,7 @@ variable "subnetwork" {
   type = string
 }
 
-variable "machine-type" {
+variable "machine_type" {
   type = string
   default = "n2-standard-4"
 }
@@ -34,7 +34,7 @@ variable "windows_image" {
   default = "windows-sql-cloud/sql-ent-2019-win-2022"
 }
 
-variable "domain-name" {
+variable "domain_name" {
   type = string
 }
 
@@ -42,7 +42,7 @@ variable "password" {
   type = string
 }
 
-variable "enable-aag" {
+variable "enable_aag" {
   type = bool
   default = false
 }
