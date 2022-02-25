@@ -85,10 +85,11 @@ echo "INSTANCE_PORT = ${INSTANCE_PORT}"
 echo "CHAIN_COMMAND = ${CHAIN_COMMAND}"
 echo "ZONE          = ${ZONE}"
 
-trap 'rm -f $tout' EXIT
+trap 'kill $iappid; rm -f $tout' EXIT
 tout=$(mktemp)
 
 { runIap "$INSTANCE_NAME" "$INSTANCE_PORT" "$ZONE" $tout; } &
+iappid=$!
 
 retries=0
 localPort=""
