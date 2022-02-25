@@ -85,7 +85,7 @@ resource "google_compute_instance" "bastion" {
   }
 
   service_account {
-    scopes = module.gc_scopes.scopes
+    scopes = module.gce_scopes.scopes
   }
 
   allow_stopping_for_update = true
