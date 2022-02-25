@@ -1,30 +1,28 @@
 # AD on GCP #
-This sample deploys Active Directory on Google Cloud based on the [published reference solution on how to deploy a fault-tolerant Active Directory environment](https://cloud.google.com/solutions/deploy-fault-tolerant-active-directory-environment). This sample is very opinionated and only leaves a few parameters to configure. It is meant for rapid deployment for development environments to validate capabilities or test things out.
 
-During deployment the following resources are deployed to the project you specified:
-
-* VPC Network
-* Cloud NAT (with Cloud Router)
-* 4 Firewall rules (no internet ingress)
-* 2 Compute Engine instances
-* Cloud DNS private forward zone with forwarding
-* Cloud DNS private reverse zone
-
-Additionally the deployment will enable the neccessary APIs required to deploy the resources listed above:
-
-* Cloud Resource Manager API
-* Compute Engine API
-* Google Cloud DNS API
+This sample demonstrates how to set up a self-managed Active Directory environment on GCP. It is intended for non-production lab environments and testing purposes only. This sample comes with feature flags that will enable additional use-cases.
 
 ## Prerequisites ##
 You need to have a Project with billing enabled to deploy the required resources. Additionally Terraform needs to be setup locally or you can use Cloud Shell to deploy the templates.
+
+## Build code
+```
+git clone https://github.com/GoogleCloudPlatform/gce-automated-ad-join.git
+cd gce-automated-ad-join/ad-joining
+
+cat cloudbuild.yaml | sed -e '23,28d;30,32d;49,70d' > cloudbuild.hydrated.yaml
+
+gcloud builds submit . \
+  --config cloudbuild.hydrated.yaml \
+  --substitutions _IMAGE_TAG=$(git rev-parse --short HEAD)
+```
 
 ## Configure environment ##
 These instructions work for Linux, macOS and Cloud Shell. For Windows you may need to adapt these instructions.
 
 ```
 export PROJECT=$GOOGLE_CLOUD_PROJECT # Set to proper project name if not using Cloud Shell
-export SA_KEY_FILE=~configs/sa/terraform@cbp-sandbox.json # Set to the Service Account file
+export SA_KEY_FILE=~/configs/sa/terraform@cbp-sandbox.json # Set to the Service Account file
 export PASSWORD="Admin123Admin123" # Set to the desired password
 export DOMAIN="sandbox.lab" # Set to the desired domain name
 
@@ -41,9 +39,27 @@ terraform get -update
 terraform apply -var project=$PROJECT -var domain-name=$DOMAIN -var password=$PASSWORD
 ```
 
+### Scale MIGs to one instance
+```
+migs=( windows-1809-core windows-1809-core-for-containers windows-1903-core windows-1903-core-for-containers windows-1909-core windows-1909-core-for-containers windows-2012-r2 windows-2012-r2-core windows-2016 windows-2016-core windows-2019-core-for-containers windows-2019 windows-2019-core windows-2019-for-containers windows-20h2-core windows-2022 windows-2022-core )
+
+for mig in "${migs[@]}"; do
+  gcloud compute instance-groups managed resize $mig --size=1
+done
+```
+
 ## Destroy resources ##
 ```
 terraform destroy -var project=$PROJECT -var domain-name=$DOMAIN -var password=$PASSWORD
+```
+
+### Scale MIGs to zero instances
+```
+migs=( windows-1809-core windows-1809-core-for-containers windows-1903-core windows-1903-core-for-containers windows-1909-core windows-1909-core-for-containers windows-2012-r2 windows-2012-r2-core windows-2016 windows-2016-core windows-2019-core-for-containers windows-2019 windows-2019-core windows-2019-for-containers windows-20h2-core windows-2022 windows-2022-core )
+
+for mig in "${migs[@]}"; do
+  gcloud compute instance-groups managed resize $mig --size=0
+done
 ```
 
 ## Redeploy ##
@@ -52,9 +68,17 @@ If you need to redeploy the VM instances you need to taint them first. You may n
 ```
 terraform taint module.ad.google_compute_instance.dc\[0\]
 terraform taint module.ad.google_compute_instance.dc\[1\]
-terraform taint module.bastion.google_compute_instance.bastion
 
 terraform apply -var project=$PROJECT -var name-domain=$DOMAIN -var password=$PASSWORD
+```
+
+### Replace MIG instances
+```
+migs=( windows-1809-core windows-1809-core-for-containers windows-1903-core windows-1903-core-for-containers windows-1909-core windows-1909-core-for-containers windows-2012-r2 windows-2012-r2-core windows-2016 windows-2016-core windows-2019-core-for-containers windows-2019 windows-2019-core windows-2019-for-containers windows-20h2-core windows-2022 windows-2022-core )
+
+for mig in "${migs[@]}"; do
+  gcloud compute instance-groups managed rolling-action replace $mig
+done
 ```
 
 ## Using the environment ##
@@ -69,9 +93,7 @@ Open the tunnel:
 gcloud compute start-iap-tunnel bastion 3389 --local-host-port=localhost:3389
 ```
 
-Now you can point your favorite RDP tool to `localhost:3389` and connect to the jumpbox:
-
-![Remote Desktop connection to the jumpbox](rdp.png?raw=true)
+Now you can point your favorite RDP tool to `localhost:3389` and connect to the jumpbox.
 
 ### Credentials ###
 
