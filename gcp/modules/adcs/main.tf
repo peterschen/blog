@@ -3,8 +3,8 @@ locals {
   zone = var.zone
   network = var.network
   subnetwork = var.subnetwork
-  machineType = var.machineType
-  nameDomain = var.nameDomain
+  machine_type = var.machine_type
+  domain_name = var.domain_name
   password = var.password
   windows_image = var.windows_image
 }
@@ -53,7 +53,7 @@ resource "google_compute_address" "ca" {
 resource "google_compute_instance" "ca" {
   zone = local.zone
   name = "ca"
-  machine_type = local.machineType
+  machine_type = local.machine_type
 
   tags = ["ca", "rdp"]
 
@@ -83,7 +83,7 @@ resource "google_compute_instance" "ca" {
         parametersConfiguration = jsonencode({
           inlineMeta = filebase64(module.sysprep.path-meta),
           inlineConfiguration = filebase64("${path.module}/ca.ps1"),
-          nameDomain = local.nameDomain,
+          nameDomain = local.domain_name,
           modulesDsc = [
             {
               Name = "ActiveDirectoryCSDsc",
