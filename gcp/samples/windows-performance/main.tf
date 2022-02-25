@@ -95,7 +95,7 @@ resource "google_compute_instance" "runner" {
 
   metadata = {
     type = "runner"
-    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
+    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize-nupkg, { 
         nameHost = "runner", 
         password = local.password,
         parametersConfiguration = jsonencode({
@@ -141,7 +141,7 @@ resource "google_compute_instance" "sql" {
 
   metadata = {
     type = "sql"
-    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize, { 
+    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize-nupkg, { 
         nameHost = "sql", 
         password = local.password,
         parametersConfiguration = jsonencode({
