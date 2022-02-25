@@ -27,7 +27,6 @@ data "google_compute_subnetwork" "subnetwork" {
 }
 
 module "apis" {
-  # source = "github.com/peterschen/blog//gcp/modules/apis"
   source = "../apis"
   project = local.project
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com"]
@@ -38,7 +37,6 @@ module "gce_scopes" {
 }
 
 module "sysprep" {
-  # source = "github.com/peterschen/blog//gcp/modules/sysprep"
   source = "../sysprep"
 }
 

@@ -50,7 +50,6 @@ module "ad" {
 }
 
 module "sofs" {
-  # source = "github.com/peterschen/blog//gcp/modules/sofs"
   source = "../../modules/sofs"
   region = local.regions[0]
   zone = local.zones[0]

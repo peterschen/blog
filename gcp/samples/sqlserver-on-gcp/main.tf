@@ -49,7 +49,6 @@ module "ad" {
 }
 
 module "sqlserver" {
-  # source = "github.com/peterschen/blog//gcp/modules/sqlserver"
   source = "../../modules/sqlserver"
   region = local.regions[0]
   zone = local.zones[0]
