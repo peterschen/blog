@@ -29,6 +29,11 @@ variable "machine-type" {
   default = "n2-standard-4"
 }
 
+variable "windows_image" {
+  type = string
+  default = "windows-sql-cloud/sql-ent-2019-win-2022"
+}
+
 variable "domain-name" {
   type = string
 }

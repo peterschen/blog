@@ -8,6 +8,9 @@ locals {
   network = var.network
   subnetwork = var.subnetwork
   machine-type = var.machine-type
+
+  windows_image = var.windows_image
+
   enable-aag = var.enable-aag
   node-count = 2
 }
@@ -90,7 +93,7 @@ resource "google_compute_instance" "sql" {
 
   boot_disk {
     initialize_params {
-      image = "windows-sql-cloud/sql-ent-2019-win-2019"
+      image = local.windows_image
       type = "pd-ssd"
     }
   }
