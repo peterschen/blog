@@ -6,12 +6,12 @@ variable "project" {
 variable "network" {
 }
 
-variable "enable-rdp" {
+variable "enable_rdp" {
     type = bool
     default = true
 }
 
-variable "enable-ssh" {
+variable "enable_ssh" {
     type = bool
     default = true
 }

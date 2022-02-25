@@ -144,7 +144,7 @@ module "bastion" {
 module "firewall_iap" {
   source = "../../modules/firewall_iap"
   network = google_compute_network.network.name
-  enable-ssh = false
+  enable_ssh = false
 }
 
 module "firewall_ad" {
