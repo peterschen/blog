@@ -51,8 +51,7 @@ module "ad" {
 }
 
 module "bastion" {
-  # source = "github.com/peterschen/blog//gcp/modules/bastion-windows"
-  source = "../../modules/bastion-windows"
+  source = "../../modules/bastion_windows"
   region = local.regions[0]
   zone = local.zones[0]
   network = google_compute_network.network.name

@@ -147,7 +147,7 @@ module "firewall-iap" {
 }
 
 module "bastion" {
-  source = "../../modules/bastion-windows"
+  source = "../../modules/bastion_windows"
   project = data.google_project.service.project_id
   projectNetwork = data.google_project.host.project_id
   region = local.region

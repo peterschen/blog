@@ -52,7 +52,7 @@ If you need to redeploy the VM instances you need to taint them first. You may n
 ```
 terraform taint module.ad.google_compute_instance.dc\[0\]
 terraform taint module.ad.google_compute_instance.dc\[1\]
-terraform taint module.bastion-windows.google_compute_instance.bastion
+terraform taint module.bastion.google_compute_instance.bastion
 
 terraform apply -var project=$PROJECT -var name-domain=$DOMAIN -var password=$PASSWORD
 ```
