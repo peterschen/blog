@@ -3,12 +3,12 @@ locals {
   zone = var.zone
   network = var.network
   subnetwork = var.subnetwork
-  machineType = var.machineType
-  nameDomain = var.nameDomain
+  machine_type = var.machine_type
+  domain_name = var.domain_name
   password = var.password
 
   # If Cloud Identity domain is not provided use the domain name
-  cloudIdentityDomain = var.cloudIdentityDomain != null ? var.cloudIdentityDomain : local.nameDomain
+  cloud_identity_domain = var.cloud_identity_domain != null ? var.cloud_identity_domain : local.domain_name
   
   windows_image = var.windows_image
 }
@@ -48,7 +48,7 @@ resource "google_compute_address" "fs" {
 resource "google_compute_instance" "fs" {
   zone = local.zone
   name = "fs"
-  machine_type = local.machineType
+  machine_type = local.machine_type
 
   tags = ["fs", "rdp"]
 
@@ -78,8 +78,8 @@ resource "google_compute_instance" "fs" {
         parametersConfiguration = jsonencode({
           inlineMeta = filebase64(module.sysprep.path-meta),
           inlineConfiguration = filebase64("${path.module}/fs.ps1"),
-          nameDomain = local.nameDomain,
-          cloudIdentityDomain = local.cloudIdentityDomain,
+          nameDomain = local.domain_name,
+          cloudIdentityDomain = local.cloud_identity_domain,
           modulesDsc = [
             {
               Name = "CertificateDsc",
