@@ -6,6 +6,7 @@ locals {
   network = var.network
   subnetworks = var.subnetworks
   machine_type = var.machine_type
+  windows_image = var.windows_image
 }
 
 data "google_project" "project" {}
@@ -133,7 +134,7 @@ resource "google_compute_instance" "dc" {
 
   boot_disk {
     initialize_params {
-      image = "windows-cloud/windows-2019"
+      image = local.windows_image
       type = "pd-ssd"
     }
   }
