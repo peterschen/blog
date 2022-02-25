@@ -55,8 +55,10 @@ runIap()
   instancePort=$2
   zone=$3
   tout=$4
+  tpid=$5
 
-  gcloud compute start-iap-tunnel $instanceName $instancePort --zone=$zone &> $tout
+  gcloud compute start-iap-tunnel $instanceName $instancePort --zone=$zone &> $tout &
+  echo $! > $tpid
 }
 
 runChainCommand()
@@ -85,11 +87,13 @@ echo "INSTANCE_PORT = ${INSTANCE_PORT}"
 echo "CHAIN_COMMAND = ${CHAIN_COMMAND}"
 echo "ZONE          = ${ZONE}"
 
-trap 'kill $iappid; rm -f $tout' EXIT
+trap 'kill $(cat $tpid); rm -f $tout $tpid' EXIT
 tout=$(mktemp)
+tpid=$(mktemp)
 
-{ runIap "$INSTANCE_NAME" "$INSTANCE_PORT" "$ZONE" $tout; } &
-iappid=$!
+# Start IAP
+runIap "$INSTANCE_NAME" "$INSTANCE_PORT" "$ZONE" $tout $tpid
+echo "IAP_PID       = $(cat $tpid)"
 
 retries=0
 localPort=""
@@ -121,8 +125,6 @@ if [[ ! -z "$localPort" && -z "$error" ]]; then
   echo ""
 
   runChainCommand "$CHAIN_COMMAND" $localPort
-
-  kill $iappid
 else
   echo "$error";
   exit $EXIT_IAPERROR;
