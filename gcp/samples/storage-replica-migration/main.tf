@@ -90,7 +90,7 @@ resource "google_compute_instance" "vm" {
   }
 
   service_account {
-    scopes = module.gceDefaultScopes.scopes
+    scopes = module.gce_scopes.scopes
   }
 
   lifecycle {

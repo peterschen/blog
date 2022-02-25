@@ -79,7 +79,7 @@ resource "google_compute_instance" "stratozone" {
   }
 
   service_account {
-    scopes = module.gceDefaultScopes.scopes
+    scopes = module.gce_scopes.scopes
   }
 
   allow_stopping_for_update = true
