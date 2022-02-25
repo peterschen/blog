@@ -116,7 +116,7 @@ resource "google_compute_instance" "sofs" {
   metadata = {
     type = "sofs"
     enable-wsfc = "true"
-    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize-nupkg, { 
+    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path_specialize, { 
         nameHost = "sofs-${count.index}", 
         password = local.password,
         parametersConfiguration = jsonencode({

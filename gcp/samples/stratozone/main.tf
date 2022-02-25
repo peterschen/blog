@@ -65,7 +65,7 @@ resource "google_compute_instance" "stratozone" {
   }
 
   metadata = {
-    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize-nupkg, { 
+    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path_specialize, { 
       nameHost = local.nameServer, 
       password = local.password,
       parametersConfiguration = jsonencode({

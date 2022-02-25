@@ -75,7 +75,7 @@ resource "google_compute_instance" "vm" {
   }
 
   metadata = {
-    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize-nupkg, { 
+    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path_specialize, { 
       nameHost = local.nameServers[count.index], 
       password = local.password,
       parametersConfiguration = jsonencode({

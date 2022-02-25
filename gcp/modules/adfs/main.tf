@@ -72,7 +72,7 @@ resource "google_compute_instance" "fs" {
   }
 
   metadata = {
-    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path-specialize-nupkg, { 
+    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path_specialize, { 
         nameHost = "fs", 
         password = local.password,
         parametersConfiguration = jsonencode({
