@@ -35,15 +35,6 @@ module "sysprep" {
   source = "../sysprep"
 }
 
-# module "firewall_adfs" {
-#   source = "../firewall-adfs"
-#   namePrefix = "allow-adfs"
-#   network = data.google_compute_network.network.self_link
-#   cidrRanges = [
-#     data.google_compute_subnetwork.subnetwork.ip_cidr_range
-#   ]
-# }
-
 resource "google_compute_address" "fs" {
   region = local.region
   subnetwork = data.google_compute_subnetwork.subnetwork.self_link
