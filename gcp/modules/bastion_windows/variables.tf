@@ -42,6 +42,11 @@ variable "domain-name" {
     default = null
 }
 
+variable "windows_image" {
+    type = string 
+    default = "windows-cloud/windows-2022"
+}
+
 variable "enable-domain" {
     type = bool
     default = false

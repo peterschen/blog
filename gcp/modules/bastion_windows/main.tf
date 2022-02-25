@@ -9,6 +9,9 @@ locals {
   machineType = var.machine-type
   machineName = var.machine-name
   nameDomain = var.domain-name
+
+  windows_image = var.windows_image
+
   enableDomain = var.enable-domain
   enableSsms = var.enable-ssms
   enableHammerdb = var.enable-hammerdb
@@ -51,7 +54,7 @@ resource "google_compute_instance" "bastion" {
 
   boot_disk {
     initialize_params {
-      image = "windows-cloud/windows-2019-for-containers"
+      image = local.windows_image
       type = "pd-balanced"
     }
   }
