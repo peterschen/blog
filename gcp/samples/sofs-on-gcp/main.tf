@@ -45,7 +45,7 @@ module "activedirectory" {
     for subnet in google_compute_subnetwork.subnetworks:
     subnet.name
   ]
-  name-domain = local.name-domain
+  domain_name = local.name-domain
   password = local.password
   depends_on = [module.cloud-nat]
 }

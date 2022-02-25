@@ -14,12 +14,12 @@ variable "subnetworks" {
   type = list(string)
 }
 
-variable "machine-type" {
+variable "machine_type" {
   type = string
   default = "n1-standard-1"
 }
 
-variable "name-domain" {
+variable "domain_name" {
   type = string
 }
 

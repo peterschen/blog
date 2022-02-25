@@ -1,11 +1,11 @@
 locals {
   regions = var.regions
   zones = var.zones
-  name_domain = var.name-domain
+  domain_name = var.domain_name
   password = var.password
   network = var.network
   subnetworks = var.subnetworks
-  machine-type = var.machine-type
+  machine_type = var.machine_type
 }
 
 data "google_project" "project" {}
@@ -25,7 +25,7 @@ module "apis" {
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
 }
 
-module "gce-default-scopes" {
+module "gce_default_scopes" {
   source = "../gce-default-scopes"
 }
 
@@ -33,7 +33,7 @@ module "sysprep" {
   source = "../sysprep"
 }
 
-module "firewall-ad" {
+module "firewall_ad" {
   source = "../firewall-ad"
   name = "allow-ad"
   network = data.google_compute_network.network.self_link
@@ -52,7 +52,7 @@ resource "google_compute_address" "dc" {
   address = cidrhost(data.google_compute_subnetwork.subnetworks[count.index].ip_cidr_range, 2)
 }
 
-resource "google_compute_firewall" "allow-dns-gcp" {
+resource "google_compute_firewall" "allow_dns_gcp" {
   name = "allow-dns-gcp"
   network = data.google_compute_network.network.self_link
   priority = 5000
@@ -74,7 +74,7 @@ resource "google_compute_firewall" "allow-dns-gcp" {
   target_tags = ["dns"]
 }
 
-resource "google_compute_firewall" "allow-dns-internal" {
+resource "google_compute_firewall" "allow_dns_internal" {
   name = "allow-dns-internal"
   network = data.google_compute_network.network.self_link
   priority = 5000
@@ -99,9 +99,9 @@ resource "google_compute_firewall" "allow-dns-internal" {
   target_tags = ["dns"]
 }
 
-resource "google_dns_managed_zone" "ad-dns-forward" {
+resource "google_dns_managed_zone" "ad_dns_forward" {
   name = "ad-dns-forward"
-  dns_name = "${local.name_domain}."
+  dns_name = "${local.domain_name}."
 
   visibility = "private"
 
@@ -127,7 +127,7 @@ resource "google_compute_instance" "dc" {
   count = length(local.zones)
   zone = local.zones[count.index]
   name = "dc-${count.index}"
-  machine_type = local.machine-type
+  machine_type = local.machine_type
 
   tags = ["ad", "rdp", "dns"]
 
@@ -156,8 +156,8 @@ resource "google_compute_instance" "dc" {
         nameHost = "dc-${count.index}", 
         password = local.password,
         parametersConfiguration = jsonencode({
-          "projectName" = data.google_project.project.name,
-          domainName = local.name_domain,
+          projectName = data.google_project.project.name,
+          domainName = local.domain_name,
           zone = local.zones[count.index],
           zones = local.zones,
           networkRange = data.google_compute_subnetwork.subnetworks[count.index].ip_cidr_range,
@@ -175,7 +175,7 @@ resource "google_compute_instance" "dc" {
   }
 
   service_account {
-    scopes = module.gce-default-scopes.scopes
+    scopes = module.gce_default_scopes.scopes
   }
 
   allow_stopping_for_update = true
