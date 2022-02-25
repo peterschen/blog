@@ -8,6 +8,9 @@ locals {
   network = var.network
   subnetwork = var.subnetwork
   machine-type = var.machine-type
+
+  windows_image = var.windows_image
+
   enable-cluster = var.enable-cluster
   enable-hdd = var.enable-hdd
   count-nodes = var.node-count
@@ -93,7 +96,7 @@ resource "google_compute_instance" "sofs" {
 
   boot_disk {
     initialize_params {
-      image = "windows-cloud/windows-2019"
+      image = local.windows_image
       type = "pd-ssd"
     }
   }

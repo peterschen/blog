@@ -37,6 +37,11 @@ variable "password" {
   type = string
 }
 
+variable "windows_image" {
+  type = string
+  default = "windows-cloud/windows-2022-core"
+}
+
 variable "node-count" {
   type = number
   default = 2
