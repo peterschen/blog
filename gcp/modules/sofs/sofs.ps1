@@ -223,7 +223,7 @@ configuration ConfigurationWorkload
                 Script EnableS2D
                 {
                     GetScript = {
-                        if((Get-ClusterS2D).State -eq "Enabled")
+                        if((Get-ClusterStorageSpacesDirect).State -eq "Enabled")
                         {
                             $result = "Present";
                         }
@@ -239,9 +239,10 @@ configuration ConfigurationWorkload
                         return $state.Ensure -eq "Present";
                     }
                     SetScript = {
-                        Enable-ClusterS2D -CollectPerformanceHistory $false -Confirm:0;
+                        Enable-ClusterStorageSpacesDirect -CollectPerformanceHistory $false -Confirm:0;
                     }
-                    
+
+                    PsDscRunAsCredential = $domainCredential
                     DependsOn = "[WaitForAll]ClusterJoin"
                 }
 
@@ -290,7 +291,9 @@ configuration ConfigurationWorkload
                         return $state.Ensure -eq "Present";
                     }
                     SetScript = {
-                        New-Volume -FriendlyName $using:Parameters.nodePrefix -StoragePoolFriendlyName "S2D on $($using:Parameters.nodePrefix)-cl" -FileSystem CSVFS_ReFS -Size 50GB;
+                        $pool = Get-StoragePool -FriendlyName "S2D on $($using:Parameters.nodePrefix)-cl";
+                        $size = $pool.Size - $pool.AllocatedSize;
+                        New-Volume -FriendlyName $using:Parameters.nodePrefix -StoragePoolFriendlyName "S2D on $($using:Parameters.nodePrefix)-cl" -FileSystem CSVFS_ReFS -Size $size;
                     }
                     
                     DependsOn = "[Script]EnableS2D"
