@@ -182,6 +182,7 @@ configuration ConfigurationWorkload
                     Path = $_.Path
                     MembersToInclude = $_.Members
                     DomainController = "$($Node.NodeName).$($Parameters.domainName)"
+                    PsDscRunAsCredential = $credentialAdminDomain
                     DependsOn = "[ADUser]ADU-johndoe"
                 }
             }
@@ -194,6 +195,7 @@ configuration ConfigurationWorkload
                     Ensure = "Present"
                     MembersToInclude = $_.Members
                     DomainController = "$($Node.NodeName).$($Parameters.domainName)"
+                    PsDscRunAsCredential = $credentialAdminDomain
                     DependsOn = "[ADGroup]ADG-g-LocalAdmins", "[ADGroup]ADG-g-RemoteDesktopUsers", "[ADGroup]ADG-g-RemoteManagementUsers"
                 }
             }
@@ -320,6 +322,7 @@ configuration ConfigurationWorkload
                     Ensure = "Present"
                     MembersToInclude = $_.Members
                     DomainController = "$($Node.NodeName).$($Parameters.domainName)"
+                    PsDscRunAsCredential = $credentialAdminDomain
                     DependsOn = "[ADDomainController]ADC-DC"
                 }
             }
