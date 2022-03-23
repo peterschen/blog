@@ -33,7 +33,6 @@ configuration ConfigurationWorkload
         "Failover-clustering",
         "FS-FileServer",
         "Storage-Replica",
-        "RSAT-Clustering-Mgmt",
         "RSAT-Clustering-PowerShell",
         "RSAT-Storage-Replica",
         "RSAT-AD-PowerShell"
@@ -246,32 +245,6 @@ configuration ConfigurationWorkload
                     DependsOn = "[WaitForAll]ClusterJoin"
                 }
 
-                Script CreateSofs
-                {
-                    GetScript = {
-                        if((Get-ClusterGroup -Name $using:Parameters.nodePrefix -ErrorAction Ignore | Where-Object { $_.GroupType -eq "ScaleoutFileServer" }) -ne $Null)
-                        {
-                            $result = "Present";
-                        }
-                        else
-                        {
-                            $result = "Absent";
-                        }
-
-                        return @{Ensure = $result};
-                    }
-                    TestScript = {
-                        $state = [scriptblock]::Create($GetScript).Invoke();
-                        return $state.Ensure -eq "Present";
-                    }
-                    SetScript = {
-                        Add-ClusterScaleOutFileServerRole -Name $using:Parameters.nodePrefix;
-                    }
-                    
-                    PsDscRunAsCredential = $domainCredential
-                    DependsOn = "[Script]EnableS2D"
-                }
-
                 Script CreateVolume
                 {
                     GetScript = {
@@ -299,6 +272,32 @@ configuration ConfigurationWorkload
                     DependsOn = "[Script]EnableS2D"
                 }
 
+                Script CreateSofs
+                {
+                    GetScript = {
+                        if((Get-ClusterGroup -Name $using:Parameters.nodePrefix -ErrorAction Ignore | Where-Object { $_.GroupType -eq "ScaleoutFileServer" }) -ne $Null)
+                        {
+                            $result = "Present";
+                        }
+                        else
+                        {
+                            $result = "Absent";
+                        }
+
+                        return @{Ensure = $result};
+                    }
+                    TestScript = {
+                        $state = [scriptblock]::Create($GetScript).Invoke();
+                        return $state.Ensure -eq "Present";
+                    }
+                    SetScript = {
+                        Add-ClusterScaleOutFileServerRole -Name $using:Parameters.nodePrefix;
+                    }
+                    
+                    PsDscRunAsCredential = $domainCredential
+                    DependsOn = "[Script]CreateVolume"
+                }
+
                 Script CreateShare
                 {
                     GetScript = {
@@ -321,7 +320,7 @@ configuration ConfigurationWorkload
                         New-SmbShare -Name $using:Parameters.nodePrefix -Path "C:\ClusterStorage\$($using:Parameters.nodePrefix)" -CachingMode None -FolderEnumerationMode Unrestricted -ContinuouslyAvailable $true -FullAccess "$($using:Parameters.domainName)\Domain Admins","$($using:Parameters.domainName)\johndoe";
                     }
                     
-                    DependsOn = "[Script]CreateVolume","[Script]CreateSofs"
+                    DependsOn = "[Script]CreateSofs"
                 }
             }
             else
