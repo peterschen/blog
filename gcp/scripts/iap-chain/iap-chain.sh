@@ -13,8 +13,16 @@ INSTANCE_PORT=
 CHAIN_COMMAND=
 ZONE=
 
+# Default to what Cloud Shell provides
+PROJECT=$GOOGLE_CLOUD_PROJECT
+
 while [[ $# -gt 0 ]]; do
   case $1 in
+    -p|--project)
+      PROJECT="$2"
+      shift
+      shift
+      ;;
     -z|--zone)
       ZONE="$2"
       shift
@@ -37,11 +45,12 @@ done
 
 printHelp()
 {
-  echo "Usage: $0 INSTANCE_NAME INSTANCE_PORT [--zone ZONE] -- CHAIN_COMMAND"
+  echo "Usage: $0 INSTANCE_NAME INSTANCE_PORT [-p|--project PROJECT] [-z|--zone ZONE] -- CHAIN_COMMAND"
   echo ""
   echo "Parameters can also be set using environmental variables:"
   echo "  INSTANCE_NAME"
   echo "  INSTANCE_PORT"
+  echo "  PROJECT"
   echo "  ZONE"
   echo "  CHAIN_COMMAND"
   echo ""
@@ -53,11 +62,12 @@ runIap()
 {
   instanceName=$1
   instancePort=$2
-  zone=$3
-  tout=$4
-  tpid=$5
+  project=$3
+  zone=$4
+  tout=$5
+  tpid=$6
 
-  gcloud compute start-iap-tunnel $instanceName $instancePort --zone=$zone &> $tout &
+  gcloud compute start-iap-tunnel $instanceName $instancePort --project=$project --zone=$zone &> $tout &
   echo $! > $tpid
 }
 
@@ -82,17 +92,18 @@ if [[ -z "$INSTANCE_NAME" || -z "$INSTANCE_PORT"  || -z "$CHAIN_COMMAND" ]]; the
   exit $EXIT_SCRIPTERROR
 fi
 
+echo "PROJECT       = ${PROJECT}"
+echo "ZONE          = ${ZONE}"
 echo "INSTANCE_NAME = ${INSTANCE_NAME}"
 echo "INSTANCE_PORT = ${INSTANCE_PORT}"
 echo "CHAIN_COMMAND = ${CHAIN_COMMAND}"
-echo "ZONE          = ${ZONE}"
 
 trap 'kill $(cat $tpid); rm -f $tout $tpid' EXIT
 tout=$(mktemp)
 tpid=$(mktemp)
 
 # Start IAP
-runIap "$INSTANCE_NAME" "$INSTANCE_PORT" "$ZONE" $tout $tpid
+runIap "$INSTANCE_NAME" "$INSTANCE_PORT" "$PROJECT" "$ZONE" $tout $tpid
 echo "IAP_PID       = $(cat $tpid)"
 
 retries=0

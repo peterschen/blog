@@ -4,7 +4,7 @@ Script that enables command chaining for IAP tunnels established through `gcloud
 
 ## Usage ##
 ```bash
-iap-chain.sh INSTANCE_NAME INSTANCE_PORT [-z|--zone ZONE] -- CHAIN_COMMAND
+iap-chain.sh INSTANCE_NAME INSTANCE_PORT [-p|--project PROJECT] [-z|--zone ZONE] -- CHAIN_COMMAND
 ```
 
 To allow for automation arguments can also be passed by setting environmental variables before invoking `iap-chain.sh`:
@@ -12,6 +12,7 @@ To allow for automation arguments can also be passed by setting environmental va
 ```bash
   INSTANCE_NAME
   INSTANCE_PORT
+  PROJECT
   ZONE
   CHAIN_COMMAND
 ```
@@ -43,21 +44,31 @@ rdp()
     instance=
     port=3389
     zone=$ZONE
+    project=$GOOGLE_CLOUD_PROJECT
     extra=
 
     while [[ $# -gt 0 ]]; do
         case $1 in
+            -p|--project)
+                project="$2"
+                shift
+                shift
+                ;;
+            -z|--zone)
+                zone="$2"
+                shift
+                shift
             --)
-            shift;
-            break
+                shift;
+                break
             ;;
             -*|--*)
-            echo "Unknown option $1"
-            return 1
+                echo "Unknown option $1"
+                return 1
             ;;
             *)
-            POSITIONAL_ARGS+=("$1")
-            shift
+                POSITIONAL_ARGS+=("$1")
+                shift
             ;;
         esac
     done
@@ -65,6 +76,6 @@ rdp()
     instance=${POSITIONAL_ARGS[0]}
     extra="$@"
 
-    iap-chain.sh $instance $port -z $zone -- xfreerdp +clipboard +home-drive /kbd:0x00000407 /kbd-lang:0x0407 /dynamic-resolution /log-level:WARN /v:%SERVER% $extra    
+    iap-chain.sh $instance $port --project $project --zone $zone -- xfreerdp +clipboard +home-drive /kbd:0x00000407 /kbd-lang:0x0407 /dynamic-resolution /log-level:WARN /v:%SERVER% $extra    
 }
 ```
