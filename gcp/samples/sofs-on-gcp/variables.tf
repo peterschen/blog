@@ -11,7 +11,7 @@ variable "zones" {
   default = ["europe-west4-a", "europe-west1-b"]
 }
 
-variable "domain-name" {
+variable "domain_name" {
   type = string
 }
 
@@ -19,12 +19,12 @@ variable "password" {
   type = string
 }
 
-variable "count-nodes" {
+variable "node_count" {
   type = number
   default = 3
 }
 
-variable "enable-cluster" {
+variable "enable_cluster" {
   type = bool
   default = true
 }

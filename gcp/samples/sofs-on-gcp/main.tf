@@ -13,18 +13,21 @@ provider "google" {
 locals {
   regions = var.regions
   zones = var.zones
-  name-sample = "sofs-on-gcp"
-  name-domain = var.domain-name
+  sample_name = "sofs-on-gcp"
+
+  domain_name = var.domain_name
   password = var.password
-  network-prefixes = ["10.0.0", "10.1.0"]
-  network-mask = 16
-  network-ranges = [
-    for prefix in local.network-prefixes:
-    "${prefix}.0/${local.network-mask}"
+
+  network_prefixes = ["10.0.0", "10.1.0"]
+  network_mask = 16
+  network_ranges = [
+    for prefix in local.network_prefixes:
+    "${prefix}.0/${local.network_mask}"
   ]
-  enable-cluster = var.enable-cluster
+
+  enable_cluster = var.enable_cluster
   enable_hdd = var.enable_hdd
-  count-nodes = var.count-nodes
+  node_count = var.node_count
 
   ssd_count = var.ssd_count
   hdd_count = var.hdd_count
@@ -54,7 +57,7 @@ module "ad" {
     for subnet in google_compute_subnetwork.subnetworks:
     subnet.name
   ]
-  domain_name = local.name-domain
+  domain_name = local.domain_name
   password = local.password
   depends_on = [module.nat]
 }
@@ -65,13 +68,13 @@ module "sofs" {
   zone = local.zones[0]
   network = google_compute_network.network.name
   subnetwork = google_compute_subnetwork.subnetworks[0].name
-  domain_name = local.name-domain
+  domain_name = local.domain_name
   password = local.password
   depends_on = [module.ad]
 
-  node_count = local.count-nodes
+  node_count = local.node_count
   enable_hdd = local.enable_hdd
-  enable_cluster = local.enable-cluster
+  enable_cluster = local.enable_cluster
   ssd_count = local.ssd_count
   ssd_size = local.ssd_size
 }
@@ -84,7 +87,7 @@ module "bastion" {
   subnetwork = google_compute_subnetwork.subnetworks[0].name
   machine_name = "bastion"
   password = local.password
-  domain_name = local.name-domain
+  domain_name = local.domain_name
   enable_domain = true
   depends_on = [module.ad]
 }
@@ -96,7 +99,7 @@ module "firewall_iap" {
 }
 
 resource "google_compute_network" "network" {
-  name = local.name-sample
+  name = local.sample_name
   auto_create_subnetworks = false
   depends_on = [module.apis]
 }
@@ -105,12 +108,12 @@ resource "google_compute_subnetwork" "subnetworks" {
   count = length(local.regions)
   region = local.regions[count.index]
   name = local.regions[count.index]
-  ip_cidr_range = local.network-ranges[count.index]
+  ip_cidr_range = local.network_ranges[count.index]
   network = google_compute_network.network.self_link
   private_ip_google_access = true
 }
 
-resource "google_compute_firewall" "allow-all-internal" {
+resource "google_compute_firewall" "allow_all_internal" {
   name    = "allow-all-internal"
   network = google_compute_network.network.name
   priority = 1000
@@ -122,7 +125,7 @@ resource "google_compute_firewall" "allow-all-internal" {
   direction = "INGRESS"
 
   source_ranges = [
-    for range in local.network-ranges:
+    for range in local.network_ranges:
     range
   ]
 }
