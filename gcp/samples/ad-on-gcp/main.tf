@@ -14,7 +14,7 @@ locals {
   regions = var.regions
   zones = var.zones
   region_scheduler = var.region_scheduler
-  name_sample = "auto-ad-join"
+  sample_name = "ad-on-gcp"
   domain_name = var.domain_name
   cloud_identity_domain = var.cloud_identity_domain
   password = var.password
@@ -159,7 +159,7 @@ module "firewall_ad" {
 }
 
 resource "google_compute_network" "network" {
-  name = local.name_sample
+  name = local.sample_name
   auto_create_subnetworks = false
 }
 
