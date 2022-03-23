@@ -192,7 +192,6 @@ configuration ConfigurationWorkload
                     GroupName = $_.Name
                     GroupScope = "DomainLocal"
                     Ensure = "Present"
-                    Path = $_.Path
                     MembersToInclude = $_.Members
                     DomainController = "$($Node.NodeName).$($Parameters.domainName)"
                     DependsOn = "[ADGroup]ADG-g-LocalAdmins", "[ADGroup]ADG-g-RemoteDesktopUsers", "[ADGroup]ADG-g-RemoteManagementUsers"
