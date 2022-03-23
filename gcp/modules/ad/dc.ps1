@@ -318,7 +318,6 @@ configuration ConfigurationWorkload
                     GroupName = $_.Name
                     GroupScope = "DomainLocal"
                     Ensure = "Present"
-                    Path = $_.Path
                     MembersToInclude = $_.Members
                     DomainController = "$($Node.NodeName).$($Parameters.domainName)"
                     DependsOn = "[ADDomainController]ADC-DC"
