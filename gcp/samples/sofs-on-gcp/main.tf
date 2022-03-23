@@ -23,8 +23,18 @@ locals {
     "${prefix}.0/${local.network-mask}"
   ]
   enable-cluster = var.enable-cluster
-  enable-hdd = var.enable-hdd
+  enable_hdd = var.enable_hdd
   count-nodes = var.count-nodes
+
+  ssd_count = var.ssd_count
+  hdd_count = var.hdd_count
+  ssd_size = var.ssd_size
+  hdd_size = var.hdd_size
+}
+
+module "apis" {
+  source = "../../modules/apis"
+  apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com"]
 }
 
 module "nat" {
@@ -58,6 +68,12 @@ module "sofs" {
   domain_name = local.name-domain
   password = local.password
   depends_on = [module.ad]
+
+  node_count = local.count-nodes
+  enable_hdd = local.enable_hdd
+  enable_cluster = local.enable-cluster
+  ssd_count = local.ssd_count
+  ssd_size = local.ssd_size
 }
 
 module "bastion" {
@@ -82,6 +98,7 @@ module "firewall_iap" {
 resource "google_compute_network" "network" {
   name = local.name-sample
   auto_create_subnetworks = false
+  depends_on = [module.apis]
 }
 
 resource "google_compute_subnetwork" "subnetworks" {

@@ -14,8 +14,10 @@ locals {
   enable_cluster = var.enable_cluster
   enable_hdd = var.enable_hdd
   count_nodes = var.node_count
-  count_disks = 4
-  size_disks = 100
+  ssd_count = var.ssd_count
+  hdd_count = var.hdd_count
+  ssd_size = var.ssd_size
+  hdd_size = var.hdd_size
 }
 
 data "google_compute_network" "network" {
@@ -69,7 +71,7 @@ resource "google_compute_address" "sofs_cl" {
 }
 
 resource "google_compute_firewall" "allow_healthcheck_sofs_gcp" {
-  project = local.projectNetwork
+  project = local.project_network
   name = "allow-healthcheck-sofs-gcp"
   network = data.google_compute_network.network.self_link
   priority = 5000
@@ -152,35 +154,35 @@ resource "google_compute_instance" "sofs" {
 }
 
 resource "google_compute_disk" "sofs_hdd" {
-  count = local.enable_hdd ? local.count_nodes * local.count_disks : 0
+  count = local.enable_hdd ? local.count_nodes * local.hdd_count : 0
   project = local.project
-  zone = google_compute_instance.sofs[floor(count.index / local.count_disks)].zone
+  zone = google_compute_instance.sofs[floor(count.index / local.hdd_count)].zone
   name = "sofs-hdd-${count.index}"
   type = "pd-standard"
-  size = local.size_disks
+  size = local.hdd_size
 }
 
 resource "google_compute_attached_disk" "sofs_hdd" {
-  count = local.enable_hdd ? local.count_nodes * local.count_disks : 0
+  count = local.enable_hdd ? local.count_nodes * local.hdd_count : 0
   project = local.project
   disk = google_compute_disk.sofs_hdd[count.index].self_link
-  instance = google_compute_instance.sofs[floor(count.index / local.count_disks)].self_link
+  instance = google_compute_instance.sofs[floor(count.index / local.hdd_count)].self_link
 }
 
 resource "google_compute_disk" "sofs_ssd" {
-  count = local.count_nodes * local.count_disks
+  count = local.count_nodes * local.ssd_count
   project = local.project
-  zone = google_compute_instance.sofs[floor(count.index / local.count_disks)].zone
+  zone = google_compute_instance.sofs[floor(count.index / local.ssd_count)].zone
   name = "sofs-ssd-${count.index}"
   type = "pd-ssd"
-  size = local.size_disks
+  size = local.ssd_size
 }
 
 resource "google_compute_attached_disk" "sofs_ssd" {
-  count = local.count_nodes * local.count_disks
+  count = local.count_nodes * local.ssd_count
   project = local.project
   disk = google_compute_disk.sofs_ssd[count.index].self_link
-  instance = google_compute_instance.sofs[floor(count.index / local.count_disks)].self_link
+  instance = google_compute_instance.sofs[floor(count.index / local.ssd_count)].self_link
 }
 
 resource "google_compute_instance_group" "sofs" {

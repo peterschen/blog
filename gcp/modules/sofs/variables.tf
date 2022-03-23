@@ -56,3 +56,24 @@ variable "enable_hdd" {
   type = bool
   default = false
 }
+
+variable "ssd_count" {
+  type = number
+  default = 4
+}
+
+variable "ssd_size" {
+  type = number
+  default = 100
+}
+
+variable "hdd_count" {
+  type = number
+  default = 4
+}
+
+variable "hdd_size" {
+  type = number
+  default = 100
+}
+
