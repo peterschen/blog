@@ -222,7 +222,10 @@ configuration ConfigurationWorkload
                 Script EnableS2D
                 {
                     GetScript = {
-                        if((Get-ClusterStorageSpacesDirect).State -eq "Enabled")
+                        $state = (Get-ClusterStorageSpacesDirect).State;
+                        $pool = Get-StoragePool -FriendlyName "S2D on $($using:Parameters.nodePrefix)-cl" -ErrorAction SilentlyContinue;
+
+                        if($state -eq "Enabled" -and $Null -ne $pool)
                         {
                             $result = "Present";
                         }
@@ -265,7 +268,9 @@ configuration ConfigurationWorkload
                     }
                     SetScript = {
                         $pool = Get-StoragePool -FriendlyName "S2D on $($using:Parameters.nodePrefix)-cl";
-                        $size = $pool.Size - $pool.AllocatedSize;
+
+                        # Get the free space in the pool, divide by the nodes in the cluster and leave a 10% buffer
+                        $size = ($pool.Size - $pool.AllocatedSize) / $($using:Parameters.nodeCount) * 0.90;
                         New-Volume -FriendlyName $using:Parameters.nodePrefix -StoragePoolFriendlyName "S2D on $($using:Parameters.nodePrefix)-cl" -FileSystem CSVFS_ReFS -Size $size;
                     }
                     
