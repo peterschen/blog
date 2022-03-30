@@ -72,7 +72,6 @@ data "google_compute_image" "windows" {
 module "apis" {
   source = "../../modules/apis"
   apis = [
-    "appengine.googleapis.com",
     "cloudbuild.googleapis.com",
     "cloudscheduler.googleapis.com",
     "run.googleapis.com",
