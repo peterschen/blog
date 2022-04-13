@@ -13,7 +13,7 @@ configuration ConfigurationWorkload
     );
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration, 
-        ComputerManagementDsc, ActiveDirectoryDsc, ActiveDirectoryCSDsc;
+        ComputerManagementDsc, ActiveDirectoryDsc, NetworkingDsc, ActiveDirectoryCSDsc;
 
     $features = @(
         "ADCS-Cert-Authority",
