@@ -18,7 +18,6 @@ configuration ConfigurationWorkload
     $features = @(
         "ADCS-Cert-Authority",
         "ADCS-Online-Cert"
-        "RSAT-ADCS",
         "RSAT-AD-PowerShell",
         "RSAT-ADDS-Tools"
     );
