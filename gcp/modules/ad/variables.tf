@@ -31,3 +31,8 @@ variable "domain_name" {
 variable "password" {
   type = string
 }
+
+variable "enable_ssl" {
+  type = bool
+  default = false
+}

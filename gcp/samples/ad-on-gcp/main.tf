@@ -100,6 +100,7 @@ module "ad" {
   ]
   domain_name = local.domain_name
   password = local.password
+  enable_ssl = local.enable_adcs
   depends_on = [module.nat]
 }
 
@@ -292,7 +293,7 @@ resource "google_cloud_run_service" "adjoin" {
   template {
     spec {
       containers {
-        image = "gcr.io/${data.google_project.project.name}/register-computer"
+        image = "gcr.io/${data.google_project.project.name}/adjoin"
         
         env {
           name = "AD_DOMAIN"
@@ -306,7 +307,7 @@ resource "google_cloud_run_service" "adjoin" {
 
         env {
           name = "USE_LDAPS"
-          value = local.enable_adcs
+          value = "${local.enable_adcs}"
         }
 
         env {

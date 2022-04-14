@@ -13,7 +13,8 @@ configuration ConfigurationWorkload
     );
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration, 
-        ActiveDirectoryDsc, xPSDesiredStateConfiguration, NetworkingDsc, xDnsServer;
+        ActiveDirectoryDsc, xPSDesiredStateConfiguration, NetworkingDsc, 
+        xDnsServer, CertificateDsc;
 
     $features = @(
         "AD-Domain-Services"
@@ -350,6 +351,45 @@ configuration ConfigurationWorkload
                 }
                 
                 DependsOn = "[ADReplicationSite]ReplicationSite-$($Parameters.zone)"
+            }
+        }
+
+        if($Parameters.enableSsl)
+        {
+            WaitForCertificateServices "WaitForCa"
+            {
+                CARootName = "CA"
+                CAServerFQDN = "ca.$($Parameters.domainName)"
+                DependsOn = "[WaitForADDomain]WFAD-CreateDomain"
+            }
+
+            Script EnableSsl
+            {
+                GetScript = {
+                    $certificates = Get-ChildItem cert:\LocalMachine\My | Where-Object { $_.Subject -eq "CN=$($using:Parameters.NodeName).$($using:Parameters.DomainName)" };
+                    if($null -ne $certificates -and $certificates.Length -gt 0)
+                    {
+                        $result = "Present";
+                    }
+                    else
+                    {
+                        $result = "Absent";
+                    }
+
+                    return @{Ensure = $result};
+                }
+
+                TestScript = {
+                    $state = [scriptblock]::Create($GetScript).Invoke();
+                    return $state.Ensure -eq "Present";
+                }
+
+                SetScript = {
+                    # Updating Group Policy will trigger automatic request of Domain Controller certificate
+                    gpupdate /force
+                }
+                
+                DependsOn = "[WaitForCertificateServices]WaitForCa"
             }
         }
     }

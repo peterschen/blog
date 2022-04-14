@@ -7,6 +7,7 @@ locals {
   subnetworks = var.subnetworks
   machine_type = var.machine_type
   windows_image = var.windows_image
+  enable_ssl = var.enable_ssl
 }
 
 data "google_project" "project" {}
@@ -164,10 +165,15 @@ resource "google_compute_instance" "dc" {
           isFirst = (count.index == 0),
           inlineMeta = filebase64(module.sysprep.path_meta),
           inlineConfiguration = filebase64("${path.module}/dc.ps1"),
+          enableSsl = local.enable_ssl,
           modulesDsc = [
             {
               Name = "xDnsServer",
               Version = "2.0.0"
+            },
+            {
+              Name = "CertificateDsc",
+              Version = "5.1.0"
             }
           ]
         })
