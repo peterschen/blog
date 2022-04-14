@@ -163,13 +163,13 @@ configuration ConfigurationWorkload
                 {
                     DomainName = $Parameters.domainName
                     UserPrincipalName = "$($_.Name)@$($Parameters.domainName)"
-                    Credential = $credentialAdminDomain
                     UserName = $_.Name
                     Password = $credentialAdmin
                     PasswordNeverExpires = $true
                     Ensure = "Present"
                     TrustedForDelegation = $_.TrustedForDelegation
                     Path = $_.Path
+                    PsDscRunAsCredential = $credentialAdminDomain
                     DependsOn = "[ADOrganizationalUnit]ADOU-Services","[ADOrganizationalUnit]ADOU-Users"
                 }
             }
