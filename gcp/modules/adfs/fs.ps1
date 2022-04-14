@@ -92,7 +92,7 @@ configuration ConfigurationWorkload
         WaitForCertificateServices "WaitForCa"
         {
             CARootName = "CA"
-            CAServerFQDN = "ca.${$Parameters.nameDomain}"
+            CAServerFQDN = "ca.$($Parameters.nameDomain)"
             DependsOn = "[WaitForADDomain]WFAD"
         }
 
