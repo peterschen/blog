@@ -10,6 +10,10 @@ provider "google" {
   project = var.project
 }
 
+provider "google-beta" {
+  project = var.project
+}
+
 locals {
   regions = var.regions
   zones = var.zones
@@ -26,10 +30,16 @@ locals {
   enable_directorysync = var.enable_directorysync
 
   network_prefixes = ["10.0.0", "10.1.0"]
+  network_prefixes_proxy_lb = ["10.6.0", "10.7.0"]
   network_mask = 16
+  network_mask_proxy_lb = 23
   network_ranges = [
     for prefix in local.network_prefixes:
     "${prefix}.0/${local.network_mask}"
+  ]
+  network_ranges_proxy_lb = [
+    for prefix in local.network_prefixes_proxy_lb:
+    "${prefix}.0/${local.network_mask_proxy_lb}"
   ]
   network_range_adjoin = "10.8.0.0/28"
   network_range_directorysync = "10.9.0.0/28"
@@ -41,6 +51,11 @@ locals {
   machine_type_dc = "n2-highcpu-2"
   machine_type_ca = "n2-highcpu-2"
   machine_type_bastion = "n2-standard-4"
+  machine_type_adjoin = "n2-highcpu-2"
+  machine_type_joinvm = "e2-medium"
+
+  # Number of vCPU in VM * 7 workers + 1
+  server_workers = 2 * 7 + 1
 
   image_families = [
     "gce-uefi-images/windows-1809-core",
@@ -175,8 +190,19 @@ resource "google_compute_subnetwork" "subnetworks" {
   region = local.regions[count.index]
   name = local.regions[count.index]
   ip_cidr_range = local.network_ranges[count.index]
-  network = google_compute_network.network.self_link
+  network = google_compute_network.network.id
   private_ip_google_access = true
+}
+
+resource "google_compute_subnetwork" "proxy_lb" {
+  provider = google-beta
+  count = length(local.regions)
+  region = local.regions[count.index]
+  name = "lb-${local.regions[count.index]}"
+  ip_cidr_range = local.network_ranges_proxy_lb[count.index]
+  network = google_compute_network.network.id
+  purpose = "REGIONAL_MANAGED_PROXY"
+  role = "ACTIVE"
 }
 
 resource "google_compute_firewall" "allow-all-internal" {
@@ -194,6 +220,41 @@ resource "google_compute_firewall" "allow-all-internal" {
     for range in local.network_ranges:
     range
   ]
+}
+
+resource "google_compute_firewall" "allow-adjoin-healthcheck" {
+  name = "allow-adjoin-healthcheck"
+  network = google_compute_network.network.id
+  priority = 5000
+
+  allow {
+    protocol = "tcp"
+    ports    = ["8080"]
+  }
+
+  direction = "INGRESS"
+
+  source_ranges = ["35.191.0.0/16", "130.211.0.0/22"]
+  target_tags = ["adjoin"]
+}
+
+resource "google_compute_firewall" "allow-adjoin-lb" {
+  name    = "allow-adjoin-lb"
+  network = google_compute_network.network.name
+  priority = 1000
+
+  allow {
+    protocol = "tcp"
+    ports    = ["8080"]
+  }
+
+  direction = "INGRESS"
+
+  source_ranges = [
+    for range in local.network_ranges_proxy_lb:
+    range
+  ]
+  target_tags = ["adjoin"]
 }
 
 resource "google_vpc_access_connector" "adjoin" {
@@ -359,7 +420,7 @@ resource "google_cloud_run_service" "adjoin" {
     metadata {
       annotations = {
         "autoscaling.knative.dev/maxScale" = "5"
-        "run.googleapis.com/vpc-access-connector" = google_vpc_access_connector.adjoin[0].self_link
+        "run.googleapis.com/vpc-access-connector" = google_vpc_access_connector.adjoin[0].id
         "run.googleapis.com/vpc-access-egress" = "all-traffic"
       }
     }
@@ -379,16 +440,16 @@ resource "google_cloud_run_service_iam_binding" "adjoin" {
   ]
 }
 
-resource "google_compute_instance_template" "adjoin" {
+resource "google_compute_instance_template" "joinvm" {
   count = local.enable_adjoin ? length(local.image_families) : 0
   name_prefix = "${data.google_compute_image.windows[count.index].family}-"
   region = local.regions[0]
-  machine_type = "e2-medium"
+  machine_type = local.machine_type_joinvm
 
   tags = ["rdp"]
 
   disk {
-    source_image = data.google_compute_image.windows[count.index].self_link
+    source_image = data.google_compute_image.windows[count.index].id
     auto_delete = true
     boot = true
     disk_type = "pd-ssd"
@@ -396,8 +457,8 @@ resource "google_compute_instance_template" "adjoin" {
   }
 
   network_interface {
-    network = google_compute_network.network.self_link
-    subnetwork = google_compute_subnetwork.subnetworks[0].self_link
+    network = google_compute_network.network.id
+    subnetwork = google_compute_subnetwork.subnetworks[0].id
   }
 
   shielded_instance_config {
@@ -420,14 +481,14 @@ resource "google_compute_instance_template" "adjoin" {
   }
 }
 
-resource "google_compute_instance_group_manager" "adjoin" {
+resource "google_compute_instance_group_manager" "joinvm" {
   count = local.enable_adjoin ? length(local.image_families) : 0
   name = data.google_compute_image.windows[count.index].family
   zone = local.zones[0]
   base_instance_name = data.google_compute_image.windows[count.index].family
   
   version {
-    instance_template = google_compute_instance_template.adjoin[count.index].id
+    instance_template = google_compute_instance_template.joinvm[count.index].id
   }
 
   target_size = 0
@@ -447,10 +508,163 @@ resource "google_cloud_scheduler_job" "adjoin" {
 
   http_target {
     uri = "${google_cloud_run_service.adjoin[0].status[0].url}/cleanup"
+    http_method = "POST"
 
     oidc_token {
       service_account_email = google_service_account.adjoin[0].email
       audience = "${google_cloud_run_service.adjoin[0].status[0].url}/"
     }
   }
+}
+
+resource "google_compute_instance_template" "adjoin" {
+  count = length(local.regions)
+  region = local.regions[count.index]
+  name_prefix = "adjoin"
+  machine_type = local.machine_type_adjoin
+
+  tags = ["ssh", "adjoin"]
+
+  disk {
+    source_image = "cos-cloud/cos-stable"
+    auto_delete = true
+    boot = true
+    disk_type = "pd-balanced"
+    disk_size_gb = 10
+  }
+
+  network_interface {
+    network = google_compute_network.network.id
+    subnetwork = google_compute_subnetwork.subnetworks[count.index].id
+  }
+
+  shielded_instance_config {
+    enable_secure_boot = true
+    enable_vtpm = true
+    enable_integrity_monitoring = true
+  }
+
+  metadata = {
+    enable-oslogin = "true"
+    gce-container-declaration = <<-EOM
+      spec:
+        containers:
+        - name: adjoin-n2-highcpu-8-57procs-v1
+          image: gcr.io/cbpetersen-sandbox/adjoin
+          env:
+          - name: AD_DOMAIN
+            value: ${local.domain_name}
+          - name: AD_USERNAME
+            value: ${split(".", local.domain_name)[0]}\\s-adjoiner
+          - name: USE_LDAPS
+            value: '${local.enable_adcs}'
+          - name: SM_PROJECT
+            value: ${data.google_project.project.name}
+          - name: SM_NAME_ADPASSWORD
+            value: ${google_secret_manager_secret.adjoin_adpassword[0].secret_id}
+          - name: SM_VERSION_ADPASSWORD
+            value: latest
+          - name: SM_NAME_CACERT
+            value: ${google_secret_manager_secret.adjoin_cacert[0].secret_id}
+          - name: SM_VERSION_CACERT
+            value: latest
+          - name: FUNCTION_IDENTITY
+            value: ${google_service_account.adjoin[0].email}
+          - name: PROJECTS_DN
+            value: OU=Projects,OU=${local.domain_name},DC=${join(",DC=", split(".", local.domain_name))}
+          - name: PORT
+            value: '8080'
+          - name: SERVER_WORKERS
+            value: '${local.server_workers}'
+          stdin: false
+          tty: false
+          restartPolicy: OnFailure
+      EOM
+  }
+
+  service_account {
+    email  = data.google_compute_default_service_account.default.email
+    scopes = ["cloud-platform"]
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "google_compute_region_instance_group_manager" "adjoin" {
+  count = length(local.regions)
+  name = "adjoin-${local.regions[count.index]}"
+  region = local.regions[count.index]
+  base_instance_name = "adjoin"
+  
+  version {
+    instance_template = google_compute_instance_template.adjoin[count.index].id
+  }
+
+  named_port {
+    name = "adjoin"
+    port = 8080
+  }
+
+  target_size = 0
+}
+
+resource "google_compute_region_health_check" "adjoin" {
+  count = length(local.regions)
+  region = local.regions[count.index]
+  name = "adjoin-${local.regions[count.index]}"
+  timeout_sec = 2
+  check_interval_sec = 2
+
+  http_health_check {
+    port = 8080
+  }
+}
+
+resource "google_compute_region_backend_service" "adjoin" {
+  count = length(local.regions)
+  region = local.regions[count.index]
+  name = "adjoin-${local.regions[count.index]}"
+  
+  load_balancing_scheme = "INTERNAL_MANAGED"
+
+  protocol = "HTTP"
+  port_name = "adjoin"
+  timeout_sec = 30
+  health_checks = [google_compute_region_health_check.adjoin[count.index].id]
+
+  backend {
+    group = google_compute_region_instance_group_manager.adjoin[count.index].instance_group
+    balancing_mode = "UTILIZATION"
+    capacity_scaler = 1.0
+  }
+}
+
+resource "google_compute_region_url_map" "adjoin" {
+  count = length(local.regions)
+  region = local.regions[count.index]
+  name = "adjoin-${local.regions[count.index]}"
+  default_service = google_compute_region_backend_service.adjoin[count.index].id
+}
+
+resource "google_compute_region_target_http_proxy" "adjoin" {
+  count = length(local.regions)
+  region = local.regions[count.index]
+  name = "adjoin-${local.regions[count.index]}"
+  url_map = google_compute_region_url_map.adjoin[count.index].id
+}
+
+resource "google_compute_forwarding_rule" "adjoin" {
+  provider = google-beta
+  count = length(local.regions)
+  region = local.regions[count.index]
+  name = "adjoin-${local.regions[count.index]}"
+  load_balancing_scheme = "INTERNAL_MANAGED"
+  
+  
+  port_range = "8080"
+  target = google_compute_region_target_http_proxy.adjoin[count.index].id
+  network = google_compute_network.network.id
+  subnetwork = google_compute_subnetwork.subnetworks[count.index].id
 }
