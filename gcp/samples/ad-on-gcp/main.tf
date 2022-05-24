@@ -38,6 +38,10 @@ locals {
     "${prefix}.2"
   ]
 
+  machine_type_dc = "n2-highcpu-2"
+  machine_type_ca = "n2-highcpu-2"
+  machine_type_bastion = "n2-standard-4"
+
   image_families = [
     "gce-uefi-images/windows-1809-core",
     "gce-uefi-images/windows-1809-core-for-containers",
@@ -99,6 +103,7 @@ module "ad" {
     subnet.name
   ]
   domain_name = local.domain_name
+  machine_type = local.machine_type_dc
   password = local.password
   enable_ssl = local.enable_adcs
   depends_on = [module.nat]
@@ -111,6 +116,7 @@ module "adcs" {
   zone = local.zones[0]
   network = google_compute_network.network.name
   subnetwork = google_compute_subnetwork.subnetworks[0].name
+  machine_type = local.machine_type_ca
   domain_name = local.domain_name
   password = local.password
   depends_on = [module.ad]
@@ -135,6 +141,7 @@ module "bastion" {
   zone = local.zones[0]
   network = google_compute_network.network.name
   subnetwork = google_compute_subnetwork.subnetworks[0].name
+  machine_type = local.machine_type_bastion
   machine_name = "bastion"
   password = local.password
   domain_name = local.domain_name
