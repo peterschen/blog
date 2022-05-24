@@ -11,6 +11,7 @@
 .terraform.lock.hcl
 terraform.tfstate
 terraform.tfstate.backup
+terraform.tfstate.*.backup
 
 # Python
 __pycache__
