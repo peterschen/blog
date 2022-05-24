@@ -376,7 +376,7 @@ resource "google_compute_instance_template" "adjoin" {
   count = local.enable_adjoin ? length(local.image_families) : 0
   name_prefix = "${data.google_compute_image.windows[count.index].family}-"
   region = local.regions[0]
-  machine_type = "n2-standard-4"
+  machine_type = "e2-medium"
 
   tags = ["rdp"]
 
