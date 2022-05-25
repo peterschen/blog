@@ -1,6 +1,6 @@
 locals {
   project = var.project
-  project_network = var.project_network
+  project_network = var.project_network == null ? var.project : var.project_network
   region = var.region
   zone = var.zone
   network = var.network
