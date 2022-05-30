@@ -9,7 +9,7 @@
 .terraform.*
 .terraform.tfstate.lock.info
 .terraform.lock.hcl
-terraform.tfstate
+*.tfstate
 terraform.tfstate.backup
 terraform.tfstate.*.backup
 
