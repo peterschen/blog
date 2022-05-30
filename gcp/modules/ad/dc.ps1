@@ -79,6 +79,7 @@ configuration ConfigurationWorkload
         @{Name = "g-RemoteManagementUsers"; Path = "ou=Groups,$ou"; Members = @("$($userJohndoe.Name)")}
         @{Name = "g-ClusterResources"; Path = "ou=Groups,$ou"; Members = @()}
         @{Name = "g-IisUsers"; Path = "ou=Groups,$ou"; Members = @()}
+        @{Name = "g-CloudSqlAdmins"; Path = "ou=Groups,$ou"; Members = @("$($userJohndoe.Name)")}
     );
 
     $builtinGroups = @(
