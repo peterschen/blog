@@ -4,10 +4,6 @@ locals {
   billing_account = var.billing_account
 }
 
-resource "random_id" "project" {
-  byte_length = 10
-}
-
 resource "random_pet" "project" {
   length = 2
 }
@@ -18,7 +14,7 @@ resource "random_integer" "project" {
 }
 
 resource "google_project" "project" {
-  project_id = lower(random_id.project.id)
+  project_id = "${random_pet.project.id}-${random_integer.project.id}"
   name = "${random_pet.project.id}-${random_integer.project.id}"
   org_id = local.org_id
   billing_account = local.billing_account
