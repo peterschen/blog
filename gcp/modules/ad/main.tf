@@ -57,9 +57,8 @@ resource "google_compute_address" "dc" {
   project = data.google_project.project.project_id
   region = local.regions[count.index]
   subnetwork = data.google_compute_subnetwork.subnetworks[count.index].self_link
-  name = "dc"
+  name = "dc-${local.zones[count.index]}"
   address_type = "INTERNAL"
-  address = cidrhost(data.google_compute_subnetwork.subnetworks[count.index].ip_cidr_range, 2)
 }
 
 resource "google_compute_firewall" "allow_dns_gcp" {
