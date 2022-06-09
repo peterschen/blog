@@ -1,4 +1,5 @@
 locals {
+  project = var.project
   regions = var.regions
   zones = var.zones
   domain_name = var.domain_name
@@ -10,20 +11,25 @@ locals {
   enable_ssl = var.enable_ssl
 }
 
-data "google_project" "project" {}
+data "google_project" "project" {
+  project_id = local.project
+}
 
 data "google_compute_network" "network" {
+  project = data.google_project.project.project_id
   name = local.network
 }
 
 data "google_compute_subnetwork" "subnetworks" {
   count = length(local.subnetworks)
+  project = data.google_project.project.project_id
   region = local.regions[count.index]
   name = local.subnetworks[count.index]
 }
 
 module "apis" {
   source = "../apis"
+  project = data.google_project.project.project_id
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
 }
 
@@ -37,6 +43,7 @@ module "sysprep" {
 
 module "firewall_ad" {
   source = "../firewall_ad"
+  project = data.google_project.project.project_id
   name = "allow-ad"
   network = data.google_compute_network.network.self_link
   cidr_ranges = [
@@ -47,6 +54,7 @@ module "firewall_ad" {
 
 resource "google_compute_address" "dc" {
   count = length(local.zones)
+  project = data.google_project.project.project_id
   region = local.regions[count.index]
   subnetwork = data.google_compute_subnetwork.subnetworks[count.index].self_link
   name = "dc"
@@ -55,6 +63,7 @@ resource "google_compute_address" "dc" {
 }
 
 resource "google_compute_firewall" "allow_dns_gcp" {
+  project = data.google_project.project.project_id
   name = "allow-dns-gcp"
   network = data.google_compute_network.network.self_link
   priority = 5000
@@ -77,6 +86,7 @@ resource "google_compute_firewall" "allow_dns_gcp" {
 }
 
 resource "google_compute_firewall" "allow_dns_internal" {
+  project = data.google_project.project.project_id
   name = "allow-dns-internal"
   network = data.google_compute_network.network.self_link
   priority = 5000
@@ -102,6 +112,7 @@ resource "google_compute_firewall" "allow_dns_internal" {
 }
 
 resource "google_dns_managed_zone" "ad_dns_forward" {
+  project = data.google_project.project.project_id
   name = "ad-dns-forward"
   dns_name = "${local.domain_name}."
 
@@ -127,6 +138,7 @@ resource "google_dns_managed_zone" "ad_dns_forward" {
 
 resource "google_compute_instance" "dc" {
   count = length(local.zones)
+  project = data.google_project.project.project_id
   zone = local.zones[count.index]
   name = "dc-${count.index}"
   machine_type = local.machine_type
