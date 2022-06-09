@@ -22,6 +22,15 @@ resource "google_project" "project" {
   auto_create_network = false
 }
 
+resource "google_project_service" "apis" {
+  count = length(var.apis)
+  project = google_project.project.project_id
+  service = var.apis[count.index]
+
+  disable_dependent_services = true
+  disable_on_destroy = false
+}
+
 resource "google_project_organization_policy" "vm_external_ip_access" {
   project = google_project.project.project_id
   constraint = "compute.vmExternalIpAccess"
