@@ -119,7 +119,7 @@ resource "google_dns_managed_zone" "ad_dns_forward" {
 
   private_visibility_config {
     networks {
-      network_url = data.google_compute_network.network.self_link
+      network_url = data.google_compute_network.network.id
     }
   }
 
@@ -132,7 +132,9 @@ resource "google_dns_managed_zone" "ad_dns_forward" {
     }
   }
 
-  depends_on = [module.apis]
+  depends_on = [
+    module.apis
+  ]
 }
 
 resource "google_compute_instance" "dc" {
