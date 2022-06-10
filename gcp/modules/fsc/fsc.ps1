@@ -207,19 +207,31 @@ configuration ConfigurationWorkload
                     PsDscRunAsCredential = $domainCredential
                     DependsOn = "[ADComputer]PrestageClusterResource"
                 }
+
+                WaitForAll "Witness"
+                {
+                    ResourceName = "[SmbShare]Witness"
+                    NodeName = $Parameters.witnessName
+                    RetryIntervalSec = 5
+                    RetryCount = 120
+                    DependsOn = "[Computer]JoinDomain"
+                }
                 
                 xCluster "CreateCluster"
                 {
                     Name = "$($Parameters.nodePrefix)-cl"
                     DomainAdministratorCredential = $domainCredential
                     StaticIPAddress = $Parameters.ipCluster
+                    PsDscRunAsCredential = $domainCredential
                     DependsOn = "[WindowsFeature]WF-Failover-clustering","[ADGroup]AddClusterResourceToGroup"
                 }
 
                 xClusterQuorum "Quorum"
                 {
-                    Type = "NodeMajority"
                     IsSingleInstance = "Yes"
+                    Type = "NodeAndFileShareMajority"
+                    Resource = "\\$($Parameters.witnessName)\witness"
+                    PsDscRunAsCredential = $domainCredential
                     DependsOn = "[xCluster]CreateCluster"
                 }
 

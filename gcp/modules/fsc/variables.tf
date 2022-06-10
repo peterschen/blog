@@ -12,8 +12,12 @@ variable "region" {
   type = string
 }
 
-variable "zones" {
+variable "cluster_zones" {
   type = list(string)
+}
+
+variable "witness_zone" {
+  type = string
 }
 
 variable "network" {
@@ -38,9 +42,14 @@ variable "node_count" {
   default = 2
 }
 
-variable "machine_type" {
+variable "cluster_machine_type" {
   type = string
   default = "n2-highcpu-8"
+}
+
+variable "witness_machine_type" {
+  type = string
+  default = "n2-highcpu-2"
 }
 
 variable "windows_image" {

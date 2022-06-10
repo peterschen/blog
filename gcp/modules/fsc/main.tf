@@ -3,14 +3,16 @@ locals {
   project_network = var.project_network != null ? var.project_network : var.project
   
   region = var.region
-  zones = var.zones
+  cluster_zones = var.cluster_zones
+  witness_zone = var.witness_zone
   
   domain_name = var.domain_name
   password = var.password
   network = var.network
   subnet = var.subnetwork
   
-  machine_type = var.machine_type
+  cluster_machine_type = var.cluster_machine_type
+  witness_machine_type = var.witness_machine_type
   windows_image = var.windows_image
 
   enable_cluster = var.enable_cluster
@@ -72,7 +74,7 @@ module "firewall_smb" {
 
 resource "google_compute_address" "node" {
   count = local.node_count
-  project = data.google_project.default.project_id
+  project = data.google_project.network.project_id
   region = local.region
   subnetwork = data.google_compute_subnetwork.subnet.id
   name = "fsc-${count.index}"
@@ -80,7 +82,7 @@ resource "google_compute_address" "node" {
 }
 
 resource "google_compute_address" "cluster" {
-  project = data.google_project.default.project_id
+  project = data.google_project.network.project_id
   region = local.region
   name = "cluster"
   address_type = "INTERNAL"
@@ -88,9 +90,17 @@ resource "google_compute_address" "cluster" {
 }
 
 resource "google_compute_address" "fsc" {
-  project = data.google_project.default.project_id
+  project = data.google_project.network.project_id
   region = local.region
   name = "fsc"
+  address_type = "INTERNAL"
+  subnetwork = data.google_compute_subnetwork.subnet.id
+}
+
+resource "google_compute_address" "witness" {
+  project = data.google_project.network.project_id
+  region = local.region
+  name = "witness"
   address_type = "INTERNAL"
   subnetwork = data.google_compute_subnetwork.subnet.id
 }
@@ -115,9 +125,9 @@ resource "google_compute_firewall" "allow_healthcheck_cluster_gcp" {
 resource "google_compute_instance" "fsc" {
   count = local.node_count
   project = data.google_project.default.project_id
-  zone = local.zones[count.index]
+  zone = local.cluster_zones[count.index]
   name = "fsc-${count.index}"
-  machine_type = local.machine_type
+  machine_type = local.cluster_machine_type
 
   tags = ["cluster", "fsc", "smb", "rdp"]
 
@@ -163,12 +173,71 @@ resource "google_compute_instance" "fsc" {
           ipCluster = google_compute_address.cluster.address,
           ipFsc = google_compute_address.fsc.address,
           cacheDiskInterface = local.cache_disk_interface,
+          witnessName = google_compute_instance.witness.name,
           modulesDsc = [
             {
               Name = "xFailOverCluster",
               Version = "1.16.0"
             }
           ]
+        })
+      })
+  }
+
+  service_account {
+    scopes = module.gce_scopes.scopes
+  }
+
+  lifecycle {
+    ignore_changes = [
+      attached_disk
+    ]
+  }
+
+  allow_stopping_for_update = true
+
+  depends_on = [
+    module.apis
+  ]
+}
+
+resource "google_compute_instance" "witness" {
+  project = data.google_project.default.project_id
+  zone = local.witness_zone
+  name = "witness"
+  machine_type = local.witness_machine_type
+
+  tags = ["smb", "rdp"]
+
+  boot_disk {
+    initialize_params {
+      image = local.windows_image
+      type = "pd-balanced"
+    }
+  }
+
+  network_interface {
+    network = data.google_compute_network.network.id
+    subnetwork = data.google_compute_subnetwork.subnet.id
+    network_ip = google_compute_address.witness.address
+  }
+
+  shielded_instance_config {
+    enable_secure_boot = true
+    enable_vtpm = true
+    enable_integrity_monitoring = true
+  }
+
+  metadata = {
+    enable-wsfc = "true"
+    sysprep-specialize-script-ps1 = templatefile(module.sysprep.path_specialize, { 
+        nameHost = "witness", 
+        password = local.password,
+        parametersConfiguration = jsonencode({
+          inlineMeta = filebase64(module.sysprep.path_meta),
+          inlineConfiguration = filebase64("${path.module}/witness.ps1"),
+          domainName = local.domain_name,
+          modulesDsc = []
         })
       })
   }
@@ -210,7 +279,7 @@ resource "google_compute_attached_disk" "capacity" {
 resource "google_compute_instance_group" "cluster" {
   count = length(google_compute_instance.fsc)
   project = data.google_project.default.project_id
-  zone = local.zones[count.index]
+  zone = local.cluster_zones[count.index]
   name = "cluster-${count.index}"
   
   network = data.google_compute_network.network.id
