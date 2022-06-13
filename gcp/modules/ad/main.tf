@@ -1,35 +1,45 @@
 locals {
   project = var.project
+  project_network = var.project_network == null ? var.project : var.project_network
+
   regions = var.regions
   zones = var.zones
-  domain_name = var.domain_name
-  password = var.password
+  
   network = var.network
   subnetworks = var.subnetworks
+  
+  domain_name = var.domain_name
+  password = var.password
+  
   machine_type = var.machine_type
   windows_image = var.windows_image
+
   enable_ssl = var.enable_ssl
 }
 
-data "google_project" "project" {
+data "google_project" "default" {
   project_id = local.project
 }
 
+data "google_project" "network" {
+  project_id = local.project_network
+}
+
 data "google_compute_network" "network" {
-  project = data.google_project.project.project_id
+  project = data.google_project.network.project_id
   name = local.network
 }
 
 data "google_compute_subnetwork" "subnetworks" {
   count = length(local.subnetworks)
-  project = data.google_project.project.project_id
+  project = data.google_project.network.project_id
   region = local.regions[count.index]
   name = local.subnetworks[count.index]
 }
 
 module "apis" {
   source = "../apis"
-  project = data.google_project.project.project_id
+  project = data.google_project.default.project_id
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
 }
 
@@ -43,9 +53,10 @@ module "sysprep" {
 
 module "firewall_ad" {
   source = "../firewall_ad"
-  project = data.google_project.project.project_id
+  project = data.google_project.network.project_id
   name = "allow-ad"
-  network = data.google_compute_network.network.self_link
+  network = data.google_compute_network.network.id
+
   cidr_ranges = [
     for subnet in data.google_compute_subnetwork.subnetworks:
     subnet.ip_cidr_range
@@ -54,17 +65,18 @@ module "firewall_ad" {
 
 resource "google_compute_address" "dc" {
   count = length(local.zones)
-  project = data.google_project.project.project_id
+  project = data.google_project.network.project_id
   region = local.regions[count.index]
-  subnetwork = data.google_compute_subnetwork.subnetworks[count.index].self_link
+  subnetwork = data.google_compute_subnetwork.subnetworks[count.index].id
   name = "dc-${local.zones[count.index]}"
   address_type = "INTERNAL"
 }
 
 resource "google_compute_firewall" "allow_dns_gcp" {
-  project = data.google_project.project.project_id
+  project = data.google_project.network.project_id
+
   name = "allow-dns-gcp"
-  network = data.google_compute_network.network.self_link
+  network = data.google_compute_network.network.id
   priority = 5000
 
   allow {
@@ -85,9 +97,9 @@ resource "google_compute_firewall" "allow_dns_gcp" {
 }
 
 resource "google_compute_firewall" "allow_dns_internal" {
-  project = data.google_project.project.project_id
+  project = data.google_project.network.project_id
   name = "allow-dns-internal"
-  network = data.google_compute_network.network.self_link
+  network = data.google_compute_network.network.id
   priority = 5000
 
   allow {
@@ -111,7 +123,7 @@ resource "google_compute_firewall" "allow_dns_internal" {
 }
 
 resource "google_dns_managed_zone" "ad_dns_forward" {
-  project = data.google_project.project.project_id
+  project = data.google_project.default.project_id
   name = "ad-dns-forward"
   dns_name = "${local.domain_name}."
 
@@ -139,7 +151,7 @@ resource "google_dns_managed_zone" "ad_dns_forward" {
 
 resource "google_compute_instance" "dc" {
   count = length(local.zones)
-  project = data.google_project.project.project_id
+  project = data.google_project.default.project_id
   zone = local.zones[count.index]
   name = "dc-${count.index}"
   machine_type = local.machine_type
@@ -154,8 +166,8 @@ resource "google_compute_instance" "dc" {
   }
 
   network_interface {
-    network = data.google_compute_network.network.self_link
-    subnetwork = data.google_compute_subnetwork.subnetworks[count.index].self_link
+    network = data.google_compute_network.network.id
+    subnetwork = data.google_compute_subnetwork.subnetworks[count.index].id
     network_ip = google_compute_address.dc[count.index].address
   }
 
@@ -170,7 +182,7 @@ resource "google_compute_instance" "dc" {
         nameHost = "dc-${count.index}"
         password = local.password,
         parametersConfiguration = jsonencode({
-          projectName = data.google_project.project.name,
+          projectName = data.google_project.default.name,
           domainName = local.domain_name,
           zone = local.zones[count.index],
           zones = local.zones,
@@ -199,5 +211,7 @@ resource "google_compute_instance" "dc" {
 
   allow_stopping_for_update = true
 
-  depends_on = [module.apis]
+  depends_on = [
+    module.apis
+  ]
 }

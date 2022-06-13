@@ -3,6 +3,11 @@ variable "project" {
   default = null
 }
 
+variable "project_network" {
+  type = string
+  default = null
+}
+
 variable "regions" {
   type = list(string)
 }
