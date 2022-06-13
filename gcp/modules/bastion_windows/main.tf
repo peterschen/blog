@@ -32,12 +32,12 @@ data "google_project" "network" {
 }
 
 data "google_compute_network" "network" {
-  project = data.google_project.network.id
+  project = data.google_project.network.project_id
   name = local.network
 }
 
 data "google_compute_subnetwork" "subnetwork" {
-  project = data.google_project.network.id
+  project = data.google_project.network.project_id
   region = local.region
   name = local.subnetwork
 }
@@ -52,12 +52,12 @@ module "sysprep" {
 
 module "apis" {
   source = "../apis"
-  project = data.google_project.default.id
+  project = data.google_project.default.project_id
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com"]
 }
 
 resource "google_compute_instance" "bastion" {
-  project = data.google_project.default.id
+  project = data.google_project.default.project_id
   zone = local.zone
   name = local.machine_name
   machine_type = local.machine_type
