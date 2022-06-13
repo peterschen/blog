@@ -1,16 +1,20 @@
 locals {
   project = var.project
   project_network = var.project_network == null ? var.project : var.project_network
+
   region = var.region
   zone = var.zone
+
   network = var.network
   subnetwork = var.subnetwork
+
   password = var.password
+
   machine_type = var.machine_type
+  windows_image = var.windows_image
+
   machine_name = var.machine_name
   domain_name = var.domain_name
-
-  windows_image = var.windows_image
 
   enable_domain = var.enable_domain
   enable_ssms = var.enable_ssms
@@ -19,13 +23,21 @@ locals {
   enable_python = var.enable_python
 }
 
+data "google_project" "default" {
+  project_id = local.project
+}
+
+data "google_project" "network" {
+  project_id = local.project_network
+}
+
 data "google_compute_network" "network" {
-  project = local.project_network
+  project = data.google_project.network.id
   name = local.network
 }
 
 data "google_compute_subnetwork" "subnetwork" {
-  project = local.project_network
+  project = data.google_project.network.id
   region = local.region
   name = local.subnetwork
 }
@@ -40,12 +52,12 @@ module "sysprep" {
 
 module "apis" {
   source = "../apis"
-  project = local.project
+  project = data.google_project.default.id
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com"]
 }
 
 resource "google_compute_instance" "bastion" {
-  project = local.project
+  project = data.google_project.default.id
   zone = local.zone
   name = local.machine_name
   machine_type = local.machine_type
@@ -60,8 +72,8 @@ resource "google_compute_instance" "bastion" {
   }
 
   network_interface {
-    network = data.google_compute_network.network.self_link
-    subnetwork = data.google_compute_subnetwork.subnetwork.self_link
+    network = data.google_compute_network.network.id
+    subnetwork = data.google_compute_subnetwork.subnetwork.id
   }
 
   shielded_instance_config {
@@ -93,5 +105,7 @@ resource "google_compute_instance" "bastion" {
 
   allow_stopping_for_update = true
 
-  depends_on = [module.apis]
+  depends_on = [
+    module.apis
+  ]
 }
