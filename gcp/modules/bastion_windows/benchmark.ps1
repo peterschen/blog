@@ -175,14 +175,21 @@ function Invoke-Benchmark
                     $size = $config["fileSize"];
                 }
 
-                if(-not $config["enableSoftwareCache"])
+                if(-not $config["enableRemoteCache"])
                 {
-                    $flags += "-Su ";
-                }
+                    if(-not $config["enableSoftwareCache"])
+                    {
+                        $flags += "-Su ";
+                    }
 
-                if($config["enableWriteThrough"])
+                    if($config["enableWriteThrough"])
+                    {
+                        $flags += "-Sw ";
+                    }
+                }
+                else
                 {
-                    $flags += "-Sw ";
+                    $flags += "-Sr ";
                 }
 
                 if($enableLatencyCollection)
@@ -506,10 +513,10 @@ $scenarios = @{
         "accessHint" = 't'
         "accesspattern" = 'r'
         "outstandingIo" = 2
-        "enableSoftwareCache" = $true
+        "enableSoftwareCache" = $false
         "enableWriteThrough" = $false
+        "enableRemoteCache" = $true # Only available for remote file systems
         "threads" = $logicalProcessors
-        "otherFlags" = "-Sr"
     }
     # Based on https://www.windowspro.de/marcel-kueppers/storage-performance-iops-unter-hyper-v-messen-diskspd
     "smb_30_70" = @{
