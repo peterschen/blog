@@ -424,7 +424,7 @@ if($logicalProcessors -is [array])
 # IO latency witout yielding more performance. This is probably due to rate limiting of the PDs
 $scenarios = @{
     # Based on https://cloud.google.com/compute/docs/disks/benchmarking-pd-performance
-    "write_throughput" = @{
+    "write_throughput_qd1" = @{
         "ratio" = 100
         "blockSizeValue" = 1
         "blockSizeUnit" = 'M'
@@ -435,8 +435,19 @@ $scenarios = @{
         "enableWriteThrough" = $true
         "threads" = $logicalProcessors
     }
+    "write_throughput_qd${logicalProcessors}" = @{
+        "ratio" = 100
+        "blockSizeValue" = 1
+        "blockSizeUnit" = 'M'
+        "accessHint" = 's'
+        "accesspattern" = 's'
+        "outstandingIo" = $logicalProcessors
+        "enableSoftwareCache" = $false
+        "enableWriteThrough" = $true
+        "threads" = $logicalProcessors
+    }
     # Based on https://cloud.google.com/compute/docs/disks/benchmarking-pd-performance
-    "write_iops" = @{
+    "write_iops_qd1" = @{
         "ratio" = 100
         "blockSizeValue" = 4
         "blockSizeUnit" = 'K'
@@ -447,8 +458,19 @@ $scenarios = @{
         "enableWriteThrough" = $true
         "threads" = $logicalProcessors
     }
+    "write_iops_qd${logicalProcessors}" = @{
+        "ratio" = 100
+        "blockSizeValue" = 4
+        "blockSizeUnit" = 'K'
+        "accessHint" = 'r'
+        "accesspattern" = 'r'
+        "outstandingIo" = $logicalProcessors
+        "enableSoftwareCache" = $false
+        "enableWriteThrough" = $true
+        "threads" = $logicalProcessors
+    }
     # Based on https://cloud.google.com/compute/docs/disks/benchmarking-pd-performance
-    "read_throughput" = @{
+    "read_throughput_qd1" = @{
         "ratio" = 0
         "blockSizeValue" = 1
         "blockSizeUnit" = 'M'
@@ -459,14 +481,36 @@ $scenarios = @{
         "enableWriteThrough" = $true
         "threads" = $logicalProcessors
     }
+    "read_throughput_qd${logicalProcessors}" = @{
+        "ratio" = 0
+        "blockSizeValue" = 1
+        "blockSizeUnit" = 'M'
+        "accessHint" = 's'
+        "accesspattern" = 's'
+        "outstandingIo" = $logicalProcessors
+        "enableSoftwareCache" = $false
+        "enableWriteThrough" = $true
+        "threads" = $logicalProcessors
+    }
     # Based on https://cloud.google.com/compute/docs/disks/benchmarking-pd-performance
-    "read_iops" = @{
+    "read_iops_qd1" = @{
         "ratio" = 0
         "blockSizeValue" = 4
         "blockSizeUnit" = 'K'
         "accessHint" = 'r'
         "accesspattern" = 'r'
         "outstandingIo" = 1
+        "enableSoftwareCache" = $false
+        "enableWriteThrough" = $true
+        "threads" = $logicalProcessors
+    }
+    "read_iops_qd${logicalProcessors}" = @{
+        "ratio" = 0
+        "blockSizeValue" = 4
+        "blockSizeUnit" = 'K'
+        "accessHint" = 'r'
+        "accesspattern" = 'r'
+        "outstandingIo" = $logicalProcessors
         "enableSoftwareCache" = $false
         "enableWriteThrough" = $true
         "threads" = $logicalProcessors
