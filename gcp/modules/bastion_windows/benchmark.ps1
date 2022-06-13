@@ -474,18 +474,52 @@ $scenarios = @{
     # Based on 
     # https://www.sqlshack.com/using-diskspd-to-test-sql-server-storage-subsystems/
     # https://docs.microsoft.com/en-us/azure-stack/hci/manage/diskspd-overview#online-transaction-processing-oltp-workload
+    # https://www.altaro.com/hyper-v/storage-performance-baseline-diskspd//
     # 
     # OLTP workloads are latency sensitive (more IOPS = better performance)
-    "sql_oltp" = @{
-        "ratio" = 30
-        "blockSizeValue" = 8 # 8K block size is used by SQL Server for data files
+    "sql_oltp_logwrite_4k" = @{
+        "ratio" = 100
+        "blockSizeValue" = 4
+        "blockSizeUnit" = 'K'
+        "accessHint" = 's'
+        "accesspattern" = 's'
+        "outstandingIo" = 1
+        "enableSoftwareCache" = $false
+        "enableWriteThrough" = $true
+        "threads" = "2"
+    }
+    "sql_oltp_logwrite_64k" = @{
+        "ratio" = 100
+        "blockSizeValue" = 64
+        "blockSizeUnit" = 'K'
+        "accessHint" = 's'
+        "accesspattern" = 's'
+        "outstandingIo" = 1
+        "enableSoftwareCache" = $false
+        "enableWriteThrough" = $true
+        "threads" = "2"
+    }
+    "sql_oltp_dataread_8k" = @{
+        "ratio" = 0
+        "blockSizeValue" = 8
         "blockSizeUnit" = 'K'
         "accessHint" = 'r'
         "accesspattern" = 'r'
         "outstandingIo" = 1
         "enableSoftwareCache" = $false
         "enableWriteThrough" = $true
-        "threads" = $logicalProcessors
+        "threads" = "2"
+    }
+    "sql_oltp_dataread_128k" = @{
+        "ratio" = 0
+        "blockSizeValue" = 128
+        "blockSizeUnit" = 'K'
+        "accessHint" = 'r'
+        "accesspattern" = 'r'
+        "outstandingIo" = 1
+        "enableSoftwareCache" = $false
+        "enableWriteThrough" = $true
+        "threads" = "2"
     }
     # Based on https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-R2-and-2012/dn894707(v=ws.11)#random-small-io-test-1-vary-outstanding-ios-per-thread
     #
@@ -505,7 +539,20 @@ $scenarios = @{
     # Based on https://unhandled.wordpress.com/2016/07/20/madness-testing-smb-direct-network-throughput-with-diskspd/
     #
     # Small files accessed with random 64K IOs
-    "smb_network_throughput" = @{
+    "smb_network_throughput_writethrough" = @{
+        "fileSize" = "2M"
+        "ratio" = 0
+        "blockSizeValue" = 64
+        "blockSizeUnit" = 'K'
+        "accessHint" = 't'
+        "accesspattern" = 'r'
+        "outstandingIo" = 2
+        "enableSoftwareCache" = $false
+        "enableWriteThrough" = $true
+        "enableRemoteCache" = $false # Only available for remote file systems
+        "threads" = $logicalProcessors
+    }
+    "smb_network_throughput_remotecache" = @{
         "fileSize" = "2M"
         "ratio" = 0
         "blockSizeValue" = 64
@@ -519,7 +566,7 @@ $scenarios = @{
         "threads" = $logicalProcessors
     }
     # Based on https://www.windowspro.de/marcel-kueppers/storage-performance-iops-unter-hyper-v-messen-diskspd
-    "smb_30_70" = @{
+    "smb_30_70_writethrough" = @{
         "ratio" = 30
         "blockSizeValue" = 8
         "blockSizeUnit" = 'K'
@@ -528,6 +575,19 @@ $scenarios = @{
         "outstandingIo" = $logicalProcessors
         "enableSoftwareCache" = $false
         "enableWriteThrough" = $true
+        "enableRemoteCache" = $false # Only available for remote file systems
+        "threads" = $logicalProcessors
+    }
+    "smb_30_70_remotecache" = @{
+        "ratio" = 30
+        "blockSizeValue" = 8
+        "blockSizeUnit" = 'K'
+        "accessHint" = 'r'
+        "accesspattern" = 'r'
+        "outstandingIo" = $logicalProcessors
+        "enableSoftwareCache" = $false
+        "enableWriteThrough" = $false
+        "enableRemoteCache" = $true # Only available for remote file systems
         "threads" = $logicalProcessors
     }
 }
