@@ -94,7 +94,8 @@ resource "google_compute_instance" "bastion" {
         enableSsms = local.enable_ssms,
         enableHammerdb = local.enable_hammerdb,
         enableDiskspd = local.enable_diskspd,
-        enablePython = local.enable_python
+        enablePython = local.enable_python,
+        fileContentBenchmark = filebase64("${path.module}/benchmark.ps1")
       })
     })
   }

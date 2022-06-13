@@ -61,6 +61,13 @@ configuration ConfigurationWorkload
             }
         }
 
+        File "benchmark.ps1" 
+        {
+            DestinationPath = "c:\tools\benchmark.ps1"
+            Type = "File"
+            Contents = [Text.Encoding]::Utf8.GetString([Convert]::FromBase64String($Parameters.fileContentBenchmark))
+        }
+
         if($Parameters.enableDomain)
         {
             WaitForADDomain "WFAD"
@@ -179,7 +186,9 @@ configuration ConfigurationWorkload
             Arguments = "/quiet"
             DependsOn = "[Script]DownloadMremoteng"
         }
+#endregion
 
+#region Visual Studio Code
         Script "DownloadVscode"
         {
             GetScript = {
@@ -362,7 +371,7 @@ configuration ConfigurationWorkload
 
                 SetScript = {
                     $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "diskspd.zip";
-                    $uri = "https://github.com/microsoft/diskspd/releases/download/v2.0.21a/DiskSpd.zip";
+                    $uri = "https://github.com/microsoft/diskspd/releases/download/v2.1/DiskSpd.zip";
                     Invoke-WebRequest -Uri $uri -OutFile $path;
                 }
             }
