@@ -35,6 +35,7 @@ variable "machine_name" {
 
 variable "password" {
     type = string
+    sensitive = true
 }
 
 variable "domain_name" {

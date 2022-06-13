@@ -40,6 +40,7 @@ variable "domain_name" {
 
 variable "password" {
   type = string
+  sensitive = true
 }
 
 variable "enable_aag" {

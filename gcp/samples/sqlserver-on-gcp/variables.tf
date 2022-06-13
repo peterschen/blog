@@ -17,6 +17,7 @@ variable "domain-name" {
 
 variable "password" {
   type = string
+  sensitive = true
 }
 
 variable "count-nodes" {

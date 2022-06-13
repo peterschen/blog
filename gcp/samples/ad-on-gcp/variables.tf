@@ -26,6 +26,7 @@ variable "domain_name" {
 }
 
 variable "password" {
+  sensitive = true
 }
 
 variable "cloud_identity_domain" {

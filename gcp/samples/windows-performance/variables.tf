@@ -17,4 +17,5 @@ variable "machine-type" {
 }
 
 variable "password" {
+  sensitive = true
 }
