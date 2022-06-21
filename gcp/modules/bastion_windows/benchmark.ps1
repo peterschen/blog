@@ -395,8 +395,8 @@ function Invoke-Analysis
                             $writeLatency = $latency["AverageWriteMilliseconds"].'#text';
                         }
                         
-                        $result | Add-Member -MemberType NoteProperty -Name "AvgLatencyRead" -Value $readLatency;
-                        $result | Add-Member -MemberType NoteProperty -Name "AvgLatencyWrite" -Value $writelatency;
+                        $result | Add-Member -MemberType NoteProperty -Name "AvgLatencyMsRead" -Value $readLatency;
+                        $result | Add-Member -MemberType NoteProperty -Name "AvgLatencyMsWrite" -Value $writelatency;
                     }
                     
                     $results += $result;
