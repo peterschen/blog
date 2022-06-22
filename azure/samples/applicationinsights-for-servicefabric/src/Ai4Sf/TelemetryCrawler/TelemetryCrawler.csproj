@@ -13,7 +13,7 @@
     <PackageReference Include="Microsoft.ServiceFabric.FabricTransport.Internal" Version="3.3.624" />
     <PackageReference Include="Microsoft.ServiceFabric.Services" Version="3.3.624" />
     <PackageReference Include="Microsoft.ServiceFabric.Services.Remoting" Version="3.3.624" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="System.Linq" Version="4.3.0" />
   </ItemGroup>
 
