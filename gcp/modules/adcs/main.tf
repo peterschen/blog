@@ -1,27 +1,42 @@
 locals {
+  project = var.project
+  project_network = var.project_network != null ? var.project_network : var.project
+
   region = var.region
   zone = var.zone
+  
   network = var.network
   subnetwork = var.subnetwork
+  
   machine_type = var.machine_type
+  windows_image = var.windows_image
+  
   domain_name = var.domain_name
   password = var.password
-  windows_image = var.windows_image
 }
 
-data "google_project" "project" {}
+data "google_project" "default" {
+  project_id = local.project
+}
+
+data "google_project" "network" {
+  project_id = local.project_network
+}
 
 data "google_compute_network" "network" {
+  project = data.google_project.network.project_id
   name = local.network
 }
 
 data "google_compute_subnetwork" "subnetwork" {
+  project = data.google_project.network.project_id
   region = local.region
   name = local.subnetwork
 }
 
 module "apis" {
   source = "../apis"
+  project = data.google_project.default.project_id
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
 }
 
@@ -35,6 +50,8 @@ module "sysprep" {
 
 module "firewall_ca" {
   source = "../firewall_ca"
+  project = data.google_project.default.project_id
+
   name = "allow-ca"
   network = data.google_compute_network.network.self_link
   cidr_ranges = [
@@ -44,14 +61,19 @@ module "firewall_ca" {
 
 resource "google_compute_address" "ca" {
   region = local.region
-  subnetwork = data.google_compute_subnetwork.subnetwork.self_link
+  project = data.google_project.default.project_id
+  
   name = "ca"
+  subnetwork = data.google_compute_subnetwork.subnetwork.self_link
+
   address_type = "INTERNAL"
   address = cidrhost(data.google_compute_subnetwork.subnetwork.ip_cidr_range, 3)
 }
 
 resource "google_compute_instance" "ca" {
   zone = local.zone
+  project = data.google_project.default.project_id
+  
   name = "ca"
   machine_type = local.machine_type
 

@@ -7,11 +7,9 @@ terraform {
 }
 
 provider "google" {
-  project = var.project
 }
 
 provider "google-beta" {
-  project = var.project
 }
 
 locals {
@@ -19,9 +17,14 @@ locals {
   zones = var.zones
   region_scheduler = var.region_scheduler
   sample_name = "ad-on-gcp"
+  
   domain_name = var.domain_name
-  cloud_identity_domain = var.cloud_identity_domain
   password = var.password
+
+  windows_image = var.windows_image
+  windows_core_image = var.windows_core_image
+
+  cloud_identity_domain = var.cloud_identity_domain
 
   # If ADFS is requested we need a CA
   enable_adjoin = var.enable_adjoin
@@ -31,8 +34,10 @@ locals {
 
   network_prefixes = ["10.0.0", "10.1.0"]
   network_prefixes_proxy_lb = ["10.6.0", "10.7.0"]
+
   network_mask = 16
   network_mask_proxy_lb = 23
+
   network_ranges = [
     for prefix in local.network_prefixes:
     "${prefix}.0/${local.network_mask}"
@@ -41,6 +46,7 @@ locals {
     for prefix in local.network_prefixes_proxy_lb:
     "${prefix}.0/${local.network_mask_proxy_lb}"
   ]
+
   network_range_adjoin = "10.8.0.0/28"
   network_range_directorysync = "10.9.0.0/28"
   ips_dcs = [
@@ -56,6 +62,8 @@ locals {
 
   # Number of vCPU in VM * 7 workers + 1
   server_workers = 2 * 7 + 1
+
+  adjoin_container_uri = var.adjoin_container_uri
 
   image_families = [
     "gce-uefi-images/windows-1809-core",
@@ -78,18 +86,12 @@ locals {
   ]
 }
 
-data "google_project" "project" {}
+module "project" {
+  source = "../../modules/project"
 
-data "google_compute_default_service_account" "default" {}
+  org_id = var.org_id
+  billing_account = var.billing_account
 
-data "google_compute_image" "windows" {
-  count = local.enable_adjoin ? length(local.image_families) : 0
-  project = split("/",local.image_families[count.index])[0]
-  family = split("/",local.image_families[count.index])[1]
-}
-
-module "apis" {
-  source = "../../modules/apis"
   apis = [
     "cloudbuild.googleapis.com",
     "cloudscheduler.googleapis.com",
@@ -100,93 +102,25 @@ module "apis" {
   ]
 }
 
-module "nat" {
-  count = length(local.regions)
-  source = "../../modules/nat"
-  region = local.regions[count.index]
-  network = google_compute_network.network.name
-  depends_on = [google_compute_network.network]
+data "google_compute_default_service_account" "default" {
+  project = module.project.id
 }
 
-module "ad" {
-  source = "../../modules/ad"
-  regions = local.regions
-  zones = local.zones
-  network = google_compute_network.network.name
-  subnetworks = [
-    for subnet in google_compute_subnetwork.subnetworks:
-    subnet.name
-  ]
-  domain_name = local.domain_name
-  machine_type = local.machine_type_dc
-  password = local.password
-  enable_ssl = local.enable_adcs
-  depends_on = [module.nat]
-}
-
-module "adcs" {
-  count = local.enable_adcs ? 1 : 0
-  source = "../../modules/adcs"
-  region = local.regions[0]
-  zone = local.zones[0]
-  network = google_compute_network.network.name
-  subnetwork = google_compute_subnetwork.subnetworks[0].name
-  machine_type = local.machine_type_ca
-  domain_name = local.domain_name
-  password = local.password
-  depends_on = [module.ad]
-}
-
-module "adfs" {
-  count = local.enable_adfs ? 1 : 0
-  source = "../../modules/adfs"
-  region = local.regions[0]
-  zone = local.zones[0]
-  network = google_compute_network.network.name
-  subnetwork = google_compute_subnetwork.subnetworks[0].name
-  domain_name = local.domain_name
-  cloud_identity_domain = local.cloud_identity_domain
-  password = local.password
-  depends_on = [module.ad]
-}
-
-module "bastion" {
-  source = "../../modules/bastion_windows"
-  region = local.regions[0]
-  zone = local.zones[0]
-  network = google_compute_network.network.name
-  subnetwork = google_compute_subnetwork.subnetworks[0].name
-  machine_type = local.machine_type_bastion
-  machine_name = "bastion"
-  password = local.password
-  domain_name = local.domain_name
-  enable_domain = true
-  depends_on = [module.ad]
-}
-
-module "firewall_iap" {
-  source = "../../modules/firewall_iap"
-  network = google_compute_network.network.name
-  enable_ssh = false
-}
-
-module "firewall_ad" {
-  source = "../../modules/firewall_ad"
-  name = "allow-ad-serverless"
-  network = google_compute_network.network.name
-  cidr_ranges = [
-    local.network_range_adjoin,
-    local.network_range_directorysync
-  ]
+data "google_compute_image" "windows" {
+  count = local.enable_adjoin ? length(local.image_families) : 0
+  project = split("/",local.image_families[count.index])[0]
+  family = split("/",local.image_families[count.index])[1]
 }
 
 resource "google_compute_network" "network" {
+  project = module.project.id
   name = local.sample_name
   auto_create_subnetworks = false
 }
 
 resource "google_compute_subnetwork" "subnetworks" {
   count = length(local.regions)
+  project = module.project.id
   region = local.regions[count.index]
   name = local.regions[count.index]
   ip_cidr_range = local.network_ranges[count.index]
@@ -197,7 +131,9 @@ resource "google_compute_subnetwork" "subnetworks" {
 resource "google_compute_subnetwork" "proxy_lb" {
   provider = google-beta
   count = length(local.regions)
+  project = module.project.id
   region = local.regions[count.index]
+
   name = "lb-${local.regions[count.index]}"
   ip_cidr_range = local.network_ranges_proxy_lb[count.index]
   network = google_compute_network.network.id
@@ -205,8 +141,138 @@ resource "google_compute_subnetwork" "proxy_lb" {
   role = "ACTIVE"
 }
 
+module "nat" {
+  count = length(local.regions)
+  source = "../../modules/nat"
+  project = module.project.id
+
+  region = local.regions[count.index]
+  network = google_compute_network.network.name
+
+  depends_on = [
+    google_compute_network.network
+  ]
+}
+
+module "ad" {
+  source = "../../modules/ad"
+  project = module.project.id
+
+  regions = local.regions
+  zones = local.zones
+
+  network = google_compute_network.network.name
+  subnetworks = [
+    for subnet in google_compute_subnetwork.subnetworks:
+    subnet.name
+  ]
+
+  domain_name = local.domain_name
+  machine_type = local.machine_type_dc
+
+  windows_image = local.windows_core_image
+
+  password = local.password
+  enable_ssl = local.enable_adcs
+
+  depends_on = [
+    module.nat
+  ]
+}
+
+module "adcs" {
+  count = local.enable_adcs ? 1 : 0
+  source = "../../modules/adcs"
+  project = module.project.id
+
+  region = local.regions[0]
+  zone = local.zones[0]
+
+  network = google_compute_network.network.name
+  subnetwork = google_compute_subnetwork.subnetworks[0].name
+
+  machine_type = local.machine_type_ca
+  windows_image = local.windows_core_image
+
+  domain_name = local.domain_name
+  password = local.password
+  
+  depends_on = [
+    module.ad
+  ]
+}
+
+module "adfs" {
+  count = local.enable_adfs ? 1 : 0
+  source = "../../modules/adfs"
+  project = module.project.id
+
+  region = local.regions[0]
+  zone = local.zones[0]
+  
+  network = google_compute_network.network.name
+  subnetwork = google_compute_subnetwork.subnetworks[0].name
+
+  windows_image = local.windows_core_image
+
+  domain_name = local.domain_name
+  password = local.password
+
+  cloud_identity_domain = local.cloud_identity_domain
+  
+  depends_on = [
+    module.ad
+  ]
+}
+
+module "bastion" {
+  source = "../../modules/bastion_windows"
+  project = module.project.id
+
+  region = local.regions[0]
+  zone = local.zones[0]
+
+  network = google_compute_network.network.name
+  subnetwork = google_compute_subnetwork.subnetworks[0].name
+
+  machine_type = local.machine_type_bastion
+  machine_name = "bastion"
+
+  windows_image = local.windows_image
+
+  domain_name = local.domain_name
+  password = local.password
+
+  enable_domain = true
+
+  depends_on = [
+    module.ad
+  ]
+}
+
+module "firewall_iap" {
+  source = "../../modules/firewall_iap"
+  project = module.project.id
+  network = google_compute_network.network.name
+  enable_ssh = false
+}
+
+module "firewall_ad" {
+  source = "../../modules/firewall_ad"
+  project = module.project.id
+  name = "allow-ad-serverless"
+  network = google_compute_network.network.name
+
+  cidr_ranges = [
+    local.network_range_adjoin,
+    local.network_range_directorysync
+  ]
+}
+
 resource "google_compute_firewall" "allow-all-internal" {
   name    = "allow-all-internal"
+  project = module.project.id
+
   network = google_compute_network.network.name
   priority = 1000
 
@@ -224,6 +290,8 @@ resource "google_compute_firewall" "allow-all-internal" {
 
 resource "google_compute_firewall" "allow-adjoin-healthcheck" {
   name = "allow-adjoin-healthcheck"
+  project = module.project.id
+
   network = google_compute_network.network.id
   priority = 5000
 
@@ -235,11 +303,15 @@ resource "google_compute_firewall" "allow-adjoin-healthcheck" {
   direction = "INGRESS"
 
   source_ranges = ["35.191.0.0/16", "130.211.0.0/22"]
-  target_tags = ["adjoin"]
+  target_tags = [
+    "adjoin"
+  ]
 }
 
 resource "google_compute_firewall" "allow-adjoin-lb" {
   name    = "allow-adjoin-lb"
+  project = module.project.id
+
   network = google_compute_network.network.name
   priority = 1000
 
@@ -254,35 +326,56 @@ resource "google_compute_firewall" "allow-adjoin-lb" {
     for range in local.network_ranges_proxy_lb:
     range
   ]
-  target_tags = ["adjoin"]
+
+  target_tags = [
+    "adjoin"
+  ]
 }
 
 resource "google_vpc_access_connector" "adjoin" {
   count = local.enable_adjoin ? 1 : 0
+  project = module.project.id
+  
   name = "adjoin"
   region = local.regions[0]
+  
   ip_cidr_range = local.network_range_adjoin
   network = google_compute_network.network.name
-  depends_on = [module.apis]
+
+  # Explicit dependeny as API enablement takes a little longer
+  depends_on = [
+    module.project
+  ]
 }
 
 resource "google_vpc_access_connector" "directorysync" {
   count = local.enable_directorysync ? 1 : 0
+  project = module.project.id
+
   name = "directorysync"
   region = "europe-west1"
+  
   ip_cidr_range = local.network_range_directorysync
   network = google_compute_network.network.name
-  depends_on = [module.apis]
+
+  # Explicit dependeny as API enablement takes a little longer
+  depends_on = [
+    module.project
+  ]
 }
 
 resource "google_service_account" "adjoin" {
   count = local.enable_adjoin ? 1 : 0
+  project = module.project.id
+
   account_id = "adjoin"
   display_name = "Service Account for adjoin operations"
 }
 
 resource "google_project_iam_binding" "adjoin_computeviewer" {
   count = local.enable_adjoin ? 1 : 0
+  project = module.project.id
+
   role = "roles/compute.viewer"
 
   members = [
@@ -292,25 +385,38 @@ resource "google_project_iam_binding" "adjoin_computeviewer" {
 
 resource "google_service_account_iam_binding" "cloudbuild_serviceaccountuser" {
   count = local.enable_adjoin ? 1 : 0
+
   service_account_id = google_service_account.adjoin[0].name
   role = "roles/iam.serviceAccountUser"
 
   members = [
-    "serviceAccount:${data.google_project.project.number}@cloudbuild.gserviceaccount.com",
+    "serviceAccount:${module.project.number}@cloudbuild.gserviceaccount.com",
+  ]
+
+  depends_on = [
+    module.project
   ]
 }
 
 resource "google_project_iam_binding" "cloudbuild_runadmin" {
   count = local.enable_adjoin ? 1 : 0
+  project = module.project.id
+
   role = "roles/run.admin"
 
   members = [
-    "serviceAccount:${data.google_project.project.number}@cloudbuild.gserviceaccount.com",
+    "serviceAccount:${module.project.number}@cloudbuild.gserviceaccount.com",
+  ]
+
+  depends_on = [
+    module.project
   ]
 }
 
 resource "google_secret_manager_secret" "adjoin_adpassword" {
   count = local.enable_adjoin ? 1 : 0
+  project = module.project.id
+
   secret_id = "adjoin-adpassword"
 
   replication {
@@ -318,25 +424,33 @@ resource "google_secret_manager_secret" "adjoin_adpassword" {
   }
 
   provisioner "local-exec" {
-    command = "printf '${local.password}' | gcloud secrets versions add ${google_secret_manager_secret.adjoin_adpassword[0].secret_id} --data-file=-"
+    command = "printf '${local.password}' | gcloud secrets versions add --project ${module.project.id} ${google_secret_manager_secret.adjoin_adpassword[0].secret_id} --data-file=-"
   }
 
-  depends_on = [module.apis]
+  depends_on = [
+    module.project
+  ]
 }
 
 resource "google_secret_manager_secret" "adjoin_cacert" {
   count = local.enable_adjoin ? 1 : 0
+  project = module.project.id
+
   secret_id = "adjoin-cacert"
 
   replication {
     automatic = true
   }
 
-  depends_on = [module.apis]
+  depends_on = [
+    module.project
+  ]
 }
 
 resource "google_secret_manager_secret_iam_binding" "adjoin_adpassword" {
   count = local.enable_adjoin ? 1 : 0
+  project = module.project.id
+
   secret_id = google_secret_manager_secret.adjoin_adpassword[0].secret_id
   role = "roles/secretmanager.secretAccessor"
   members = [
@@ -346,6 +460,8 @@ resource "google_secret_manager_secret_iam_binding" "adjoin_adpassword" {
 
 resource "google_secret_manager_secret_iam_binding" "adjoin_cacert" {
   count = local.enable_adjoin ? 1 : 0
+  project = module.project.id
+
   secret_id = google_secret_manager_secret.adjoin_cacert[0].secret_id
   role = "roles/secretmanager.secretAccessor"
   members = [
@@ -355,13 +471,15 @@ resource "google_secret_manager_secret_iam_binding" "adjoin_cacert" {
 
 resource "google_cloud_run_service" "adjoin" {
   count = local.enable_adjoin ? 1 : 0
+  project = module.project.id
+
   name = "adjoin"
   location = local.regions[0]
 
   template {
     spec {
       containers {
-        image = "gcr.io/${data.google_project.project.name}/adjoin"
+        image = local.adjoin_container_uri
         
         env {
           name = "AD_DOMAIN"
@@ -380,7 +498,7 @@ resource "google_cloud_run_service" "adjoin" {
 
         env {
           name = "SM_PROJECT"
-          value = data.google_project.project.name
+          value = module.project.name
         }
 
         env {
@@ -431,6 +549,8 @@ resource "google_cloud_run_service" "adjoin" {
 
 resource "google_cloud_run_service_iam_binding" "adjoin" {
   count = local.enable_adjoin ? 1 : 0
+  project = module.project.id
+
   service = google_cloud_run_service.adjoin[0].name
   location = google_cloud_run_service.adjoin[0].location
   
@@ -442,6 +562,8 @@ resource "google_cloud_run_service_iam_binding" "adjoin" {
 
 resource "google_compute_instance_template" "joinvm" {
   count = local.enable_adjoin ? length(local.image_families) : 0
+  project = module.project.id
+
   name_prefix = "${data.google_compute_image.windows[count.index].family}-"
   region = local.regions[0]
   machine_type = local.machine_type_joinvm
@@ -483,6 +605,8 @@ resource "google_compute_instance_template" "joinvm" {
 
 resource "google_compute_instance_group_manager" "joinvm" {
   count = local.enable_adjoin ? length(local.image_families) : 0
+  project = module.project.id
+
   name = data.google_compute_image.windows[count.index].family
   zone = local.zones[0]
   base_instance_name = data.google_compute_image.windows[count.index].family
@@ -496,6 +620,8 @@ resource "google_compute_instance_group_manager" "joinvm" {
 
 resource "google_cloud_scheduler_job" "adjoin" {
   count = local.enable_adjoin ? 1 : 0
+  project = module.project.id
+
   name = "adjoin"
   region = local.region_scheduler
   description = "Remove stale objects in Active Directory"
@@ -519,6 +645,8 @@ resource "google_cloud_scheduler_job" "adjoin" {
 
 resource "google_compute_instance_template" "adjoin" {
   count = length(local.regions)
+  project = module.project.id
+
   region = local.regions[count.index]
   name_prefix = "adjoin"
   machine_type = local.machine_type_adjoin
@@ -559,7 +687,7 @@ resource "google_compute_instance_template" "adjoin" {
           - name: USE_LDAPS
             value: '${local.enable_adcs}'
           - name: SM_PROJECT
-            value: ${data.google_project.project.name}
+            value: ${module.project.name}
           - name: SM_NAME_ADPASSWORD
             value: ${google_secret_manager_secret.adjoin_adpassword[0].secret_id}
           - name: SM_VERSION_ADPASSWORD
@@ -594,6 +722,8 @@ resource "google_compute_instance_template" "adjoin" {
 
 resource "google_compute_region_instance_group_manager" "adjoin" {
   count = length(local.regions)
+  project = module.project.id
+
   name = "adjoin-${local.regions[count.index]}"
   region = local.regions[count.index]
   base_instance_name = "adjoin"
@@ -612,6 +742,8 @@ resource "google_compute_region_instance_group_manager" "adjoin" {
 
 resource "google_compute_region_health_check" "adjoin" {
   count = length(local.regions)
+  project = module.project.id
+
   region = local.regions[count.index]
   name = "adjoin-${local.regions[count.index]}"
   timeout_sec = 2
@@ -624,6 +756,8 @@ resource "google_compute_region_health_check" "adjoin" {
 
 resource "google_compute_region_backend_service" "adjoin" {
   count = length(local.regions)
+  project = module.project.id
+
   region = local.regions[count.index]
   name = "adjoin-${local.regions[count.index]}"
   
@@ -643,6 +777,8 @@ resource "google_compute_region_backend_service" "adjoin" {
 
 resource "google_compute_region_url_map" "adjoin" {
   count = length(local.regions)
+  project = module.project.id
+
   region = local.regions[count.index]
   name = "adjoin-${local.regions[count.index]}"
   default_service = google_compute_region_backend_service.adjoin[count.index].id
@@ -650,6 +786,8 @@ resource "google_compute_region_url_map" "adjoin" {
 
 resource "google_compute_region_target_http_proxy" "adjoin" {
   count = length(local.regions)
+  project = module.project.id
+
   region = local.regions[count.index]
   name = "adjoin-${local.regions[count.index]}"
   url_map = google_compute_region_url_map.adjoin[count.index].id
@@ -658,6 +796,8 @@ resource "google_compute_region_target_http_proxy" "adjoin" {
 resource "google_compute_forwarding_rule" "adjoin" {
   provider = google-beta
   count = length(local.regions)
+  project = module.project.id
+
   region = local.regions[count.index]
   name = "adjoin-${local.regions[count.index]}"
   load_balancing_scheme = "INTERNAL_MANAGED"
@@ -667,4 +807,9 @@ resource "google_compute_forwarding_rule" "adjoin" {
   target = google_compute_region_target_http_proxy.adjoin[count.index].id
   network = google_compute_network.network.id
   subnetwork = google_compute_subnetwork.subnetworks[count.index].id
+
+  # Explicit dependency required so things can be desotryed properly
+  depends_on = [
+    google_compute_subnetwork.proxy_lb
+  ]
 }

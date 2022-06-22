@@ -43,14 +43,6 @@ module "apis" {
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
 }
 
-module "gce_scopes" {
-  source = "../gce_scopes"
-}
-
-module "sysprep" {
-  source = "../sysprep"
-}
-
 module "firewall_ad" {
   source = "../firewall_ad"
   project = data.google_project.network.project_id
@@ -61,15 +53,6 @@ module "firewall_ad" {
     for subnet in data.google_compute_subnetwork.subnetworks:
     subnet.ip_cidr_range
   ]
-}
-
-resource "google_compute_address" "dc" {
-  count = length(local.zones)
-  project = data.google_project.network.project_id
-  region = local.regions[count.index]
-  subnetwork = data.google_compute_subnetwork.subnetworks[count.index].id
-  name = "dc-${local.zones[count.index]}"
-  address_type = "INTERNAL"
 }
 
 resource "google_compute_firewall" "allow_dns_gcp" {
@@ -122,31 +105,21 @@ resource "google_compute_firewall" "allow_dns_internal" {
   target_tags = ["dns"]
 }
 
-resource "google_dns_managed_zone" "ad_dns_forward" {
-  project = data.google_project.default.project_id
-  name = "ad-dns-forward"
-  dns_name = "${local.domain_name}."
+resource "google_compute_address" "dc" {
+  count = length(local.zones)
+  project = data.google_project.network.project_id
+  region = local.regions[count.index]
+  subnetwork = data.google_compute_subnetwork.subnetworks[count.index].id
+  name = "dc-${local.zones[count.index]}"
+  address_type = "INTERNAL"
+}
 
-  visibility = "private"
+module "gce_scopes" {
+  source = "../gce_scopes"
+}
 
-  private_visibility_config {
-    networks {
-      network_url = data.google_compute_network.network.id
-    }
-  }
-
-  forwarding_config {
-    dynamic "target_name_servers" {
-      for_each = google_compute_address.dc
-      content {
-        ipv4_address = target_name_servers.value.address
-      }
-    }
-  }
-
-  depends_on = [
-    module.apis
-  ]
+module "sysprep" {
+  source = "../sysprep"
 }
 
 resource "google_compute_instance" "dc" {
@@ -184,8 +157,8 @@ resource "google_compute_instance" "dc" {
         parametersConfiguration = jsonencode({
           projectName = data.google_project.default.name,
           domainName = local.domain_name,
-          zone = local.zones[count.index],
-          zones = local.zones,
+          region = local.regions[count.index],
+          regions = local.regions,
           networkRange = data.google_compute_subnetwork.subnetworks[count.index].ip_cidr_range,
           isFirst = (count.index == 0),
           inlineMeta = filebase64(module.sysprep.path_meta),
@@ -214,4 +187,27 @@ resource "google_compute_instance" "dc" {
   depends_on = [
     module.apis
   ]
+}
+
+resource "google_dns_managed_zone" "ad_dns_forward" {
+  project = data.google_project.default.project_id
+  name = "ad-dns-forward"
+  dns_name = "${local.domain_name}."
+
+  visibility = "private"
+
+  private_visibility_config {
+    networks {
+      network_url = data.google_compute_network.network.id
+    }
+  }
+
+  forwarding_config {
+    dynamic "target_name_servers" {
+      for_each = google_compute_address.dc
+      content {
+        ipv4_address = target_name_servers.value.address
+      }
+    }
+  }
 }

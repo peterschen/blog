@@ -1,4 +1,9 @@
-variable "project" {
+variable "org_id" {
+  type = number
+}
+
+variable "billing_account" {
+  type = string
 }
 
 variable "regions" {
@@ -27,6 +32,21 @@ variable "domain_name" {
 
 variable "password" {
   sensitive = true
+}
+
+variable "windows_image" {
+  type = string
+  default = "windows-cloud/windows-2022"
+}
+
+variable "windows_core_image" {
+  type = string
+  default = "windows-cloud/windows-2022-core"
+}
+
+variable "adjoin_container_uri" {
+  type = string
+  default = "gcr.io/cbpetersen-shared/adjoin:latest"
 }
 
 variable "cloud_identity_domain" {

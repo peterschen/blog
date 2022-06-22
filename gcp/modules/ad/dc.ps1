@@ -133,10 +133,10 @@ configuration ConfigurationWorkload
                 DependsOn = "[ADDomain]AD-CreateDomain"
             }
 
-            ADReplicationSite "ReplicationSite-$($Parameters.zone)"
+            ADReplicationSite "ReplicationSite-$($Parameters.region)"
             {
                 Ensure = "Present"
-                Name = "$($Parameters.zone)"
+                Name = "$($Parameters.region)"
                 RenameDefaultFirstSiteName = $Parameters.isFirst
                 DependsOn = "[WaitForADDomain]WFAD-CreateDomain"
             }
@@ -144,9 +144,9 @@ configuration ConfigurationWorkload
             ADReplicationSubnet "ReplicationSubnet-$($Parameters.networkRange)"
             {
                 Name = "$($Parameters.networkRange)"
-                Site = $Parameters.zone
+                Site = $Parameters.region
                 Location = "GCP"
-                DependsOn = "[ADReplicationSite]ReplicationSite-$($Parameters.zone)"
+                DependsOn = "[ADReplicationSite]ReplicationSite-$($Parameters.region)"
             }
 
             $ous | ForEach-Object {
@@ -289,10 +289,10 @@ configuration ConfigurationWorkload
                 DependsOn = "[WaitForADDomain]WFAD-CreateDomain"
             }
 
-            ADReplicationSite "ReplicationSite-$($Parameters.zone)"
+            ADReplicationSite "ReplicationSite-$($Parameters.region)"
             {
                 Ensure = "Present"
-                Name = $Parameters.zone
+                Name = $Parameters.region
                 RenameDefaultFirstSiteName = $Parameters.isFirst
                 DependsOn = "[ADDomainController]ADC-DC"
             }
@@ -301,19 +301,19 @@ configuration ConfigurationWorkload
             {
                 Ensure = "Present"
                 Name = "DEFAULTIPSITELINK"
-                SitesIncluded = $Parameters.zones
+                SitesIncluded = $Parameters.regions
                 ReplicationFrequencyInMinutes = 15
                 OptionChangeNotification = $true
                 OptionTwoWaySync = $true
-                DependsOn = "[ADReplicationSite]ReplicationSite-$($Parameters.zone)"
+                DependsOn = "[ADReplicationSite]ReplicationSite-$($Parameters.region)"
             }
 
             ADReplicationSubnet "ReplicationSubnet-$($Parameters.networkRange)"
             {
                 Name = "$($Parameters.networkRange)"
-                Site = $Parameters.zone
+                Site = $Parameters.region
                 Location = "GCP"
-                DependsOn = "[ADReplicationSite]ReplicationSite-$($Parameters.zone)"
+                DependsOn = "[ADReplicationSite]ReplicationSite-$($Parameters.region)"
             }
 
             $builtinGroups | ForEach-Object {
@@ -332,7 +332,7 @@ configuration ConfigurationWorkload
             Script MoveDc
             {
                 GetScript = {
-                    if((Get-ADDomainController -Server $using:Node.NodeName).Site -eq $using:Parameters.zone)
+                    if((Get-ADDomainController -Server $using:Node.NodeName).Site -eq $using:Parameters.region)
                     {
                         $result = "Present";
                     }
@@ -348,10 +348,10 @@ configuration ConfigurationWorkload
                     return $state.Ensure -eq "Present";
                 }
                 SetScript = {
-                    Get-ADDomainController -Identity "$($using:Node.NodeName).$($using:Parameters.domainName)" | Move-ADDirectoryServer -Site $using:Parameters.zone;
+                    Get-ADDomainController -Identity "$($using:Node.NodeName).$($using:Parameters.domainName)" | Move-ADDirectoryServer -Site $using:Parameters.region;
                 }
                 
-                DependsOn = "[ADReplicationSite]ReplicationSite-$($Parameters.zone)"
+                DependsOn = "[ADReplicationSite]ReplicationSite-$($Parameters.region)"
             }
         }
 

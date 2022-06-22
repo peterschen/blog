@@ -38,7 +38,7 @@ $modules = @(
     },
     @{
         Name = "ActiveDirectoryDsc"
-        Version = "6.0.1"
+        Version = "6.2.0"
     }
 );
 
