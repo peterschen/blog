@@ -10,6 +10,7 @@ rdp()
   port=3389
   zone=$ZONE
   project=$GOOGLE_CLOUD_PROJECT
+  disable_connection_check=
   extra=
 
   while [[ $# -gt 0 ]]; do
@@ -22,6 +23,10 @@ rdp()
       -z|--zone)
         zone="$2"
         shift
+        shift
+      ;;
+      -d|--disable-connection-check)
+        disable_connection_check="--disable-connection-check"
         shift
       ;;
       --)
@@ -42,5 +47,5 @@ rdp()
   instance=${POSITIONAL_ARGS[0]}
   extra="$@"
 
-  iap-chain.sh $instance $port --project $project --zone $zone -- xfreerdp +clipboard +home-drive /kbd:0x00000407 /kbd-lang:0x0407 /dynamic-resolution /log-level:WARN /v:%SERVER% $extra 
+  iap-chain.sh $instance $port --project $project --zone $zone $disable_connection_check -- xfreerdp +clipboard +home-drive /kbd:0x00000407 /kbd-lang:0x0407 /dynamic-resolution /log-level:WARN /v:%SERVER% $extra 
 }
