@@ -341,6 +341,10 @@ resource "google_compute_region_backend_service" "cluster" {
       group = backend.value.id
     }
   }
+
+  depends_on = [
+    google_compute_instance_group.cluster
+  ]
 }
 
 resource "google_compute_region_backend_service" "fsc" {
@@ -357,6 +361,10 @@ resource "google_compute_region_backend_service" "fsc" {
       group = backend.value.id
     }
   }
+
+  depends_on = [
+    google_compute_instance_group.cluster
+  ]
 }
 
 resource "google_compute_forwarding_rule" "cluster" {
@@ -370,6 +378,10 @@ resource "google_compute_forwarding_rule" "cluster" {
   network = data.google_compute_network.network.id
   subnetwork = data.google_compute_subnetwork.subnet.id
   backend_service = google_compute_region_backend_service.cluster.id
+
+  depends_on = [
+    google_compute_region_backend_service.cluster
+  ]
 }
 
 resource "google_compute_forwarding_rule" "fsc" {
@@ -383,4 +395,8 @@ resource "google_compute_forwarding_rule" "fsc" {
   network = data.google_compute_network.network.id
   subnetwork = data.google_compute_subnetwork.subnet.id
   backend_service = google_compute_region_backend_service.fsc.id
+
+  depends_on = [
+    google_compute_region_backend_service.fsc
+  ]
 }
