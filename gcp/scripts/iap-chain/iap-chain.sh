@@ -82,6 +82,12 @@ runChainCommand()
   $command
 }
 
+# Check if we have enough positional arguments
+if [ ${#POSITIONAL_ARGS[@]} -ne 2 ]; then
+  printHelp
+  exit $EXIT_SCRIPTERROR
+fi
+
 # Assign positional parameters
 INSTANCE_NAME="${POSITIONAL_ARGS[0]}"
 INSTANCE_PORT="${POSITIONAL_ARGS[1]}"
