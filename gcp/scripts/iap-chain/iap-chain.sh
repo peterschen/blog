@@ -12,6 +12,7 @@ INSTANCE_NAME=
 INSTANCE_PORT=
 CHAIN_COMMAND=
 ZONE=
+DISABLE_CONNECTION_CHECK=false
 
 # Default to what Cloud Shell provides
 PROJECT=$GOOGLE_CLOUD_PROJECT
@@ -28,6 +29,10 @@ while [[ $# -gt 0 ]]; do
       shift
       shift
       ;;
+    -d|--disable-connection-check)
+      DISABLE_CONNECTION_CHECK=true
+      shift
+    ;;
     --)
       shift;
       break
@@ -45,7 +50,7 @@ done
 
 printHelp()
 {
-  echo "Usage: $0 INSTANCE_NAME INSTANCE_PORT [-p|--project PROJECT] [-z|--zone ZONE] -- CHAIN_COMMAND"
+  echo "Usage: $0 INSTANCE_NAME INSTANCE_PORT [-p|--project PROJECT] [-z|--zone ZONE] [-d|--disable-connection-check] -- CHAIN_COMMAND"
   echo ""
   echo "Parameters can also be set using environmental variables:"
   echo "  INSTANCE_NAME"
@@ -64,10 +69,15 @@ runIap()
   instancePort=$2
   project=$3
   zone=$4
-  tout=$5
-  tpid=$6
+  tout=$6
+  tpid=$7
+  disable_connection_check=
 
-  gcloud compute start-iap-tunnel $instanceName $instancePort --project=$project --zone=$zone &> $tout &
+  if [ $5 == true ]; then
+    disable_connection_check="--iap-tunnel-disable-connection-check"
+  fi
+
+  gcloud compute start-iap-tunnel $instanceName $instancePort --project=$project --zone=$zone $disable_connection_check &> $tout &
   echo $! > $tpid
 }
 
@@ -109,7 +119,7 @@ tout=$(mktemp)
 tpid=$(mktemp)
 
 # Start IAP
-runIap "$INSTANCE_NAME" "$INSTANCE_PORT" "$PROJECT" "$ZONE" $tout $tpid
+runIap "$INSTANCE_NAME" "$INSTANCE_PORT" "$PROJECT" "$ZONE" $DISABLE_CONNECTION_CHECK $tout $tpid
 echo "IAP_PID       = $(cat $tpid)"
 
 retries=0
