@@ -317,6 +317,9 @@ configuration ConfigurationWorkload
                         Enable-ClusterStorageSpacesDirect -PoolFriendlyName "$($using:Parameters.nodePrefix)" `
                             -CacheDeviceModel $cacheDeviceModel -CollectPerformanceHistory $false `
                             -SkipEligibilityChecks:$true -Confirm:$false -Verbose;
+                        
+                        # Disable auto-pooling of new disks
+                        Get-StorageSubSystem Cluster* | Set-StorageHealthSetting -Name "System.Storage.PhysicalDisk.AutoPool.Enabled" -Value False;
                     }
 
                     PsDscRunAsCredential = $domainCredential
