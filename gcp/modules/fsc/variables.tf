@@ -49,7 +49,7 @@ variable "cluster_machine_type" {
 
 variable "witness_machine_type" {
   type = string
-  default = "n2-highcpu-2"
+  default = "e2-medium"
 }
 
 variable "windows_image" {
