@@ -145,6 +145,14 @@ resource "google_compute_instance" "fsc" {
     }
   }
 
+  dynamic "attached_disk" {
+    for_each = range(count.index, local.capacity_disk_count * local.node_count, local.node_count)
+    content {
+      source = google_compute_disk.capacity[attached_disk.value].id
+      device_name = "fsc-${count.index}-capacity-${floor((attached_disk.value - count.index) / local.node_count)}"
+    }
+  }
+
   network_interface {
     network = data.google_compute_network.network.id
     subnetwork = data.google_compute_subnetwork.subnet.id
@@ -186,12 +194,6 @@ resource "google_compute_instance" "fsc" {
 
   service_account {
     scopes = module.gce_scopes.scopes
-  }
-
-  lifecycle {
-    ignore_changes = [
-      attached_disk
-    ]
   }
 
   allow_stopping_for_update = true
@@ -260,20 +262,12 @@ resource "google_compute_instance" "witness" {
 }
 
 resource "google_compute_disk" "capacity" {
-  count = length(google_compute_instance.fsc) * local.capacity_disk_count
+  count = local.node_count * local.capacity_disk_count
   project = data.google_project.default.project_id
-  zone = google_compute_instance.fsc[floor(count.index / local.capacity_disk_count)].zone
-  name = "fsc-${floor(count.index / local.capacity_disk_count)}-capacity-${count.index - (local.capacity_disk_count * floor(count.index / local.capacity_disk_count))}"
+  zone = local.cluster_zones[floor(count.index / local.capacity_disk_count)]
+  name = "capacity-${count.index}"
   type = local.capacity_disk_type
   size = local.capacity_disk_size
-}
-
-resource "google_compute_attached_disk" "capacity" {
-  count = length(google_compute_instance.fsc) * local.capacity_disk_count
-  project = data.google_project.default.project_id
-  disk = google_compute_disk.capacity[count.index].id
-  instance = google_compute_instance.fsc[floor(count.index / local.capacity_disk_count)].id
-  device_name = "fsc-${floor(count.index / local.capacity_disk_count)}-capacity-${count.index - (local.capacity_disk_count * floor(count.index / local.capacity_disk_count))}"
 }
 
 resource "google_compute_instance_group" "cluster" {
