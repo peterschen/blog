@@ -248,12 +248,6 @@ resource "google_compute_instance" "witness" {
     scopes = module.gce_scopes.scopes
   }
 
-  lifecycle {
-    ignore_changes = [
-      attached_disk
-    ]
-  }
-
   allow_stopping_for_update = true
 
   depends_on = [
