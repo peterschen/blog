@@ -80,7 +80,6 @@ locals {
     "windows-cloud/windows-2019",
     "windows-cloud/windows-2019-core",
     "windows-cloud/windows-2019-for-containers",
-    "windows-cloud/windows-20h2-core",
     "windows-cloud/windows-2022",
     "windows-cloud/windows-2022-core"
   ]
