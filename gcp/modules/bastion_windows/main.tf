@@ -56,6 +56,16 @@ module "apis" {
   apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com"]
 }
 
+resource "google_compute_address" "bastion" {
+  region = local.region
+  project = data.google_project.default.project_id
+  
+  name = local.machine_name
+  subnetwork = data.google_compute_subnetwork.subnetwork.self_link
+
+  address_type = "INTERNAL"
+}
+
 resource "google_compute_instance" "bastion" {
   project = data.google_project.default.project_id
   zone = local.zone
@@ -74,6 +84,7 @@ resource "google_compute_instance" "bastion" {
   network_interface {
     network = data.google_compute_network.network.id
     subnetwork = data.google_compute_subnetwork.subnetwork.id
+    network_ip = google_compute_address.bastion.address
   }
 
   shielded_instance_config {
