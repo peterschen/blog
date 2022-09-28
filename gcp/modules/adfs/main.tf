@@ -59,7 +59,6 @@ resource "google_compute_address" "fs" {
   
   subnetwork = data.google_compute_subnetwork.subnetwork.self_link
   address_type = "INTERNAL"
-  address = cidrhost(data.google_compute_subnetwork.subnetwork.ip_cidr_range, 4)
 }
 
 resource "google_compute_instance" "fs" {
