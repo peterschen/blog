@@ -47,6 +47,5 @@ rdp()
   instance=${POSITIONAL_ARGS[0]}
   extra="$@"
 
-  iap-chain.sh $instance $port --project $project --zone $zone $disable_connection_check -- xfreerdp +clipboard +home-drive /kbd:0x00000407 \
-    /kbd-lang:0x0407 /dynamic-resolution /log-level:WARN /v:%SERVER% /scale:180 /scale-desktop:140 $extra
+  iap-chain.sh $instance $port --project $project --zone $zone $disable_connection_check -- xfreerdp +clipboard +home-drive /kbd:0x00000407 /kbd-lang:0x0407 /dynamic-resolution /scale:180 /scale-desktop:140 /log-level:WARN /v:%SERVER% $extra
 }
