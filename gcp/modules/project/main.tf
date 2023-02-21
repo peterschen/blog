@@ -40,6 +40,15 @@ resource "google_project_organization_policy" "vm_external_ip_access" {
   }
 }
 
+resource "google_project_organization_policy" "vm_can_ip_forward" {
+  project = google_project.project.project_id
+  constraint = "compute.vmCanIpForward"
+
+  restore_policy {
+    default = true
+  }
+}
+
 resource "google_project_organization_policy" "restrict_vpn_peer_ips" {
   project = google_project.project.project_id
   constraint = "compute.restrictVpnPeerIPs"
