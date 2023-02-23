@@ -2,10 +2,12 @@
 locals {
   org_id = var.org_id
   billing_account = var.billing_account
+  prefix = var.prefix
 }
 
 resource "random_pet" "project" {
-  length = 2
+  length = local.prefix == null ? 2 : 1
+  prefix = local.prefix
 }
 
 resource "random_integer" "project" {

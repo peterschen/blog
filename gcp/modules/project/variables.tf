@@ -12,3 +12,8 @@ variable "apis" {
     type = list(string)
     default = []
 }
+
+variable "prefix" {
+    type = string
+    default = null
+}
