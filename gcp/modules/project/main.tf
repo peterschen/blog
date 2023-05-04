@@ -1,6 +1,7 @@
 
 locals {
   org_id = var.org_id
+  folder_id = var.folder_id
   billing_account = var.billing_account
   prefix = var.prefix
 }
@@ -19,6 +20,7 @@ resource "google_project" "project" {
   project_id = "${random_pet.project.id}-${random_integer.project.id}"
   name = "${random_pet.project.id}-${random_integer.project.id}"
   org_id = local.org_id
+  folder_id = "folders/${local.folder_id}"
   billing_account = local.billing_account
 
   auto_create_network = false
