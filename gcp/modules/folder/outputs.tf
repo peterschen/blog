@@ -1,5 +1,5 @@
 output "id" {
-  value = google_folder.folder.id
+  value = replace(google_folder.folder.id, "folders/", "")
 }
 
 output "name" {
