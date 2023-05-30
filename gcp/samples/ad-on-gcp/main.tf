@@ -32,6 +32,7 @@ locals {
   enable_adcs = var.enable_adcs || var.enable_adfs ? true : false
   enable_adfs = var.enable_adfs
   enable_directorysync = var.enable_directorysync
+  enable_discoveryclient = var.enable_discoveryclient
 
   network_prefixes = ["10.0.0", "10.1.0"]
   network_prefixes_proxy_lb = ["10.6.0", "10.7.0"]
@@ -84,8 +85,6 @@ locals {
     "windows-cloud/windows-2022",
     "windows-cloud/windows-2022-core"
   ]
-
-  enable_discoveryclient = var.enable_discoveryclient
 }
 
 module "project" {
@@ -102,7 +101,9 @@ module "project" {
     "run.googleapis.com",
     "secretmanager.googleapis.com",
     "vpcaccess.googleapis.com",
-    "dataconnectors.googleapis.com"
+    "dataconnectors.googleapis.com",
+    "migrationcenter.googleapis.com",
+    "rapidmigrationassessment.googleapis.com"
   ]
 }
 
@@ -375,6 +376,14 @@ resource "google_service_account" "adjoin" {
 
   account_id = "adjoin"
   display_name = "Service Account for adjoin operations"
+}
+
+resource "google_service_account" "migration_center" {
+  count = local.enable_discoveryclient ? 1 : 0
+  project = module.project.id
+
+  account_id = "migration-center"
+  display_name = "Service Account for Migration Center operations"
 }
 
 resource "google_project_iam_binding" "adjoin_computeviewer" {
