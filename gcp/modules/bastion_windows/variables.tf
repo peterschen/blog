@@ -75,3 +75,9 @@ variable "enable_python" {
     type = bool
     default = true
 }
+
+# Disabled by default
+variable "enable_discoveryclient" {
+    type = bool
+    default = false
+}

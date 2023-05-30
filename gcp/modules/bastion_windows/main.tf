@@ -21,6 +21,7 @@ locals {
   enable_hammerdb = var.enable_hammerdb
   enable_diskspd = var.enable_diskspd
   enable_python = var.enable_python
+  enable_discoveryclient = var.enable_discoveryclient
 }
 
 data "google_project" "default" {
@@ -106,6 +107,7 @@ resource "google_compute_instance" "bastion" {
         enableHammerdb = local.enable_hammerdb,
         enableDiskspd = local.enable_diskspd,
         enablePython = local.enable_python,
+        enableDiscoveryClient = local.enable_discoveryclient,
         fileContentBenchmark = filebase64("${path.module}/benchmark.ps1")
       })
     })

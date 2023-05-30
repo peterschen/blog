@@ -427,5 +427,66 @@ configuration ConfigurationWorkload
             }
         }
 #endregion
+
+#region Migration Center Discovery Client
+        if($Parameters.enableDiscoveryClient)
+        {
+            Script "DownloadDiscoveryClient"
+            {
+                GetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "mcc_setup.exe";
+                    if((Test-Path -Path $path))
+                    {
+                        $result = "Present";
+                    }
+                    else
+                    {
+                        $result = "Absent";
+                    }
+
+                    return @{Ensure = $result};
+                }
+
+                TestScript = {
+                    $state = [scriptblock]::Create($GetScript).Invoke();
+                    return $state.Ensure -eq "Present";
+                }
+
+                SetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "mcc_setup.exe";
+                    Start-BitsTransfer -Source "https://storage.googleapis.com/mc-collector-download-prod-eu/download/mcc_setup.exe" -Destination $path;
+                }
+            }
+
+            Script "InstallDiscoveryClient"
+            {
+                GetScript = {
+                    $path  = "C:\Program Files\Migration Center Discovery Client";
+                    if((Test-Path -Path $path))
+                    {
+                        $result = "Present";
+                    }
+                    else
+                    {
+                        $result = "Absent";
+                    }
+
+                    return @{Ensure = $result};
+                }
+
+                TestScript = {
+                    $state = [scriptblock]::Create($GetScript).Invoke();
+                    return $state.Ensure -eq "Present";
+                }
+
+                SetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "mcc_setup.exe";
+                    Start-Process -FilePath $path -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES" -Wait;
+                }
+
+                DependsOn = "[Script]DownloadDiscoveryClient"
+            }
+        }
+#endregion Migration Center Discovery Client
     }
 }
