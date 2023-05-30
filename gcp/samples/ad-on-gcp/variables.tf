@@ -6,6 +6,11 @@ variable "billing_account" {
   type = string
 }
 
+variable "prefix" {
+  type = string
+  default = null
+}
+
 variable "regions" {
   type = list(string)
   default = [
