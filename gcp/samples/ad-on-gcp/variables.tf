@@ -80,3 +80,10 @@ variable "enable_directorysync" {
   type = bool
   default = false
 }
+
+# Migration Center Discovery Client installation on bastion
+# disabled by default
+variable "enable_discoveryclient" {
+  type = bool
+  default = false
+}

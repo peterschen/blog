@@ -84,6 +84,8 @@ locals {
     "windows-cloud/windows-2022",
     "windows-cloud/windows-2022-core"
   ]
+
+  enable_discoveryclient = var.enable_discoveryclient
 }
 
 module "project" {
@@ -246,6 +248,7 @@ module "bastion" {
   password = local.password
 
   enable_domain = true
+  enable_discoveryclient = local.enable_discoveryclient
 
   depends_on = [
     module.ad
