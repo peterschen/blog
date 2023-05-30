@@ -79,3 +79,12 @@ resource "google_project_organization_policy" "allowed_policy_member_domains" {
     default = true
   }
 }
+
+resource "google_project_organization_policy" "disable_service_account_key_creation" {
+  project = google_project.project.project_id
+  constraint = "iam.disableServiceAccountKeyCreation"
+
+  restore_policy {
+    default = true
+  }
+}
