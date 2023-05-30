@@ -24,6 +24,10 @@ resource "google_project" "project" {
   billing_account = local.billing_account
 
   auto_create_network = false
+
+  labels = {
+    "migration-center-store-region" = "europe-west1"
+  }
 }
 
 resource "google_project_service" "apis" {
