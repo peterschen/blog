@@ -11,6 +11,7 @@ provider "google" {
 
 locals {
   region = var.region
+  prefix = var.prefix
 }
 
 module "project" {
@@ -18,6 +19,8 @@ module "project" {
 
   org_id = var.org_id
   billing_account = var.billing_account
+
+  prefix = local.prefix
 
   apis = [
     "cloudresourcemanager.googleapis.com",
