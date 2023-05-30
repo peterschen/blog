@@ -13,6 +13,7 @@ provider "google-beta" {
 }
 
 locals {
+  prefix = var.prefix
   regions = var.regions
   zones = var.zones
   region_scheduler = var.region_scheduler
@@ -90,6 +91,8 @@ module "project" {
 
   org_id = var.org_id
   billing_account = var.billing_account
+
+  prefix = local.prefix
 
   apis = [
     "cloudbuild.googleapis.com",
