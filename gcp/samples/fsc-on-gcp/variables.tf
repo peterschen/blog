@@ -61,6 +61,11 @@ variable "enable_cluster" {
   default = true
 }
 
+variable "enable_storagespaces" {
+  type = bool
+  default = true
+}
+
 variable "cache_disk_count" {
   type = number
   default = 2
