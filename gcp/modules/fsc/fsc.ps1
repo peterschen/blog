@@ -284,108 +284,111 @@ configuration ConfigurationWorkload
                     DependsOn = "[xCluster]CreateCluster"
                 }
 
-                Script "EnableStorageSpacesDirect"
+                if($Parameters.enableStorageSpaces -ne $false)
                 {
-                    GetScript = {
-                        $state = (Get-ClusterStorageSpacesDirect).State;
-                        $pool = Get-StoragePool -FriendlyName "$($using:Parameters.nodePrefix)" -ErrorAction SilentlyContinue;
+                    Script "EnableStorageSpacesDirect"
+                    {
+                        GetScript = {
+                            $state = (Get-ClusterStorageSpacesDirect).State;
+                            $pool = Get-StoragePool -FriendlyName "$($using:Parameters.nodePrefix)" -ErrorAction SilentlyContinue;
 
-                        if($state -eq "Enabled" -and $Null -ne $pool)
-                        {
-                            $result = "Present";
-                        }
-                        else
-                        {
-                            $result = "Absent";
-                        }
+                            if($state -eq "Enabled" -and $Null -ne $pool)
+                            {
+                                $result = "Present";
+                            }
+                            else
+                            {
+                                $result = "Absent";
+                            }
 
-                        return @{Ensure = $result};
-                    }
-
-                    TestScript = {
-                        $state = [scriptblock]::Create($GetScript).Invoke();
-                        return $state.Ensure -eq "Present";
-                    }
-                    
-                    SetScript = {
-                        $cacheDeviceModel = "EphemeralDisk";
-                        if($using:Parameters.cacheDiskInterface -eq "NVME")
-                        {
-                            $cacheDeviceModel = "nvme_card";
+                            return @{Ensure = $result};
                         }
 
-                        Enable-ClusterStorageSpacesDirect -PoolFriendlyName "$($using:Parameters.nodePrefix)" `
-                                -CacheState Enabled -CacheDeviceModel $cacheDeviceModel -CollectPerformanceHistory $true `
-                            -SkipEligibilityChecks:$true -Confirm:$false -Verbose;
+                        TestScript = {
+                            $state = [scriptblock]::Create($GetScript).Invoke();
+                            return $state.Ensure -eq "Present";
+                        }
                         
-                        # Disable auto-pooling of new disks
-                        Get-StorageSubSystem Cluster* | Set-StorageHealthSetting -Name "System.Storage.PhysicalDisk.AutoPool.Enabled" -Value False;
-                    }
+                        SetScript = {
+                            $cacheDeviceModel = "EphemeralDisk";
+                            if($using:Parameters.cacheDiskInterface -eq "NVME")
+                            {
+                                $cacheDeviceModel = "nvme_card";
+                            }
 
-                    PsDscRunAsCredential = $domainCredential
-                    DependsOn = "[WaitForAll]ClusterJoin"
-                }
-
-                Script "CreateVolume"
-                {
-                    GetScript = {
-                        if((Get-Volume -FriendlyName $($using:Parameters.nodePrefix) -ErrorAction Ignore) -ne $Null)
-                        {
-                            $result = "Present";
-                        }
-                        else
-                        {
-                            $result = "Absent";
+                            Enable-ClusterStorageSpacesDirect -PoolFriendlyName "$($using:Parameters.nodePrefix)" `
+                                -CacheState Enabled -CacheDeviceModel $cacheDeviceModel -CollectPerformanceHistory $true `
+                                -SkipEligibilityChecks:$true -Confirm:$false -Verbose;
+                            
+                            # Disable auto-pooling of new disks
+                            Get-StorageSubSystem Cluster* | Set-StorageHealthSetting -Name "System.Storage.PhysicalDisk.AutoPool.Enabled" -Value False;
                         }
 
-                        return @{Ensure = $result};
+                        PsDscRunAsCredential = $domainCredential
+                        DependsOn = "[WaitForAll]ClusterJoin"
                     }
 
-                    TestScript = {
-                        $state = [scriptblock]::Create($GetScript).Invoke();
-                        return $state.Ensure -eq "Present";
-                    }
+                    Script "CreateVolume"
+                    {
+                        GetScript = {
+                            if((Get-Volume -FriendlyName $($using:Parameters.nodePrefix) -ErrorAction Ignore) -ne $Null)
+                            {
+                                $result = "Present";
+                            }
+                            else
+                            {
+                                $result = "Absent";
+                            }
 
-                    SetScript = {
-                        New-Volume -FriendlyName $($using:Parameters.nodePrefix) -StoragePoolFriendlyName $($using:Parameters.nodePrefix) `
-                            -ResiliencySettingName "Mirror" -ProvisioningType "Fixed" -FileSystem CSVFS_ReFS -UseMaximumSize -AccessPath "X:";
-                    }
-                    
-                    DependsOn = "[Script]EnableStorageSpacesDirect"
-                }
-
-                Script "CreateFileServerRole"
-                {
-                    GetScript = {
-                        $resource = Get-ClusterResource -Name "File Server (\\$($using:Parameters.nodePrefix))" -ErrorAction Ignore;
-
-                        if($resource -ne $Null)
-                        {
-                            $result = "Present";
-                        }
-                        else
-                        {
-                            $result = "Absent";
+                            return @{Ensure = $result};
                         }
 
-                        return @{Ensure = $result};
+                        TestScript = {
+                            $state = [scriptblock]::Create($GetScript).Invoke();
+                            return $state.Ensure -eq "Present";
+                        }
+
+                        SetScript = {
+                            New-Volume -FriendlyName $($using:Parameters.nodePrefix) -StoragePoolFriendlyName $($using:Parameters.nodePrefix) `
+                                -ResiliencySettingName "Mirror" -ProvisioningType "Fixed" -FileSystem CSVFS_ReFS -UseMaximumSize -AccessPath "X:";
+                        }
+                        
+                        DependsOn = "[Script]EnableStorageSpacesDirect"
                     }
 
-                    TestScript = {
-                        $state = [scriptblock]::Create($GetScript).Invoke();
-                        return $state.Ensure -eq "Present";
-                    }
-                    
-                    SetScript = {
-                        # Move volume to available storage
-                        Remove-ClusterSharedVolume -Name "Cluster Virtual Disk ($($using:Parameters.nodePrefix))";
+                    Script "CreateFileServerRole"
+                    {
+                        GetScript = {
+                            $resource = Get-ClusterResource -Name "File Server (\\$($using:Parameters.nodePrefix))" -ErrorAction Ignore;
 
-                        # Create File Share role
-                        Add-ClusterFileServerRole -Name $using:Parameters.nodePrefix -Storage "Cluster Virtual Disk ($($using:Parameters.nodePrefix))" -StaticAddress $using:Parameters.ipFsc;
+                            if($resource -ne $Null)
+                            {
+                                $result = "Present";
+                            }
+                            else
+                            {
+                                $result = "Absent";
+                            }
+
+                            return @{Ensure = $result};
+                        }
+
+                        TestScript = {
+                            $state = [scriptblock]::Create($GetScript).Invoke();
+                            return $state.Ensure -eq "Present";
+                        }
+                        
+                        SetScript = {
+                            # Move volume to available storage
+                            Remove-ClusterSharedVolume -Name "Cluster Virtual Disk ($($using:Parameters.nodePrefix))";
+
+                            # Create File Share role
+                            Add-ClusterFileServerRole -Name $using:Parameters.nodePrefix -Storage "Cluster Virtual Disk ($($using:Parameters.nodePrefix))" -StaticAddress $using:Parameters.ipFsc;
+                        }
+                        
+                        PsDscRunAsCredential = $domainCredential
+                        DependsOn = "[Script]CreateVolume"
                     }
-                    
-                    PsDscRunAsCredential = $domainCredential
-                    DependsOn = "[Script]CreateVolume"
                 }
 
                 # Script CreateSofs
