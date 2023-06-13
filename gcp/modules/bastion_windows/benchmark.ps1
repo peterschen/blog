@@ -144,7 +144,7 @@ function Invoke-Benchmark
     (
         [Hashtable] $Scenarios,     
         [Array] $Configurations,
-        [char] $DriveLetter,
+        [char] $DriveLetter = $null,
         [string] $OutputFolder,
         [string] $FileSize,
         [int] $Duration,
@@ -158,6 +158,22 @@ function Invoke-Benchmark
         $disk = Get-PhysicalDisk | Where-Object { $_.Size -eq 1000GB };
         foreach($configuration in $Configurations)
         {
+            $drivePath = $configuration["drivePath"];
+
+            if([string]::IsNullOrEmpty($drivePath))
+            {
+                if($DriveLetter -eq $null)
+                {
+                    throw "Either `$DriveLetter needs to be set or 'drivePath' needs to be passed in configuration";
+                }
+
+                $testPath = "${DriveLetter}:\diskspd.bin";
+            }
+            else
+            {
+                $testPath = Join-Path -Path $drivePath -ChildPath "\diskspd.bin";
+            }
+
             if(-not $configuration["skipDiskSetup"])
             {
                 Write-Information -MessageData "Preparing disk '$($configuration["fileSystem"])-$($configuration["allocationUnitSize"])'";
@@ -217,13 +233,13 @@ function Invoke-Benchmark
                     "-D",
                     "-Z1M"
                     $flags,
-                    "${DriveLetter}:\diskspd.bin"
+                    "${testPath}"
                 );
 
-                if(Test-Path -Path "${DriveLetter}:\diskspd.bin")
+                if(Test-Path -Path "${testPath}")
                 {
-                    Write-Information -MessageData "Deleting '${DriveLetter}:\diskspd.bin' before diskspd run";
-                    Remove-Item -Path "${DriveLetter}:\diskspd.bin" -Force;
+                    Write-Information -MessageData "Deleting '${testPath}' before diskspd run";
+                    Remove-Item -Path "${testPath}" -Force;
                 }
 
                 Write-Information -MessageData "Running scenario '$($scenario.Name)'";
@@ -687,6 +703,30 @@ $configurations = @(
     },
     @{
         "fileSystem" = "SMB"
+        "allocationUnitSize" = 4096
+        "skipDiskSetup" = $true
+    },
+    @{
+        "drivePath" = "C:\ClusterStorage\mirror-2way"
+        "fileSystem" = "mirror-2way"
+        "allocationUnitSize" = 4096
+        "skipDiskSetup" = $true
+    },
+    @{
+        "drivePath" = "C:\ClusterStorage\mirror-3way"
+        "fileSystem" = "mirror-3way"
+        "allocationUnitSize" = 4096
+        "skipDiskSetup" = $true
+    },
+    @{
+        "drivePath" = "C:\ClusterStorage\parity-single"
+        "fileSystem" = "parity-single"
+        "allocationUnitSize" = 4096
+        "skipDiskSetup" = $true
+    },
+    @{
+        "drivePath" = "C:\ClusterStorage\parity-double"
+        "fileSystem" = "parity-double"
         "allocationUnitSize" = 4096
         "skipDiskSetup" = $true
     }
