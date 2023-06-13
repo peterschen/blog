@@ -315,7 +315,7 @@ configuration ConfigurationWorkload
                         }
 
                         Enable-ClusterStorageSpacesDirect -PoolFriendlyName "$($using:Parameters.nodePrefix)" `
-                            -CacheDeviceModel $cacheDeviceModel -CollectPerformanceHistory $false `
+                                -CacheState Enabled -CacheDeviceModel $cacheDeviceModel -CollectPerformanceHistory $true `
                             -SkipEligibilityChecks:$true -Confirm:$false -Verbose;
                         
                         # Disable auto-pooling of new disks
