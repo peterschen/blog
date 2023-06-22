@@ -448,8 +448,8 @@ configuration ConfigurationWorkload
                 {
                     ResourceName = "[xCluster]CreateCluster"
                     NodeName = "$($Parameters.nodePrefix)-0"
-                    RetryIntervalSec = 5
-                    RetryCount = 120
+                    RetryIntervalSec = 10
+                    RetryCount = 180
                     PsDscRunAsCredential = $domainCredential
                 }
 
