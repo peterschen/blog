@@ -126,19 +126,12 @@ configuration ConfigurationWorkload
                 DependsOn = "[WindowsFeature]WF-AD-Domain-Services"
             }
 
-            WaitForADDomain "WFAD-CreateDomain"
-            {
-                DomainName = $Parameters.domainName
-                Credential = $credentialAdminDomain
-                DependsOn = "[ADDomain]AD-CreateDomain"
-            }
-
             ADReplicationSite "ReplicationSite-$($Parameters.region)"
             {
                 Ensure = "Present"
                 Name = "$($Parameters.region)"
                 RenameDefaultFirstSiteName = $Parameters.isFirst
-                DependsOn = "[WaitForADDomain]WFAD-CreateDomain"
+                DependsOn = "[ADDomain]AD-CreateDomain"
             }
 
             ADReplicationSubnet "ReplicationSubnet-$($Parameters.networkRange)"
@@ -278,6 +271,7 @@ configuration ConfigurationWorkload
             {
                 DomainName = $Parameters.domainName
                 Credential = $credentialAdminDomain
+                WaitTimeout = 600
                 RestartCount = 2
             }
 
