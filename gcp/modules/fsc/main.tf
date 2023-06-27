@@ -88,6 +88,7 @@ resource "google_compute_address" "cluster" {
   region = local.region
   name = "cluster"
   address_type = "INTERNAL"
+  purpose = "SHARED_LOADBALANCER_VIP"
   subnetwork = data.google_compute_subnetwork.subnet.id
 }
 
@@ -96,6 +97,7 @@ resource "google_compute_address" "fsc" {
   region = local.region
   name = "fsc"
   address_type = "INTERNAL"
+  purpose = "SHARED_LOADBALANCER_VIP"
   subnetwork = data.google_compute_subnetwork.subnet.id
 }
 
@@ -318,10 +320,11 @@ resource "google_compute_health_check" "fsc" {
   }
 }
 
-resource "google_compute_region_backend_service" "cluster" {
+resource "google_compute_region_backend_service" "cluster_tcp" {
   project = data.google_project.default.project_id
   region = local.region
-  name = "cluster"
+  name = "cluster-tcp"
+  protocol = "TCP"
   health_checks = [
     google_compute_health_check.cluster.id
   ]
@@ -338,10 +341,32 @@ resource "google_compute_region_backend_service" "cluster" {
   ]
 }
 
-resource "google_compute_region_backend_service" "fsc" {
+resource "google_compute_region_backend_service" "cluster_udp" {
   project = data.google_project.default.project_id
   region = local.region
-  name = "fsc"
+  name = "cluster-udp"
+  protocol = "UDP"
+  health_checks = [
+    google_compute_health_check.cluster.id
+  ]
+
+  dynamic "backend" {
+    for_each = google_compute_instance_group.cluster
+    content {
+      group = backend.value.id
+    }
+  }
+
+  depends_on = [
+    google_compute_instance_group.cluster
+  ]
+}
+
+resource "google_compute_region_backend_service" "fsc_tcp" {
+  project = data.google_project.default.project_id
+  region = local.region
+  name = "fsc-tcp"
+  protocol = "TCP"
   health_checks = [
     google_compute_health_check.fsc.id
   ]
@@ -358,36 +383,79 @@ resource "google_compute_region_backend_service" "fsc" {
   ]
 }
 
-resource "google_compute_forwarding_rule" "cluster" {
+resource "google_compute_region_backend_service" "fsc_udp" {
   project = data.google_project.default.project_id
   region = local.region
-  name = "cluster"
+  name = "fsc-udp"
+  protocol = "UDP"
+  health_checks = [
+    google_compute_health_check.fsc.id
+  ]
+
+  dynamic "backend" {
+    for_each = google_compute_instance_group.cluster
+    content {
+      group = backend.value.id
+    }
+  }
+
+  depends_on = [
+    google_compute_instance_group.cluster
+  ]
+}
+
+resource "google_compute_forwarding_rule" "cluster_tcp" {
+  project = data.google_project.default.project_id
+  region = local.region
+  name = "cluster-tcp"
+  ip_protocol = "TCP"
   ip_address = google_compute_address.cluster.address
   load_balancing_scheme = "INTERNAL"
   all_ports = true
   allow_global_access = true
   network = data.google_compute_network.network.id
   subnetwork = data.google_compute_subnetwork.subnet.id
-  backend_service = google_compute_region_backend_service.cluster.id
-
-  depends_on = [
-    google_compute_region_backend_service.cluster
-  ]
+  backend_service = google_compute_region_backend_service.cluster_tcp.id
 }
 
-resource "google_compute_forwarding_rule" "fsc" {
+resource "google_compute_forwarding_rule" "cluster_udp" {
   project = data.google_project.default.project_id
   region = local.region
-  name = "fsc"
+  name = "cluster-udp"
+  ip_protocol = "UDP"
+  ip_address = google_compute_address.cluster.address
+  load_balancing_scheme = "INTERNAL"
+  all_ports = true
+  allow_global_access = true
+  network = data.google_compute_network.network.id
+  subnetwork = data.google_compute_subnetwork.subnet.id
+  backend_service = google_compute_region_backend_service.cluster_udp.id
+}
+
+resource "google_compute_forwarding_rule" "fsc_tcp" {
+  project = data.google_project.default.project_id
+  region = local.region
+  name = "fsc-tcp"
+  ip_protocol = "TCP"
   ip_address = google_compute_address.fsc.address
   load_balancing_scheme = "INTERNAL"
   all_ports = true
   allow_global_access = true
   network = data.google_compute_network.network.id
   subnetwork = data.google_compute_subnetwork.subnet.id
-  backend_service = google_compute_region_backend_service.fsc.id
+  backend_service = google_compute_region_backend_service.fsc_tcp.id
+}
 
-  depends_on = [
-    google_compute_region_backend_service.fsc
-  ]
+resource "google_compute_forwarding_rule" "fsc_udp" {
+  project = data.google_project.default.project_id
+  region = local.region
+  name = "fsc-udp"
+  ip_protocol = "UDP"
+  ip_address = google_compute_address.fsc.address
+  load_balancing_scheme = "INTERNAL"
+  all_ports = true
+  allow_global_access = true
+  network = data.google_compute_network.network.id
+  subnetwork = data.google_compute_subnetwork.subnet.id
+  backend_service = google_compute_region_backend_service.fsc_udp.id
 }
