@@ -90,6 +90,7 @@ configuration ConfigurationWorkload
         {
             DomainName  = $($Parameters.domainName)
             Credential = $domainCredential
+            WaitTimeout = 600
             RestartCount = 2
         }
 
