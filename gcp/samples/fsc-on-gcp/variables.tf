@@ -61,6 +61,11 @@ variable "enable_cluster" {
   default = true
 }
 
+variable "enable_distributednodename" {
+  type = bool
+  default = true
+}
+
 variable "enable_storagespaces" {
   type = bool
   default = true

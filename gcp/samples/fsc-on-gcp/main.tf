@@ -51,6 +51,7 @@ locals {
   windows_core_image = var.windows_core_image
 
   enable_cluster = var.enable_cluster
+  enable_distributednodename = var.enable_distributednodename
   enable_storagespaces = var.enable_storagespaces
   node_count = var.node_count
 
@@ -199,6 +200,7 @@ module "fsc" {
   password = local.password
 
   enable_cluster = local.enable_cluster
+  enable_distributednodename = local.enable_distributednodename
   enable_storagespaces = local.enable_storagespaces
 
   node_count = local.node_count

@@ -16,6 +16,7 @@ locals {
   windows_image = var.windows_image
 
   enable_cluster = var.enable_cluster
+  enable_distributednodename = var.enable_distributednodename
   enable_storagespaces = var.enable_storagespaces
   
   node_count = var.node_count
@@ -182,6 +183,7 @@ resource "google_compute_instance" "fsc" {
           nodePrefix = "fsc",
           nodeCount = local.node_count,
           enableCluster = local.enable_cluster,
+          enableDistributedNodeName = local.enable_distributednodename,
           enableStorageSpaces = local.enable_storagespaces,
           ipCluster = google_compute_address.cluster.address,
           ipFsc = google_compute_address.fsc.address,

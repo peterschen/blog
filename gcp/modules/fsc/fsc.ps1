@@ -218,13 +218,52 @@ configuration ConfigurationWorkload
                     DependsOn = "[Computer]JoinDomain"
                 }
                 
-                xCluster "CreateCluster"
+                if($Parameters.enableDistributedNodeName)
                 {
-                    Name = "$($Parameters.nodePrefix)-cl"
-                    DomainAdministratorCredential = $domainCredential
-                    StaticIPAddress = $Parameters.ipCluster
-                    PsDscRunAsCredential = $domainCredential
-                    DependsOn = "[WindowsFeature]WF-Failover-clustering","[ADGroup]AddClusterResourceToGroup"
+                    Script "CreateCluster"
+                    {
+                        GetScript = {
+                            $cluster = Get-Cluster -Name "$($using:Parameters.nodePrefix)-cl" -ErrorAction SilentlyContinue;
+                            if($null -ne $cluster)
+                            {
+                                $result = "Present";
+                            }
+                            else
+                            {
+                                $result = "Absent";
+                            }
+
+                            return @{Ensure = $result};
+                        }
+
+                        TestScript = {
+                            $state = [scriptblock]::Create($GetScript).Invoke();
+                            return $state.Ensure -eq "Present";
+                        }
+
+                        SetScript = {
+                            New-Cluster -Name "$($using:Parameters.nodePrefix)-cl" -Node "localhost" -StaticAddress $using:Parameters.ipCluster `
+                                -ManagementPointNetworkType Distributed -NoStorage;
+                        }
+                        
+                        DependsOn = "[WindowsFeature]WF-Failover-clustering","[ADGroup]AddClusterResourceToGroup"
+                        PsDscRunAsCredential = $domainCredential
+                    }
+
+                    $clusterDependency = "[Script]CreateCluster";
+                }
+                else
+                {
+                    xCluster "CreateCluster"
+                    {
+                        Name = "$($Parameters.nodePrefix)-cl"
+                        DomainAdministratorCredential = $domainCredential
+                        StaticIPAddress = $Parameters.ipCluster
+                        PsDscRunAsCredential = $domainCredential
+                        DependsOn = "[WindowsFeature]WF-Failover-clustering","[ADGroup]AddClusterResourceToGroup"
+                    }
+
+                    $clusterDependency = "[xCluster]CreateCluster";
                 }
 
                 xClusterQuorum "Quorum"
@@ -233,7 +272,7 @@ configuration ConfigurationWorkload
                     Type = "NodeAndFileShareMajority"
                     Resource = "\\$($Parameters.witnessName)\witness"
                     PsDscRunAsCredential = $domainCredential
-                    DependsOn = "[xCluster]CreateCluster"
+                    DependsOn = $clusterDependency
                 }
 
                 Script "IncreaseClusterTimeouts"
@@ -268,7 +307,7 @@ configuration ConfigurationWorkload
                         $cluster.CrossSubnetThreshold = 15;
                     }
                     
-                    DependsOn = "[xCluster]CreateCluster"
+                    DependsOn = $clusterDependency
                 }
 
                 $nodes = @();
@@ -282,7 +321,7 @@ configuration ConfigurationWorkload
                     NodeName = $nodes
                     RetryIntervalSec = 5
                     RetryCount = 120
-                    DependsOn = "[xCluster]CreateCluster"
+                    DependsOn = $clusterDependency
                 }
 
                 if($Parameters.enableStorageSpaces -ne $false)
