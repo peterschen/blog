@@ -393,7 +393,7 @@ configuration ConfigurationWorkload
 
                         SetScript = {
                             New-Volume -FriendlyName $($using:Parameters.nodePrefix) -StoragePoolFriendlyName $($using:Parameters.nodePrefix) `
-                                -ResiliencySettingName "Mirror" -ProvisioningType "Fixed" -FileSystem CSVFS_ReFS -UseMaximumSize -AccessPath "X:";
+                                -ResiliencySettingName "Mirror" -ProvisioningType "Fixed" -FileSystem CSVFS_ReFS -UseMaximumSize;
                         }
                         
                         DependsOn = "[Script]EnableStorageSpacesDirect"
