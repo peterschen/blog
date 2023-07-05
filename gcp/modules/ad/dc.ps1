@@ -77,6 +77,7 @@ configuration ConfigurationWorkload
         @{Name = "g-LocalAdmins"; Path = "ou=Groups,$ou"; Members = @("$($userJohndoe.Name)")}
         @{Name = "g-RemoteDesktopUsers"; Path = "ou=Groups,$ou"; Members = @("$($userJohndoe.Name)")}
         @{Name = "g-RemoteManagementUsers"; Path = "ou=Groups,$ou"; Members = @("$($userJohndoe.Name)")}
+        @{Name = "g-DistributedComUsers"; Path = "ou=Groups,$ou"; Members = @("$($Parameters.domainName)\Administrator", "$($userJohndoe.Name)")}
         @{Name = "g-ClusterResources"; Path = "ou=Groups,$ou"; Members = @()}
         @{Name = "g-IisUsers"; Path = "ou=Groups,$ou"; Members = @()}
         @{Name = "g-CloudSqlAdmins"; Path = "ou=Groups,$ou"; Members = @("$($userJohndoe.Name)")}
@@ -86,6 +87,7 @@ configuration ConfigurationWorkload
         @{Name = "Administrators"; Members =@("g-LocalAdmins")},
         @{Name = "Remote Desktop Users"; Members =@("g-RemoteDesktopUsers")}
         @{Name = "Remote Management Users"; Members =@("g-RemoteManagementUsers")}
+        @{Name = "Distributed COM Users"; Members =@("g-DistributedComUsers")}
     );
     
     $credentialAdmin = New-Object System.Management.Automation.PSCredential ("Administrator", $Password);
@@ -148,7 +150,7 @@ configuration ConfigurationWorkload
                     Name = $_.Name
                     Path = $_.Path
                     Ensure = "Present"
-                    DependsOn = "[WaitForADDomain]WFAD-CreateDomain"
+                    DependsOn = "[ADDomain]AD-CreateDomain"
                 }
             }
 
@@ -212,7 +214,7 @@ configuration ConfigurationWorkload
             {
                 DnsServer = "localhost"
                 Forwarders = "8.8.8.8", "8.8.4.4"
-                DependsOn = "[WaitForADDomain]WFAD-CreateDomain"
+                DependsOn = "[ADDomain]AD-CreateDomain"
             }
 
             Script SetAdjoinerPermissions
