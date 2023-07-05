@@ -46,12 +46,22 @@ variable "node_count" {
   default = 2
 }
 
-variable "windows_image" {
+variable "windows_image_dc" {
+  type = string
+  default = "windows-cloud/windows-2022-core"
+}
+
+variable "windows_image_bastion" {
   type = string
   default = "windows-cloud/windows-2022"
 }
 
-variable "windows_core_image" {
+variable "windows_image_witness" {
+  type = string
+  default = "windows-cloud/windows-2022-core"
+}
+
+variable "windows_image_cluster" {
   type = string
   default = "windows-cloud/windows-2022-core"
 }

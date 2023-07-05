@@ -52,7 +52,12 @@ variable "witness_machine_type" {
   default = "e2-medium"
 }
 
-variable "windows_image" {
+variable "windows_image_witness" {
+  type = string
+  default = "windows-cloud/windows-2022-core"
+}
+
+variable "windows_image_cluster" {
   type = string
   default = "windows-cloud/windows-2022-core"
 }

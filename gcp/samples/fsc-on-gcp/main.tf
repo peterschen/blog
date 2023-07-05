@@ -47,8 +47,10 @@ locals {
   domain_name = var.domain_name
   password = var.password
   
-  windows_image = var.windows_image
-  windows_core_image = var.windows_core_image
+  windows_image_dc = var.windows_image_dc
+  windows_image_bastion = var.windows_image_bastion
+  windows_image_witness = var.windows_image_witness
+  windows_image_cluster = var.windows_image_cluster
 
   enable_cluster = var.enable_cluster
   enable_distributednodename = var.enable_distributednodename
@@ -143,7 +145,7 @@ module "ad" {
     subnet.name if contains(local.ad_regions, subnet.region)
   ]
 
-  windows_image = local.windows_core_image
+  windows_image = local.windows_image_dc
 
   domain_name = local.domain_name
   password = local.password
@@ -167,7 +169,7 @@ module "bastion" {
   ], 1)
   
   machine_name = "bastion"
-  windows_image = local.windows_image
+  windows_image = local.windows_image_bastion
 
   domain_name = local.domain_name
   password = local.password
@@ -194,7 +196,8 @@ module "fsc" {
     subnet.name if local.cluster_region == subnet.region
   ], 1)
 
-  windows_image = local.windows_core_image
+  windows_image_witness = local.windows_image_witness
+  windows_image_cluster = local.windows_image_cluster
 
   domain_name = local.domain_name
   password = local.password

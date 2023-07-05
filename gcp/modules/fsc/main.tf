@@ -13,7 +13,8 @@ locals {
   
   cluster_machine_type = var.cluster_machine_type
   witness_machine_type = var.witness_machine_type
-  windows_image = var.windows_image
+  windows_image_witness = var.windows_image_witness
+  windows_image_cluster = var.windows_image_cluster
 
   enable_cluster = var.enable_cluster
   enable_distributednodename = var.enable_distributednodename
@@ -139,7 +140,7 @@ resource "google_compute_instance" "fsc" {
 
   boot_disk {
     initialize_params {
-      image = local.windows_image
+      image = local.windows_image_cluster
       type = "pd-ssd"
     }
   }
@@ -221,7 +222,7 @@ resource "google_compute_instance" "witness" {
 
   boot_disk {
     initialize_params {
-      image = local.windows_image
+      image = local.windows_image_witness
       type = "pd-balanced"
     }
   }
