@@ -14,7 +14,7 @@ configuration ConfigurationWorkload
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration, 
         ComputerManagementDsc, ActiveDirectoryDsc, NetworkingDsc, 
-        xFailOverCluster;
+        FailoverClusterDsc;
 
     $components = $Parameters.domainName.Split(".");
     $dc = "";
@@ -188,6 +188,12 @@ configuration ConfigurationWorkload
                 Description = "Enables GCP Internal Load Balancer to check which node in the cluster is active to route traffic to the cluster IP."
             }
 
+            $clusterDependency = "[Cluster]CreateCluster";
+            if($Parameters.enableDistributedNodeName)
+            {
+                $clusterDependency = "[Script]CreateCluster";
+            }
+
             if($Parameters.isFirst)
             {
                 ADComputer "PrestageClusterResource"
@@ -249,24 +255,19 @@ configuration ConfigurationWorkload
                         DependsOn = "[WindowsFeature]WF-Failover-clustering","[ADGroup]AddClusterResourceToGroup"
                         PsDscRunAsCredential = $domainCredential
                     }
-
-                    $clusterDependency = "[Script]CreateCluster";
                 }
                 else
                 {
-                    xCluster "CreateCluster"
+                    Cluster "CreateCluster"
                     {
                         Name = "$($Parameters.nodePrefix)-cl"
-                        DomainAdministratorCredential = $domainCredential
                         StaticIPAddress = $Parameters.ipCluster
                         PsDscRunAsCredential = $domainCredential
                         DependsOn = "[WindowsFeature]WF-Failover-clustering","[ADGroup]AddClusterResourceToGroup"
                     }
-
-                    $clusterDependency = "[xCluster]CreateCluster";
                 }
 
-                xClusterQuorum "Quorum"
+                ClusterQuorum "Quorum"
                 {
                     IsSingleInstance = "Yes"
                     Type = "NodeAndFileShareMajority"
@@ -308,6 +309,7 @@ configuration ConfigurationWorkload
                     }
                     
                     DependsOn = $clusterDependency
+                    PsDscRunAsCredential = $domainCredential
                 }
 
                 $nodes = @();
@@ -317,11 +319,12 @@ configuration ConfigurationWorkload
 
                 WaitForAll "ClusterJoin"
                 {
-                    ResourceName = "[xCluster]JoinNodeToCluster"
+                    ResourceName = "[Cluster]JoinNodeToCluster"
                     NodeName = $nodes
                     RetryIntervalSec = 5
                     RetryCount = 120
                     DependsOn = $clusterDependency
+                    PsDscRunAsCredential = $domainCredential
                 }
 
                 if($Parameters.enableStorageSpaces -ne $false)
@@ -363,9 +366,9 @@ configuration ConfigurationWorkload
                             # Disable auto-pooling of new disks
                             Get-StorageSubSystem Cluster* | Set-StorageHealthSetting -Name "System.Storage.PhysicalDisk.AutoPool.Enabled" -Value False;
                         }
-
-                        PsDscRunAsCredential = $domainCredential
+                        
                         DependsOn = "[WaitForAll]ClusterJoin"
+                        PsDscRunAsCredential = $domainCredential
                     }
 
                     Script "CreateVolume"
@@ -426,8 +429,8 @@ configuration ConfigurationWorkload
                             Add-ClusterFileServerRole -Name $using:Parameters.nodePrefix -Storage "Cluster Virtual Disk ($($using:Parameters.nodePrefix))" -StaticAddress $using:Parameters.ipFsc;
                         }
                         
-                        PsDscRunAsCredential = $domainCredential
                         DependsOn = "[Script]CreateVolume"
+                        PsDscRunAsCredential = $domainCredential
                     }
                 }
 
@@ -486,18 +489,18 @@ configuration ConfigurationWorkload
             {
                 WaitForAll "WaitForCluster"
                 {
-                    ResourceName = "[xCluster]CreateCluster"
+                    ResourceName = $clusterDependency
                     NodeName = "$($Parameters.nodePrefix)-0"
                     RetryIntervalSec = 10
                     RetryCount = 180
                     PsDscRunAsCredential = $domainCredential
                 }
 
-                xCluster "JoinNodeToCluster"
+                Cluster "JoinNodeToCluster"
                 {
                     Name = "$($Parameters.nodePrefix)-cl"
-                    DomainAdministratorCredential = $domainCredential
                     DependsOn = "[WaitForAll]WaitForCluster"
+                    PsDscRunAsCredential = $domainCredential
                 }
             }
         }

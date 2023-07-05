@@ -191,8 +191,8 @@ resource "google_compute_instance" "fsc" {
           witnessName = google_compute_instance.witness.name,
           modulesDsc = [
             {
-              Name = "xFailOverCluster",
-              Version = "1.16.0"
+              Name = "FailoverClusterDsc",
+              Version = "2.1.0"
             }
           ]
         })
