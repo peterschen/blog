@@ -248,7 +248,7 @@ configuration ConfigurationWorkload
                         }
 
                         SetScript = {
-                            New-Cluster -Name "$($using:Parameters.nodePrefix)-cl" -Node "localhost" -StaticAddress $using:Parameters.ipCluster `
+                            New-Cluster -Name "$($using:Parameters.nodePrefix)-cl" -Node "localhost" `
                                 -ManagementPointNetworkType Distributed -NoStorage;
                         }
                         
