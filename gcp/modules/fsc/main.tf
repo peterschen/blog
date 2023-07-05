@@ -85,6 +85,7 @@ resource "google_compute_address" "node" {
 }
 
 resource "google_compute_address" "cluster" {
+  count = local.enable_distributednodename ? 0 : 1
   project = data.google_project.network.project_id
   region = local.region
   name = "cluster"
@@ -185,7 +186,7 @@ resource "google_compute_instance" "fsc" {
           enableCluster = local.enable_cluster,
           enableDistributedNodeName = local.enable_distributednodename,
           enableStorageSpaces = local.enable_storagespaces,
-          ipCluster = google_compute_address.cluster.address,
+          ipCluster = local.enable_distributednodename ? null : google_compute_address.cluster[0].address,
           ipFsc = google_compute_address.fsc.address,
           cacheDiskInterface = local.cache_disk_interface,
           witnessName = google_compute_instance.witness.name,
@@ -285,6 +286,7 @@ resource "google_compute_instance_group" "cluster" {
 }
 
 resource "google_compute_health_check" "cluster" {
+  count = local.enable_distributednodename ? 0 : 1
   project = data.google_project.default.project_id
   name = "cluster"
   timeout_sec = 2
@@ -298,7 +300,7 @@ resource "google_compute_health_check" "cluster" {
 
   tcp_health_check {
     port = 59998
-    request = google_compute_address.cluster.address
+    request = google_compute_address.cluster[count.index].address
     response = "1"
   }
 }
@@ -323,12 +325,13 @@ resource "google_compute_health_check" "fsc" {
 }
 
 resource "google_compute_region_backend_service" "cluster_tcp" {
+  count = local.enable_distributednodename ? 0 :1
   project = data.google_project.default.project_id
   region = local.region
   name = "cluster-tcp"
   protocol = "TCP"
   health_checks = [
-    google_compute_health_check.cluster.id
+    google_compute_health_check.cluster[0].id
   ]
 
   dynamic "backend" {
@@ -344,12 +347,13 @@ resource "google_compute_region_backend_service" "cluster_tcp" {
 }
 
 resource "google_compute_region_backend_service" "cluster_udp" {
+  count = local.enable_distributednodename ? 0 :1
   project = data.google_project.default.project_id
   region = local.region
   name = "cluster-udp"
   protocol = "UDP"
   health_checks = [
-    google_compute_health_check.cluster.id
+    google_compute_health_check.cluster[0].id
   ]
 
   dynamic "backend" {
@@ -407,31 +411,33 @@ resource "google_compute_region_backend_service" "fsc_udp" {
 }
 
 resource "google_compute_forwarding_rule" "cluster_tcp" {
+  count = local.enable_distributednodename ? 0 : 1
   project = data.google_project.default.project_id
   region = local.region
   name = "cluster-tcp"
   ip_protocol = "TCP"
-  ip_address = google_compute_address.cluster.address
+  ip_address = google_compute_address.cluster[count.index].address
   load_balancing_scheme = "INTERNAL"
   all_ports = true
   allow_global_access = true
   network = data.google_compute_network.network.id
   subnetwork = data.google_compute_subnetwork.subnet.id
-  backend_service = google_compute_region_backend_service.cluster_tcp.id
+  backend_service = google_compute_region_backend_service.cluster_tcp[count.index].id
 }
 
 resource "google_compute_forwarding_rule" "cluster_udp" {
+  count = local.enable_distributednodename ? 0 : 1
   project = data.google_project.default.project_id
   region = local.region
   name = "cluster-udp"
   ip_protocol = "UDP"
-  ip_address = google_compute_address.cluster.address
+  ip_address = google_compute_address.cluster[count.index].address
   load_balancing_scheme = "INTERNAL"
   all_ports = true
   allow_global_access = true
   network = data.google_compute_network.network.id
   subnetwork = data.google_compute_subnetwork.subnet.id
-  backend_service = google_compute_region_backend_service.cluster_udp.id
+  backend_service = google_compute_region_backend_service.cluster_udp[count.index].id
 }
 
 resource "google_compute_forwarding_rule" "fsc_tcp" {
