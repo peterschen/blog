@@ -365,6 +365,9 @@ configuration ConfigurationWorkload
                             
                             # Disable auto-pooling of new disks
                             Get-StorageSubSystem Cluster* | Set-StorageHealthSetting -Name "System.Storage.PhysicalDisk.AutoPool.Enabled" -Value False;
+
+                            # Disable auto-replacing failed disks
+                            Get-StorageSubSystem Cluster* | Set-StorageHealthSetting -name "System.Storage.PhysicalDisk.AutoReplace.Enabled" -value False;
                         }
                         
                         DependsOn = "[WaitForAll]ClusterJoin"
