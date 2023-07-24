@@ -11,8 +11,8 @@ locals {
   network = var.network
   subnet = var.subnetwork
   
-  cluster_machine_type = var.cluster_machine_type
-  witness_machine_type = var.witness_machine_type
+  machine_type_cluster = var.machine_type_cluster
+  machine_type_witness = var.machine_type_witness
   windows_image_witness = var.windows_image_witness
   windows_image_cluster = var.windows_image_cluster
 
@@ -134,7 +134,7 @@ resource "google_compute_instance" "fsc" {
   project = data.google_project.default.project_id
   zone = local.cluster_zones[count.index]
   name = "fsc-${count.index}"
-  machine_type = local.cluster_machine_type
+  machine_type = local.machine_type_cluster
 
   tags = ["cluster", "fsc", "smb", "rdp"]
 
@@ -216,7 +216,7 @@ resource "google_compute_instance" "witness" {
   project = data.google_project.default.project_id
   zone = local.witness_zone
   name = "witness"
-  machine_type = local.witness_machine_type
+  machine_type = local.machine_type_witness
 
   tags = ["smb", "rdp"]
 

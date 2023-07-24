@@ -42,14 +42,16 @@ variable "node_count" {
   default = 2
 }
 
-variable "cluster_machine_type" {
+variable "machine_type_cluster" {
   type = string
   default = "n2-highcpu-8"
+  nullable = false
 }
 
-variable "witness_machine_type" {
+variable "machine_type_witness" {
   type = string
   default = "e2-medium"
+  nullable = false
 }
 
 variable "windows_image_witness" {
