@@ -22,6 +22,7 @@ locals {
   enable_diskspd = var.enable_diskspd
   enable_python = var.enable_python
   enable_discoveryclient = var.enable_discoveryclient
+  enable_windowsadmincenter = var.enable_windowsadmincenter
 }
 
 data "google_project" "default" {
@@ -108,6 +109,7 @@ resource "google_compute_instance" "bastion" {
         enableDiskspd = local.enable_diskspd,
         enablePython = local.enable_python,
         enableDiscoveryClient = local.enable_discoveryclient,
+        enableWindowsAdminCenter = local.enable_windowsadmincenter,
         fileContentBenchmark = filebase64("${path.module}/benchmark.ps1")
       })
     })

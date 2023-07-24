@@ -81,3 +81,9 @@ variable "enable_discoveryclient" {
     type = bool
     default = false
 }
+
+# Disabled by default
+variable "enable_windowsadmincenter" {
+    type = bool
+    default = false
+}

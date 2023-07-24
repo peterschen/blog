@@ -489,5 +489,66 @@ configuration ConfigurationWorkload
             }
         }
 #endregion Migration Center Discovery Client
+
+#region Windows Admin Center
+        if($Parameters.enableWindowsAdminCenter)
+        {
+            Script "DownloadWindowsAdminCenter"
+            {
+                GetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "WindowsAdminCenter.msi";
+                    if((Test-Path -Path $path))
+                    {
+                        $result = "Present";
+                    }
+                    else
+                    {
+                        $result = "Absent";
+                    }
+
+                    return @{Ensure = $result};
+                }
+
+                TestScript = {
+                    $state = [scriptblock]::Create($GetScript).Invoke();
+                    return $state.Ensure -eq "Present";
+                }
+
+                SetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "WindowsAdminCenter.exe";
+                    Start-BitsTransfer -Source "https://go.microsoft.com/fwlink/?linkid=2220149&clcid=0x409&culture=en-us&country=us" -Destination $path;
+                }
+            }
+
+            Script "InstallWindowsAdminCenter"
+            {
+                GetScript = {
+                    $path  = "C:\Program Files\Windows Admin Center";
+                    if((Test-Path -Path $path))
+                    {
+                        $result = "Present";
+                    }
+                    else
+                    {
+                        $result = "Absent";
+                    }
+
+                    return @{Ensure = $result};
+                }
+
+                TestScript = {
+                    $state = [scriptblock]::Create($GetScript).Invoke();
+                    return $state.Ensure -eq "Present";
+                }
+
+                SetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "WindowsAdminCenter.msi";
+                    Start-Process -FilePath "msiexec" -ArgumentList "/i $path" "/qn", "SME_PORT=443", "SSL_CERTIFICATE_OPTION=generate" -Wait;
+                }
+
+                DependsOn = "[Script]DownloadWindowsAdminCenter"
+            }
+        }
+#endregion Windows Admin Center
     }
 }
