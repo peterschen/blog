@@ -46,6 +46,16 @@ variable "node_count" {
   default = 2
 }
 
+variable "machine_type_witness" {
+  type = string
+  default = null
+}
+
+variable "machine_type_cluster" {
+  type = string
+  default = null
+}
+
 variable "windows_image_dc" {
   type = string
   default = "windows-cloud/windows-2022-core"

@@ -46,7 +46,10 @@ locals {
 
   domain_name = var.domain_name
   password = var.password
-  
+
+  machine_type_witness = var.machine_type_witness
+  machine_type_cluster = var.machine_type_cluster
+
   windows_image_dc = var.windows_image_dc
   windows_image_bastion = var.windows_image_bastion
   windows_image_witness = var.windows_image_witness
@@ -195,6 +198,9 @@ module "fsc" {
     for subnet in google_compute_subnetwork.subnet:
     subnet.name if local.cluster_region == subnet.region
   ], 1)
+
+  machine_type_witness = local.machine_type_witness
+  machine_type_cluster = local.machine_type_cluster
 
   windows_image_witness = local.windows_image_witness
   windows_image_cluster = local.windows_image_cluster
