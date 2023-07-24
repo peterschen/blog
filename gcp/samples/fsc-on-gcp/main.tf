@@ -178,6 +178,7 @@ module "bastion" {
   password = local.password
   
   enable_domain = true
+  enable_windowsadmincenter = true
 
   depends_on = [
     module.ad
