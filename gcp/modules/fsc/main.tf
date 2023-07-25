@@ -279,10 +279,10 @@ resource "google_compute_instance_group" "cluster" {
   zone = local.cluster_zones[count.index]
   name = "cluster-${count.index}"
   
-  network = data.google_compute_network.network.id
+  network = data.google_compute_network.network.self_link
   
   instances = [
-    google_compute_instance.fsc[count.index].id
+    google_compute_instance.fsc[count.index].self_link
   ]
 }
 
