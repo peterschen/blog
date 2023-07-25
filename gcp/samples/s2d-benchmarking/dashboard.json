@@ -1,0 +1,351 @@
+{
+    "dashboardFilters": [],
+    "displayName": "Storage Spaces Direct (S2D) benchmarking",
+    "labels": {},
+    "mosaicLayout": {
+      "columns": 48,
+      "tiles": [
+        {
+          "height": 16,
+          "widget": {
+            "title": "Write throughput (all disks)",
+            "xyChart": {
+              "chartOptions": {
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "plotType": "STACKED_AREA",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesQueryLanguage": "fetch gce_instance\n| filter metadata.system_labels.name =~ 'fsc-[0-9]'\n| metric 'compute.googleapis.com/instance/disk/write_bytes_count'\n| align rate(1m)\n| group_by [string_lit: 'MiB/s'], [count: sum(value.write_bytes_count)]",
+                    "unitOverride": ""
+                  }
+                }
+              ],
+              "thresholds": [],
+              "yAxis": {
+                "label": "",
+                "scale": "LINEAR"
+              }
+            }
+          },
+          "width": 12
+        },
+        {
+          "height": 15,
+          "widget": {
+            "title": "Write throughput (Network disks)",
+            "xyChart": {
+              "chartOptions": {
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "plotType": "LINE",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesQueryLanguage": "fetch gce_instance\n| metric 'compute.googleapis.com/instance/disk/write_bytes_count'\n| filter metric.device_name =~ 'capacity-[0-9]'\n| align rate(1m)\n| group_by [Instance: metadata.system_labels.name], [count: sum(val())]",
+                    "unitOverride": ""
+                  }
+                }
+              ],
+              "thresholds": [],
+              "yAxis": {
+                "label": "",
+                "scale": "LINEAR"
+              }
+            }
+          },
+          "width": 12,
+          "yPos": 16
+        },
+        {
+          "height": 16,
+          "widget": {
+            "title": "Read throughput (all disks)",
+            "xyChart": {
+              "chartOptions": {
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "plotType": "STACKED_AREA",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesQueryLanguage": "fetch gce_instance\n| filter metadata.system_labels.name =~ 'fsc-[0-9]'\n| metric 'compute.googleapis.com/instance/disk/read_bytes_count'\n| align rate(1m)\n| group_by ['MiB/s'], [count: sum(val())]",
+                    "unitOverride": ""
+                  }
+                }
+              ],
+              "thresholds": [],
+              "yAxis": {
+                "label": "",
+                "scale": "LINEAR"
+              }
+            }
+          },
+          "width": 12,
+          "xPos": 24
+        },
+        {
+          "height": 14,
+          "widget": {
+            "title": "Write throughput (Local SSD)",
+            "xyChart": {
+              "chartOptions": {
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "plotType": "LINE",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesQueryLanguage": "fetch gce_instance\n| metric 'compute.googleapis.com/instance/disk/write_bytes_count'\n| filter metric.device_name =~ 'local-ssd-[0-9]'\n| align rate(1m)\n| group_by [Instance: metadata.system_labels.name], [count: sum(val())]",
+                    "unitOverride": ""
+                  }
+                }
+              ],
+              "thresholds": [],
+              "yAxis": {
+                "label": "",
+                "scale": "LINEAR"
+              }
+            }
+          },
+          "width": 12,
+          "yPos": 31
+        },
+        {
+          "height": 15,
+          "widget": {
+            "title": "Read throughput (Network disks)",
+            "xyChart": {
+              "chartOptions": {
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "plotType": "LINE",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesQueryLanguage": "fetch gce_instance\n| metric 'compute.googleapis.com/instance/disk/read_bytes_count'\n| filter metric.device_name =~ 'capacity-[0-9]'\n| align rate(1m)\n| group_by [Instance: metadata.system_labels.name],\n    [count: sum(value.read_bytes_count)]",
+                    "unitOverride": ""
+                  }
+                }
+              ],
+              "thresholds": [],
+              "yAxis": {
+                "label": "",
+                "scale": "LINEAR"
+              }
+            }
+          },
+          "width": 12,
+          "xPos": 24,
+          "yPos": 16
+        },
+        {
+          "height": 14,
+          "widget": {
+            "title": "Read throughput (Local SSD)",
+            "xyChart": {
+              "chartOptions": {
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "plotType": "LINE",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesQueryLanguage": "fetch gce_instance\n| metric 'compute.googleapis.com/instance/disk/read_bytes_count'\n| filter metric.device_name =~ 'local-ssd-[0-9]'\n| align rate(1m)\n| group_by [Instance: metadata.system_labels.name], [count: sum(val())]",
+                    "unitOverride": ""
+                  }
+                }
+              ],
+              "thresholds": [],
+              "yAxis": {
+                "label": "",
+                "scale": "LINEAR"
+              }
+            }
+          },
+          "width": 12,
+          "xPos": 24,
+          "yPos": 31
+        },
+        {
+          "height": 16,
+          "widget": {
+            "title": "Write IOPS (all disks)",
+            "xyChart": {
+              "chartOptions": {
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "plotType": "STACKED_AREA",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesQueryLanguage": "fetch gce_instance\n| filter metadata.system_labels.name =~ 'fsc-[0-9]'\n| metric 'compute.googleapis.com/instance/disk/write_ops_count'\n| align rate(1m)\n| group_by ['IO/s'], [count: sum(val())]",
+                    "unitOverride": ""
+                  }
+                }
+              ],
+              "thresholds": [],
+              "yAxis": {
+                "label": "",
+                "scale": "LINEAR"
+              }
+            }
+          },
+          "width": 12,
+          "xPos": 12
+        },
+        {
+          "height": 16,
+          "widget": {
+            "title": "Read IOPS (all disks)",
+            "xyChart": {
+              "chartOptions": {
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "plotType": "STACKED_AREA",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesQueryLanguage": "fetch gce_instance\n| filter metadata.system_labels.name =~ 'fsc-[0-9]'\n| metric 'compute.googleapis.com/instance/disk/read_ops_count'\n| align rate(1m)\n| group_by ['IO/s'], [count: sum(val())]",
+                    "unitOverride": ""
+                  }
+                }
+              ],
+              "thresholds": [],
+              "yAxis": {
+                "label": "",
+                "scale": "LINEAR"
+              }
+            }
+          },
+          "width": 12,
+          "xPos": 36
+        },
+        {
+          "height": 15,
+          "widget": {
+            "title": "Write IOPS (Network disks)",
+            "xyChart": {
+              "chartOptions": {
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "plotType": "LINE",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesQueryLanguage": "fetch gce_instance\n| metric 'compute.googleapis.com/instance/disk/write_ops_count'\n| filter metric.device_name =~ 'capacity-[0-9]'\n| align rate(1m)\n| group_by [Instance: metadata.system_labels.name], [count: sum(val())]",
+                    "unitOverride": ""
+                  }
+                }
+              ],
+              "thresholds": [],
+              "yAxis": {
+                "label": "",
+                "scale": "LINEAR"
+              }
+            }
+          },
+          "width": 12,
+          "xPos": 12,
+          "yPos": 16
+        },
+        {
+          "height": 15,
+          "widget": {
+            "title": "Read IOPS (Network disks)",
+            "xyChart": {
+              "chartOptions": {
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "plotType": "LINE",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesQueryLanguage": "fetch gce_instance\n| metric 'compute.googleapis.com/instance/disk/read_ops_count'\n| filter metric.device_name =~ 'capacity-[0-9]'\n| align rate(1m)\n| group_by [Instance: metadata.system_labels.name], [count: sum(val())]",
+                    "unitOverride": ""
+                  }
+                }
+              ],
+              "thresholds": [],
+              "yAxis": {
+                "label": "",
+                "scale": "LINEAR"
+              }
+            }
+          },
+          "width": 12,
+          "xPos": 36,
+          "yPos": 16
+        },
+        {
+          "height": 14,
+          "widget": {
+            "title": "Write IOPS (Local SSD)",
+            "xyChart": {
+              "chartOptions": {
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "plotType": "LINE",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesQueryLanguage": "fetch gce_instance\n| metric 'compute.googleapis.com/instance/disk/write_ops_count'\n| filter metric.device_name =~ 'local-ssd-[0-9]'\n| align rate(1m)\n| group_by [Instance: metadata.system_labels.name], [count: sum(val())]",
+                    "unitOverride": ""
+                  }
+                }
+              ],
+              "thresholds": [],
+              "yAxis": {
+                "label": "",
+                "scale": "LINEAR"
+              }
+            }
+          },
+          "width": 12,
+          "xPos": 12,
+          "yPos": 31
+        },
+        {
+          "height": 14,
+          "widget": {
+            "title": "Read IOPS (Local SSD)",
+            "xyChart": {
+              "chartOptions": {
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "plotType": "LINE",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesQueryLanguage": "fetch gce_instance\n| metric 'compute.googleapis.com/instance/disk/read_ops_count'\n| filter metric.device_name =~ 'local-ssd-[0-9]'\n| align rate(1m)\n| group_by [Instance: metadata.system_labels.name], [count: sum(val())]",
+                    "unitOverride": ""
+                  }
+                }
+              ],
+              "thresholds": [],
+              "yAxis": {
+                "label": "",
+                "scale": "LINEAR"
+              }
+            }
+          },
+          "width": 12,
+          "xPos": 36,
+          "yPos": 31
+        }
+      ]
+    }
+  }

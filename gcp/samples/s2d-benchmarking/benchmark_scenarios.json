@@ -1,0 +1,211 @@
+// Tests with diskspd have shown that running it with threads per file equal to the number of logical processors (-t8) and a queue depth (-o1) of 1
+// is sufficient achieve maximum througput/IOs while increasing the number of outstanding IOs and/or logical processors beyond that just increases
+// IO latency witout yielding more performance. This is probably due to rate limiting of the PDs
+
+[
+    // Based on https://cloud.google.com/compute/docs/disks/benchmarking-pd-performance
+    {
+        "name": "write_throughput_1M_sw",
+        "incrementThreads": true,
+        "incrementQueueDepth": true,
+        "config": {
+            "enableWriteThrough": true,
+            "blockSizeUnit": "M",
+            "enableSoftwareCache": false,
+            "blockSizeValue": 1,
+            "accessHint": "s",
+            "ratio": 100,
+            "accesspattern": "s"
+        }
+    },
+    {
+        "name": "write_iops_4K_rw",
+        "incrementThreads": true,
+        "incrementQueueDepth": true,
+        "config": {
+            "enableWriteThrough": true,
+            "blockSizeUnit": "K",
+            "enableSoftwareCache": false,
+            "blockSizeValue": 4,
+            "accessHint": "r",
+            "ratio": 100,
+            "accesspattern": "r"
+        }
+    },
+    {
+        "name": "read_throughput_1M_sr",
+        "incrementThreads": true,
+        "incrementQueueDepth": true,
+        "config": {
+            "enableWriteThrough": true,
+            "blockSizeUnit": "M",
+            "enableSoftwareCache": false,
+            "blockSizeValue": 1,
+            "accessHint": "s",
+            "ratio": 0,
+            "accesspattern": "s"
+        }
+    },
+    {
+        "name": "read_iops_4K_rr",
+        "incrementThreads": true,
+        "incrementQueueDepth": true,
+        "config": {
+            "enableWriteThrough": true,
+            "blockSizeUnit": "K",
+            "enableSoftwareCache": false,
+            "blockSizeValue": 4,
+            "accessHint": "r",
+            "ratio": 0,
+            "accesspattern": "r"
+        }
+    },
+
+    // Based on 
+    // https://www.sqlshack.com/using-diskspd-to-test-sql-server-storage-subsystems/
+    // https://docs.microsoft.com/en-us/azure-stack/hci/manage/diskspd-overview#online-transaction-processing-oltp-workload
+    // https://www.altaro.com/hyper-v/storage-performance-baseline-diskspd//
+    // 
+    // OLTP workloads are latency sensitive (more IOPS = better performance)
+    {
+        "name": "sql_oltp_dataread_8K_rr",
+        "incrementThreads": true,
+        "incrementQueueDepth": true,
+        "config": {
+            "enableWriteThrough": true,
+            "blockSizeUnit": "K",
+            "enableSoftwareCache": false,
+            "blockSizeValue": 8,
+            "accessHint": "r",
+            "ratio": 0,
+            "accesspattern": "r"
+        }
+    },
+    {
+        "name": "sql_oltp_dataread_128K_rr",
+        "incrementThreads": true,
+        "incrementQueueDepth": true,
+        "config": {
+            "enableWriteThrough": true,
+            "blockSizeUnit": "K",
+            "enableSoftwareCache": false,
+            "blockSizeValue": 128,
+            "accessHint": "r",
+            "ratio": 0,
+            "accesspattern": "r"
+        }
+    },
+    {
+        "name": "sql_oltp_logwrite_4K_sw",
+        "incrementThreads": true,
+        "incrementQueueDepth": true,
+        "config": {
+            "enableWriteThrough": true,
+            "blockSizeUnit": "K",
+            "enableSoftwareCache": false,
+            "blockSizeValue": 4,
+            "accessHint": "s",
+            "ratio": 100,
+            "accesspattern": "s"
+        }
+    },
+    {
+        "name": "sql_oltp_logwrite_64K_sw",
+        "incrementThreads": true,
+        "incrementQueueDepth": true,
+        "config": {
+            "enableWriteThrough": true,
+            "blockSizeUnit": "K",
+            "enableSoftwareCache": false,
+            "blockSizeValue": 64,
+            "accessHint": "s",
+            "ratio": 100,
+            "accesspattern": "s"
+        }
+    },
+
+    // Based on https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-R2-and-2012/dn894707(v=ws.11)#random-small-io-test-1-vary-outstanding-ios-per-thread
+    // https://learn.microsoft.com/en-us/azure-stack/hci/manage/diskspd-overview
+    // OLAP workloads are throughput sensitive (better throughput = faster transactions)
+    {
+        "name": "sql_olap_512K_sr",
+        "incrementThreads": true,
+        "incrementQueueDepth": true,
+        "config": {
+            "enableWriteThrough": true,
+            "blockSizeUnit": "K",
+            "enableSoftwareCache": false,
+            "blockSizeValue": 512,
+            "accessHint": "s",
+            "ratio": 0,
+            "otherParameters": "-si",
+            "accesspattern": "s"
+        }
+    },
+    
+    // Based on https://unhandled.wordpress.com/2016/07/20/madness-testing-smb-direct-network-throughput-with-diskspd/
+    // Small files accessed with random 64K IOs
+    {
+        "name": "smb_network_throughput_writethrough_64K_rr",
+        "incrementThreads": true,
+        "incrementQueueDepth": true,
+        "config": {
+            "enableRemoteCache": false,
+            "enableWriteThrough": true,
+            "blockSizeUnit": "K",
+            "enableSoftwareCache": false,
+            "blockSizeValue": 64,
+            "accessHint": "t",
+            "ratio": 0,
+            "accesspattern": "r",
+            "fileSize": "2M"
+        }
+    },
+    {
+        "name": "smb_network_throughput_remotecache_64K_rr",
+        "incrementThreads": true,
+        "incrementQueueDepth": true,
+        "config": {
+            "enableRemoteCache": true,
+            "enableWriteThrough": false,
+            "blockSizeUnit": "K",
+            "enableSoftwareCache": false,
+            "blockSizeValue": 64,
+            "accessHint": "t",
+            "ratio": 0,
+            "accesspattern": "r",
+            "fileSize": "2M"
+        }
+    },
+    // Based on https://www.windowspro.de/marcel-kueppers/storage-performance-iops-unter-hyper-v-messen-diskspd
+    {
+        "name": "smb_writethrough_8K_30rw_70rr",
+        "incrementThreads": true,
+        "incrementQueueDepth": true,
+        "config": {
+            "enableRemoteCache": false,
+            "enableWriteThrough": true,
+            "blockSizeUnit": "K",
+            "enableSoftwareCache": false,
+            "blockSizeValue": 8,
+            "accessHint": "r",
+            "ratio": 30,
+            "accesspattern": "r"
+        }
+    },
+    {
+        "name": "smb_remotecache_8K_30rw_70rr",
+        "incrementThreads": true,
+        "incrementQueueDepth": true,
+        "config": {
+            "enableRemoteCache": true,
+            "enableWriteThrough": false,
+            "blockSizeUnit": "K",
+            "enableSoftwareCache": false,
+            "blockSizeValue": 8,
+            "accessHint": "r",
+            "ratio": 30,
+            "accesspattern": "r"
+        }
+    }
+]

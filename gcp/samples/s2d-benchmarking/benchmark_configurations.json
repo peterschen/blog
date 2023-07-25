@@ -1,0 +1,7 @@
+[
+    {
+        "fileSystem": "S2D_CSVFS_ReFS_mirror-2way",
+        "testPath": "C:\\ClusterStorage\\mirror-2way",
+        "skipDiskSetup": true
+    }
+]
