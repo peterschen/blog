@@ -110,7 +110,9 @@ resource "google_compute_instance" "bastion" {
         enablePython = local.enable_python,
         enableDiscoveryClient = local.enable_discoveryclient,
         enableWindowsAdminCenter = local.enable_windowsadmincenter,
-        fileContentBenchmark = filebase64("${path.module}/benchmark.ps1")
+        fileContentBenchmark = filebase64("${path.module}/benchmark.ps1"),
+        fileContentBenchmarkConfigurations = filebase64("${path.module}/benchmark_configurations.json"),
+        fileContentBenchmarkScenarios = filebase64("${path.module}/benchmark_scenarios.json")
       })
     })
   }
