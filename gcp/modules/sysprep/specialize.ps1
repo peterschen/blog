@@ -108,7 +108,7 @@ if(-not (Test-Path -Path $pathDscMetaDefinition))
 $inlineConfigurationCustomization = $null;
 if("inlineConfigurationCustomization" -in $parametersConfiguration.PSObject.Properties.Name)
 {
-    $inlineConfigurationCustomization = $parametersConfiguration.inlineConfigurationCustomization;
+    $inlineConfigurationCustomization = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($parametersConfiguration.inlineConfigurationCustomization));
 }
 
 # Only write inlineConfiguration if file does not exist on disk
@@ -119,15 +119,15 @@ if(-not (Test-Path -Path $pathDscConfigurationDefinition))
     if(-not [string]::IsNullOrEmpty($inlineConfigurationCustomization))
     {
         # Customization is present write first
-        $content = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($inlineConfigurationCustomization));
+        $content = $inlineConfigurationCustomization;
     }
     else
     {
         # Set empty customization if not present
-        $content = "Configuration Customization {}`n`n";
+        $content = "Configuration Customization {}";
     }
 
-    $content += [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($inlineConfiguration));
+    $content += "`n`n$([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($inlineConfiguration)))";
     Set-Content -Path $pathDscConfigurationDefinition -Value $content;
 }
 
