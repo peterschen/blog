@@ -68,6 +68,20 @@ configuration ConfigurationWorkload
             Contents = [Text.Encoding]::Utf8.GetString([Convert]::FromBase64String($Parameters.fileContentBenchmark))
         }
 
+        File "benchmark_configurations.json" 
+        {
+            DestinationPath = "c:\tools\benchmark_configurations.json"
+            Type = "File"
+            Contents = [Text.Encoding]::Utf8.GetString([Convert]::FromBase64String($Parameters.fileContentBenchmarkConfigurations))
+        }
+
+        File "benchmark_scenarios.json" 
+        {
+            DestinationPath = "c:\tools\benchmark_scenarios.json"
+            Type = "File"
+            Contents = [Text.Encoding]::Utf8.GetString([Convert]::FromBase64String($Parameters.fileContentBenchmarkScenarios))
+        }
+
         if($Parameters.enableDomain)
         {
             WaitForADDomain "WFAD"
