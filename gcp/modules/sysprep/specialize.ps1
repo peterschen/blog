@@ -9,9 +9,6 @@ $passwordSecure = ConvertTo-SecureString -String $password -AsPlainText -Force;
 $parametersConfiguration = ConvertFrom-Json -InputObject '${parametersConfiguration}';
 $pathTemp = "$($env:SystemDrive)\Windows\Temp";
 
-$inlineMeta = $parametersConfiguration.inlineMeta;
-$inlineConfiguration = $parametersConfiguration.inlineConfiguration;
-
 # Enable administrator
 Set-LocalUser -Name Administrator -Password $passwordSecure;
 Enable-LocalUser -Name Administrator;
@@ -95,34 +92,43 @@ else
     $certificate = Get-ChildItem -Path Cert:\LocalMachine\My | Where-Object {$_.Subject -eq "CN=DscEncryptionCertificate"};
 }
 
-# Download DSC (meta) configuration
 $pathDscMetaDefinition = (Join-Path -Path $pathTemp -ChildPath "meta.ps1");
 $pathDscConfigurationDefinition = (Join-Path -Path $pathTemp -ChildPath "configuration.ps1");
 
-if(-not [string]::IsNullOrEmpty($inlineMeta))
+$inlineMeta = $parametersConfiguration.inlineMeta;
+$inlineConfiguration = $parametersConfiguration.inlineConfiguration;
+
+# Only write inlineMeta if file does not exist on disk
+if(-not (Test-Path -Path $pathDscMetaDefinition))
 {
-    # Only write inlineMeta if file does not exist on disk
-    if(-not (Test-Path -Path $pathDscMetaDefinition))
-    {
-        [IO.File]::WriteAllBytes($pathDscMetaDefinition, [Convert]::FromBase64String($inlineMeta));
-    }
-}
-else
-{
-    throw [System.ArgumentException]::New("inlineMeta data is missing"); 
+    [IO.File]::WriteAllBytes($pathDscMetaDefinition, [Convert]::FromBase64String($inlineMeta));
 }
 
-if(-not [string]::IsNullOrEmpty($inlineConfiguration))
+# Customization is optional
+$inlineConfigurationCustomization = $null;
+if("inlineConfigurationCustomization" -in $parametersConfiguration.PSObject.Properties.Name)
 {
-    # Only write inlineConfiguration if file does not exist on disk
-    if(-not (Test-Path -Path $pathDscConfigurationDefinition))
-    {
-        [IO.File]::WriteAllBytes($pathDscConfigurationDefinition, [Convert]::FromBase64String($inlineConfiguration));
-    }
+    $inlineConfigurationCustomization = $parametersConfiguration.inlineConfigurationCustomization;
 }
-else
+
+# Only write inlineConfiguration if file does not exist on disk
+if(-not (Test-Path -Path $pathDscConfigurationDefinition))
 {
-    throw [System.ArgumentException]::New("inlineConfiguration data is missing"); 
+    $content = "";
+
+    if(-not [string]::IsNullOrEmpty($inlineConfigurationCustomization))
+    {
+        # Customization is present write first
+        $content = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($inlineConfigurationCustomization));
+    }
+    else
+    {
+        # Set empty customization if not present
+        $content = "Configuration Customization {}`n`n";
+    }
+
+    $content += [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($inlineConfiguration));
+    Set-Content -Path $pathDscConfigurationDefinition -Value $content;
 }
 
 # Source DSC (meta) configuration
