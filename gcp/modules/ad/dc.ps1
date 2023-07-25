@@ -65,11 +65,15 @@ configuration ConfigurationWorkload
     $userJohndoe = @{Name = "johndoe"; Path = "ou=Users,ou=Accounts,$ou"; TrustedForDelegation = $false};
     $userAdjoiner = @{Name = "s-adjoiner"; Path = "ou=Services,ou=Accounts,$ou"; TrustedForDelegation = $false};
     $userAdfs = @{Name = "s-adfs"; Path = "ou=Services,ou=Accounts,$ou"; TrustedForDelegation = $false};
+    $userSqlAgent = @{Name = "s-SqlAgent"; Path = "ou=Services,ou=Accounts,$ou"; TrustedForDelegation = $false};
+    $userSqlEngine = @{Name = "s-SqlEngine"; Path = "ou=Services,ou=Accounts,$ou"; TrustedForDelegation = $false};
 
     $users = @(
         $userJohndoe,
         $userAdjoiner,
-        $userAdfs
+        $userAdfs,
+        $userSqlAgent,
+        $userSqlEngine
     );
 
     $groups = @(
