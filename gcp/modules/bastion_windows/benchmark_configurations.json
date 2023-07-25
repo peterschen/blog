@@ -1,0 +1,87 @@
+[
+    {
+        "fileSystem": "NTFS",
+        "testPath": "t:\\",
+        "allocationUnitSize": 4096
+    },
+    {
+        "fileSystem": "NTFS",
+        "testPath": "t:\\",
+        "allocationUnitSize": 8192
+    },
+    {
+        "fileSystem": "NTFS",
+        "testPath": "t:\\",
+        "allocationUnitSize": 16384
+    },
+    {
+        "fileSystem": "NTFS",
+        "testPath": "t:\\",
+        "allocationUnitSize": 32768
+    },
+    {
+        "fileSystem": "NTFS",
+        "testPath": "t:\\",
+        "allocationUnitSize": 65536
+    },
+    {
+        "fileSystem": "NTFS",
+        "testPath": "t:\\",
+        "allocationUnitSize": 131072
+    },
+    {
+        "fileSystem": "NTFS",
+        "testPath": "t:\\",
+        "allocationUnitSize": 262144
+    },
+    {
+        "fileSystem": "NTFS",
+        "testPath": "t:\\",
+        "allocationUnitSize": 524288
+    },
+    {
+        "fileSystem": "NTFS",
+        "testPath": "t:\\",
+        "allocationUnitSize": 1048576
+    },
+    {
+        "fileSystem": "NTFS",
+        "testPath": "t:\\",
+        "allocationUnitSize": 2097152
+    },
+    {
+        "fileSystem": "ReFS",
+        "testPath": "t:\\",
+        "allocationUnitSize": 4096
+    },
+    {
+        "fileSystem": "ReFS",
+        "testPath": "t:\\",
+        "allocationUnitSize": 65536
+    },
+    {
+        "fileSystem": "SMB",
+        "allocationUnitSize": 4096,
+        "skipDiskSetup": true
+    },
+    {
+        "fileSystem": "S2D_CSVFS_ReFS_mirror-2way",
+        "testPath": "C:\\ClusterStorage\\mirror-2way",
+        "skipDiskSetup": true
+    },
+    {
+        "fileSystem": "S2D_CSVFS_ReFS_mirror-3way",
+        "testPath": "C:\\ClusterStorage\\mirror-3way",
+        "skipDiskSetup": true
+    },
+    {
+        "fileSystem": "S2D_CSVFS_ReFS_parity-single",
+        "testPath": "C:\\ClusterStorage\\parity-single",
+        "skipDiskSetup": true
+    },
+    {
+        "fileSystem": "S2D_CSVFS_ReFS_parity-double",
+        "testPath": "C:\\ClusterStorage\\parity-double",
+        "skipDiskSetup": true
+    }
+]

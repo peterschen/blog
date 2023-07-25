@@ -1,6 +1,8 @@
 [CmdletBinding()]
 param
 (
+    [string] $ConfigFolder = "C:\tools",
+    [string] $OutputFolder = "C:\tools",
     [bool] $SkipBenchmark = $false,
     [bool] $SkipAnalysis = $false
 );
@@ -76,7 +78,7 @@ function Setup-Disk
     param
     (
         [CimInstance] $Disk,
-        [Hashtable] $Configuration,
+        [PSCustomObject] $Configuration,
         [String] $DriveLetter
     );
 
@@ -84,8 +86,8 @@ function Setup-Disk
     {
         Clear-Disk -UniqueId $Disk.UniqueId -RemoveData -RemoveOEM -Confirm:$false -ErrorAction "SilentlyContinue";
     
-        $fileSystem = $Configuration["fileSystem"];
-        $allocationUnitSize = $Configuration["allocationUnitSize"];
+        $fileSystem = $Configuration.fileSystem;
+        $allocationUnitSize = $Configuration.allocationUnitSize;
         $label = "${fileSystem}-$($allocationUnitSize / 1024)K";
 
         Initialize-Disk -UniqueId $Disk.UniqueId -PartitionStyle GPT -PassThru |
@@ -100,7 +102,7 @@ function Setup-Disk
         Start benchmark run
 
     .PARAMETER Scenarios
-        Hashtable of disk test scenarios
+        Array of disk test scenarios
 
     .PARAMETER Configuration
         Array of parameters for disk initialization
@@ -130,7 +132,6 @@ function Setup-Disk
         Invoke-Benchmark `
             -Scenarios @{"write_throughput" = @{"ratio" = 100 "blockSizeValue" = 1 "blockSizeUnit" = 'M' "accessHint" = 's' "accesspattern" = 's' "outstandingIo" = 64 "enableSoftwareCache" = $false "enableWriteThrough" = $true "threads" = 8}} `
             -Configuration @(@{"fileSystem" = "NTFS" "allocationUnitSize" = 4096}) `
-            -DriveLetter "t" `
             -OutputFolder .\ '
             -FileSize "10G" `
             -Duration 60 `
@@ -142,9 +143,8 @@ function Invoke-Benchmark
 {
     param
     (
-        [Hashtable] $Scenarios,     
+        [Array] $Scenarios,     
         [Array] $Configurations,
-        [char] $DriveLetter = $null,
         [string] $OutputFolder,
         [string] $FileSize,
         [int] $Duration,
@@ -158,26 +158,25 @@ function Invoke-Benchmark
         $disk = Get-PhysicalDisk | Where-Object { $_.Size -eq 1000GB };
         foreach($configuration in $Configurations)
         {
-            $drivePath = $configuration["drivePath"];
-
-            if([string]::IsNullOrEmpty($drivePath))
+            if("testPath" -in $Configuration.PSObject.Properties.Name)
             {
-                if($DriveLetter -eq $null)
-                {
-                    throw "Either `$DriveLetter needs to be set or 'drivePath' needs to be passed in configuration";
-                }
-
-                $testPath = "${DriveLetter}:\diskspd.bin";
+                $testPath = Join-Path -Path $configuration.testPath -ChildPath "\benchmark_$($env:COMPUTERNAME).bin";
             }
             else
             {
-                $testPath = Join-Path -Path $drivePath -ChildPath "\diskspd.bin";
+                throw "'testPath' needs to be passed in configuration";
             }
 
-            if(-not $configuration["skipDiskSetup"])
+            $skipDiskSetup = $false;
+            if("skipDiskSetup" -in $Configuration.PSObject.Properties.Name)
             {
-                Write-Information -MessageData "Preparing disk '$($configuration["fileSystem"])-$($configuration["allocationUnitSize"])'";
-                Setup-Disk -Disk $disk -Configuration $configuration -DriveLetter $DriveLetter;
+                $skipDiskSetup = $configuration.skipDiskSetup;
+            }
+
+            if(-not $skipDiskSetup)
+            {
+                Write-Information -MessageData "Preparing disk '$($configuration.fileSystem)-$($configuration.allocationUnitSize)'";
+                Setup-Disk -Disk $disk -Configuration $configuration -DriveLetter (Split-Path -Path $Configuration.testPath -Qualifier);
             }
 
             foreach($scenario in $Scenarios.GetEnumerator())
@@ -185,12 +184,6 @@ function Invoke-Benchmark
                 $config = $scenario.Value;
                 $flags = "";
                 
-                $size = $FileSize;
-                if(-not [string]::IsNullOrEmpty($config["fileSize"]))
-                {
-                    $size = $config["fileSize"];
-                }
-
                 if(-not $config["enableRemoteCache"])
                 {
                     if(-not $config["enableSoftwareCache"])
@@ -219,7 +212,7 @@ function Invoke-Benchmark
                 }
 
                 $arguments = @(
-                    "-c${size}", # Size of the test file
+                    "-c$($config["fileSize"])", # Size of the test file
                     "-b$($config["blockSizeValue"])$($config["blockSizeUnit"])" # blocksize
                     "-d${Duration}" # test duration
                     "-t$($config["threads"])", # threads per file
@@ -236,17 +229,22 @@ function Invoke-Benchmark
                     "${testPath}"
                 );
 
-                if(Test-Path -Path "${testPath}")
-                {
-                    Write-Information -MessageData "Deleting '${testPath}' before diskspd run";
-                    Remove-Item -Path "${testPath}" -Force;
-                }
+                # Seed test file
+                Initialize-TestFile -Path $testPath -FileSize $config["fileSize"];
 
                 Write-Information -MessageData "Running scenario '$($scenario.Name)'";
-
                 $process = Invoke-Diskspd -Arguments $arguments;
-                Set-Content -Path "${OutputFolder}\diskspd-$($scenario.Name)-$($configuration["fileSystem"])-$($configuration["allocationUnitSize"]).xml" `
-                    -Value $process.StandardOutput;
+
+                # Construct output path
+                $fileName = "diskspd-$($scenario.Name)-$($configuration.fileSystem)";
+                if("allocationUnitSize" -in $configuration.PSObject.Properties.Name)
+                {
+                    $fileName += "-$($configuration.allocationUnitSize)";
+                }
+                
+                # Write output
+                $outputPath = Join-Path -Path $OutputFolder -ChildPath "${fileName}.xml";
+                Set-Content -Path $outputPath -Value $process.StandardOutput;
             }
         }
     }
@@ -291,7 +289,17 @@ function Invoke-Analysis
         {
             foreach($scenario in $Scenarios.GetEnumerator())
             {
-                $document = "${OutputFolder}\diskspd-$($scenario.Name)-$($configuration["fileSystem"])-$($configuration["allocationUnitSize"]).xml";
+                $allocationUnitSize = $null;
+                $fileName = "diskspd-$($scenario.Name)-$($configuration.fileSystem)";
+                
+                if("allocationUnitSize" -in $configuration.PSObject.Properties.Name)
+                {
+                    $allocationUnitSize = $configuration.allocationUnitSize;
+                    $fileName += "-$($configuration.allocationUnitSize)";
+                }
+
+                $document = Join-Path -Path $OutputFolder -ChildPath "${fileName}.xml";
+
                 if(Test-Path -Path $document)
                 {
                     Write-Information -MessageData "Parsing data ${document}";
@@ -302,8 +310,8 @@ function Invoke-Analysis
                     # Generic test parameters
                     $result | Add-Member -MemberType NoteProperty -Name "Timestamp" -Value $xml.Results.System.RunTime;
                     $result | Add-Member -MemberType NoteProperty -Name "Scenario" -Value $scenario.Name;
-                    $result | Add-Member -MemberType NoteProperty -Name "FileSystem" -Value $configuration["fileSystem"];
-                    $result | Add-Member -MemberType NoteProperty -Name "AllocationUnitSize" -Value $configuration["allocationUnitSize"];
+                    $result | Add-Member -MemberType NoteProperty -Name "FileSystem" -Value $configuration.fileSystem;
+                    $result | Add-Member -MemberType NoteProperty -Name "AllocationUnitSize" -Value $allocationUnitSize;
                     $result | Add-Member -MemberType NoteProperty -Name "Cores" -Value $xml.Results.TimeSpan.ProcCount;
 
                     # Target specific test parameters
@@ -424,6 +432,224 @@ function Invoke-Analysis
     }
 }
 
+<#
+    .SYNOPSIS
+        Creates and seeds test file with random data
+
+    .PARAMETER Path
+        Path to test file
+
+    .PARAMETER FileSize
+        Size of test file
+
+    .EXAMPLE
+        Initialize-TestFile `
+            -Path  = "C:\ClusterStorage\mirror-2way\diskspd.bin" `
+            -FileSize "64G"
+#>
+function Initialize-TestFile
+{
+    param
+    (
+        [string] $Path,
+        [string] $FileSize
+    )
+
+    process
+    {
+        $create = $true;
+
+        if(Test-Path -Path $Path)
+        {
+            $fileSizeValue = [int] $FileSize.SubString(0, $FileSize.Length - 1);
+            $fileSizeUnit = $FileSize.SubString($FileSize.Length - 1, 1).ToUpper();
+
+            if($fileSizeUnit -eq "K")
+            {
+                $fileSizeValue *= 1024;
+            }
+            elseif($fileSizeUnit -eq "M")
+            {
+                $fileSizeValue *= 1024 * 1024;
+            }
+            elseif($fileSizeUnit -eq "G")
+            {
+                $fileSizeValue *= 1024 * 1024 * 1024;
+            }
+
+            $currentFileSize = (Get-Item -Path $Path).Length;
+            if($currentFileSize -eq $fileSizeValue)
+            {
+                $create = $false
+            }
+        }
+
+        if ($create)
+        {
+            Write-Information -MessageData "Initializing '${Path}' with ${FileSize} of random data";
+
+            # 120s write of random data
+            $arguments = @(
+                "-c${FileSize}",
+                "-d120",
+                "-w100",
+                "-Zr"
+                "${Path}"
+            );
+
+            $process = Invoke-Diskspd -Arguments $arguments;
+        }
+        else
+        {
+            Write-Information -MessageData "File '${Path}' already exists";
+        }
+    }
+}
+
+<#
+    .SYNOPSIS
+        Import scenarios from json file
+
+    .PARAMETER ConfigurationFolder
+        Path to folder containing configuration files
+
+    .PARAMETER Processors
+        Processors installed in the server
+
+    .OUTPUTS
+        Returns HashMap with scenarios to run
+#>
+function Import-Scenarios
+{
+    param
+    (
+        [string] $ConfigurationFolder,
+        [int] $Processors
+    );
+
+    process
+    {
+        $scenarios = @{};
+
+        $scenariosFile = Join-Path -Path $ConfigurationFolder -ChildPath "benchmark_scenarios.json";
+        $configurations = Get-Content -Path $scenariosFile | %{ if ($_.Contains('//')){ $_.SubString(0, $_.IndexOf('//')) } else {$_}}
+        $configurations = $configurations -Join "`n" | ConvertFrom-Json;
+
+        foreach($configuration in $configurations)
+        {
+            $startThreads = $Processors;
+            $endThreads = $Processors;
+
+            $startOutstandingIo = $Processors;
+            $endOutstandingIo = $Processors;
+
+            if($configuration.incrementThreads)
+            {
+                $startThreads = 1;
+                $endThreads = ($Processors / 8 + 1) * 8;
+            }
+
+            if($configuration.incrementQueueDepth)
+            {
+                $startOutstandingIo = 1;
+                $endOutstandingIo = ($Processors / 8 + 1) * 8;
+            }
+
+            for($t = $startThreads; $t -le $endThreads;)
+            {
+                for($q = $startOutstandingIo; $q -le $endOutstandingIo;)
+                {
+                    $name = "$($configuration.name)_t$($t.ToString().PadLeft(3, '0'))_q$($q.ToString().PadLeft(3, '0'))";
+                    $scenarios[$name] = New-Scenario -Threads $t -OutstandingIo $q `
+                        -Configuration $configuration.config;
+
+                    if($q -eq 1)
+                    {
+                        $q = 8;
+                    }
+                    else
+                    {
+                        $q += 8;
+                    }
+                }
+
+                if($t -eq 1)
+                {
+                    $t = 8;
+                }
+                else
+                {
+                    $t += 8;
+                }
+            }
+        }
+
+        return $scenarios;
+    }
+}
+
+<#
+    .SYNOPSIS
+        Constructs a new scenario HashTable
+
+    .PARAMETER Threads
+        Number of threads
+
+    .PARAMETER OutstandingIo
+        Queue depth for this scenario
+
+    .PARAMETER Configuration
+        Configuration object
+
+    .OUTPUTS
+        Returns HashMap with scenarios to run
+#>
+function New-Scenario
+{
+    param
+    (
+        [int] $Threads,
+        [int] $OutstandingIo,
+        [PSCustomObject] $Configuration
+    );
+
+    process
+    {
+        $scenario = @{
+            ratio = $Configuration.ratio
+            blockSizeValue = $Configuration.blockSizeValue
+            blockSizeUnit = $Configuration.blockSizeUnit
+            accessHint = $Configuration.accessHint
+            accessPattern = $Configuration.accessPattern
+            threads = $Threads
+            outstandingIo = $OutstandingIo
+        };
+
+        $scenario["fileSize"] = "64G";
+        if("FileSize" -in $Configuration.PSObject.Properties.Name)
+        {
+            $scenario["fileSize"] = $Configuration.fileSize;
+        }
+
+        if("EnableWriteThrough" -in $Configuration.PSObject.Properties.Name)
+        {
+            $scenario["enableWriteThrough"] = $Configuration.enableWriteThrough;
+        }
+
+        if("EnableSoftwareCache" -in $Configuration.PSObject.Properties.Name)
+        {
+            $scenario["enableSoftwareCache"] = $Configuration.enableSoftwareCache;
+        }
+
+        if("EnableRemoteCache" -in $Configuration.PSObject.Properties.Name)
+        {
+            $scenario["enableRemoteCache"] = $Configuration.enableRemoteCache;
+        }
+
+        return $scenario;
+    }
+}
+
 $logicalProcessors = (Get-ComputerInfo -Property CsProcessors).CsProcessors.NumberOfLogicalProcessors;
 if($logicalProcessors -is [array])
 {
@@ -435,319 +661,24 @@ if($logicalProcessors -is [array])
     $logicalProcessors = $cores;
 }
 
-# Tests with diskspd have shown that running it with threads per file equal to the number of logical processors (-t8) and a queue depth (-o1) of 1
-# is sufficient achieve maximum througput/IOs while increasing the number of outstanding IOs and/or logical processors beyond that just increases
-# IO latency witout yielding more performance. This is probably due to rate limiting of the PDs
-$scenarios = @{
-    # Based on https://cloud.google.com/compute/docs/disks/benchmarking-pd-performance
-    "write_throughput_qd1" = @{
-        "ratio" = 100
-        "blockSizeValue" = 1
-        "blockSizeUnit" = 'M'
-        "accessHint" = 's'
-        "accesspattern" = 's'
-        "outstandingIo" = 1
-        "enableSoftwareCache" = $false
-        "enableWriteThrough" = $true
-        "threads" = $logicalProcessors
-    }
-    "write_throughput_qd${logicalProcessors}" = @{
-        "ratio" = 100
-        "blockSizeValue" = 1
-        "blockSizeUnit" = 'M'
-        "accessHint" = 's'
-        "accesspattern" = 's'
-        "outstandingIo" = $logicalProcessors
-        "enableSoftwareCache" = $false
-        "enableWriteThrough" = $true
-        "threads" = $logicalProcessors
-    }
-    # Based on https://cloud.google.com/compute/docs/disks/benchmarking-pd-performance
-    "write_iops_qd1" = @{
-        "ratio" = 100
-        "blockSizeValue" = 4
-        "blockSizeUnit" = 'K'
-        "accessHint" = 'r'
-        "accesspattern" = 'r'
-        "outstandingIo" = 1
-        "enableSoftwareCache" = $false
-        "enableWriteThrough" = $true
-        "threads" = $logicalProcessors
-    }
-    "write_iops_qd${logicalProcessors}" = @{
-        "ratio" = 100
-        "blockSizeValue" = 4
-        "blockSizeUnit" = 'K'
-        "accessHint" = 'r'
-        "accesspattern" = 'r'
-        "outstandingIo" = $logicalProcessors
-        "enableSoftwareCache" = $false
-        "enableWriteThrough" = $true
-        "threads" = $logicalProcessors
-    }
-    # Based on https://cloud.google.com/compute/docs/disks/benchmarking-pd-performance
-    "read_throughput_qd1" = @{
-        "ratio" = 0
-        "blockSizeValue" = 1
-        "blockSizeUnit" = 'M'
-        "accessHint" = 's'
-        "accesspattern" = 's'
-        "outstandingIo" = 1
-        "enableSoftwareCache" = $false
-        "enableWriteThrough" = $true
-        "threads" = $logicalProcessors
-    }
-    "read_throughput_qd${logicalProcessors}" = @{
-        "ratio" = 0
-        "blockSizeValue" = 1
-        "blockSizeUnit" = 'M'
-        "accessHint" = 's'
-        "accesspattern" = 's'
-        "outstandingIo" = $logicalProcessors
-        "enableSoftwareCache" = $false
-        "enableWriteThrough" = $true
-        "threads" = $logicalProcessors
-    }
-    # Based on https://cloud.google.com/compute/docs/disks/benchmarking-pd-performance
-    "read_iops_qd1" = @{
-        "ratio" = 0
-        "blockSizeValue" = 4
-        "blockSizeUnit" = 'K'
-        "accessHint" = 'r'
-        "accesspattern" = 'r'
-        "outstandingIo" = 1
-        "enableSoftwareCache" = $false
-        "enableWriteThrough" = $true
-        "threads" = $logicalProcessors
-    }
-    "read_iops_qd${logicalProcessors}" = @{
-        "ratio" = 0
-        "blockSizeValue" = 4
-        "blockSizeUnit" = 'K'
-        "accessHint" = 'r'
-        "accesspattern" = 'r'
-        "outstandingIo" = $logicalProcessors
-        "enableSoftwareCache" = $false
-        "enableWriteThrough" = $true
-        "threads" = $logicalProcessors
-    }
-    # Based on 
-    # https://www.sqlshack.com/using-diskspd-to-test-sql-server-storage-subsystems/
-    # https://docs.microsoft.com/en-us/azure-stack/hci/manage/diskspd-overview#online-transaction-processing-oltp-workload
-    # https://www.altaro.com/hyper-v/storage-performance-baseline-diskspd//
-    # 
-    # OLTP workloads are latency sensitive (more IOPS = better performance)
-    "sql_oltp_logwrite_4k" = @{
-        "ratio" = 100
-        "blockSizeValue" = 4
-        "blockSizeUnit" = 'K'
-        "accessHint" = 's'
-        "accesspattern" = 's'
-        "outstandingIo" = 1
-        "enableSoftwareCache" = $false
-        "enableWriteThrough" = $true
-        "threads" = "2"
-    }
-    "sql_oltp_logwrite_64k" = @{
-        "ratio" = 100
-        "blockSizeValue" = 64
-        "blockSizeUnit" = 'K'
-        "accessHint" = 's'
-        "accesspattern" = 's'
-        "outstandingIo" = 1
-        "enableSoftwareCache" = $false
-        "enableWriteThrough" = $true
-        "threads" = "2"
-    }
-    "sql_oltp_dataread_8k" = @{
-        "ratio" = 0
-        "blockSizeValue" = 8
-        "blockSizeUnit" = 'K'
-        "accessHint" = 'r'
-        "accesspattern" = 'r'
-        "outstandingIo" = 1
-        "enableSoftwareCache" = $false
-        "enableWriteThrough" = $true
-        "threads" = "2"
-    }
-    "sql_oltp_dataread_128k" = @{
-        "ratio" = 0
-        "blockSizeValue" = 128
-        "blockSizeUnit" = 'K'
-        "accessHint" = 'r'
-        "accesspattern" = 'r'
-        "outstandingIo" = 1
-        "enableSoftwareCache" = $false
-        "enableWriteThrough" = $true
-        "threads" = "2"
-    }
-    # Based on https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-R2-and-2012/dn894707(v=ws.11)#random-small-io-test-1-vary-outstanding-ios-per-thread
-    #
-    # OLAP workloads are throughput sensitive (better throughput = faster transactions)
-    "sql_olap" = @{
-        "ratio" = 0
-        "blockSizeValue" = 512 # 512K blocks is a common I/O size for SQL Server loading a batch of 64 pages with read-ahead
-        "blockSizeUnit" = 'K'
-        "accessHint" = 's'
-        "accesspattern" = 's'
-        "outstandingIo" = 1
-        "enableSoftwareCache" = $false
-        "enableWriteThrough" = $true
-        "threads" = $logicalProcessors
-        "otherParameters" = "-si"
-    }
-    # Based on https://unhandled.wordpress.com/2016/07/20/madness-testing-smb-direct-network-throughput-with-diskspd/
-    #
-    # Small files accessed with random 64K IOs
-    "smb_network_throughput_writethrough" = @{
-        "fileSize" = "2M"
-        "ratio" = 0
-        "blockSizeValue" = 64
-        "blockSizeUnit" = 'K'
-        "accessHint" = 't'
-        "accesspattern" = 'r'
-        "outstandingIo" = 2
-        "enableSoftwareCache" = $false
-        "enableWriteThrough" = $true
-        "enableRemoteCache" = $false # Only available for remote file systems
-        "threads" = $logicalProcessors
-    }
-    "smb_network_throughput_remotecache" = @{
-        "fileSize" = "2M"
-        "ratio" = 0
-        "blockSizeValue" = 64
-        "blockSizeUnit" = 'K'
-        "accessHint" = 't'
-        "accesspattern" = 'r'
-        "outstandingIo" = 2
-        "enableSoftwareCache" = $false
-        "enableWriteThrough" = $false
-        "enableRemoteCache" = $true # Only available for remote file systems
-        "threads" = $logicalProcessors
-    }
-    # Based on https://www.windowspro.de/marcel-kueppers/storage-performance-iops-unter-hyper-v-messen-diskspd
-    "smb_30_70_writethrough" = @{
-        "ratio" = 30
-        "blockSizeValue" = 8
-        "blockSizeUnit" = 'K'
-        "accessHint" = 'r'
-        "accesspattern" = 'r'
-        "outstandingIo" = $logicalProcessors
-        "enableSoftwareCache" = $false
-        "enableWriteThrough" = $true
-        "enableRemoteCache" = $false # Only available for remote file systems
-        "threads" = $logicalProcessors
-    }
-    "smb_30_70_remotecache" = @{
-        "ratio" = 30
-        "blockSizeValue" = 8
-        "blockSizeUnit" = 'K'
-        "accessHint" = 'r'
-        "accesspattern" = 'r'
-        "outstandingIo" = $logicalProcessors
-        "enableSoftwareCache" = $false
-        "enableWriteThrough" = $false
-        "enableRemoteCache" = $true # Only available for remote file systems
-        "threads" = $logicalProcessors
-    }
-}
+$configurationsFile = Join-Path -Path $ConfigFolder -ChildPath "benchmark_configurations.json";
 
-$configurations = @(
-    @{
-        "fileSystem" = "NTFS"
-        "allocationUnitSize" = 4096
-    },
-    @{
-        "fileSystem" = "NTFS"
-        "allocationUnitSize" = 8192
-    },
-    @{
-        "fileSystem" = "NTFS"
-        "allocationUnitSize" = 16384
-    },
-    @{
-        "fileSystem" = "NTFS"
-        "allocationUnitSize" = 32768
-    },
-    @{
-        "fileSystem" = "NTFS"
-        "allocationUnitSize" = 65536
-    },
-    @{
-        "fileSystem" = "NTFS"
-        "allocationUnitSize" = 131072
-    },
-    @{
-        "fileSystem" = "NTFS"
-        "allocationUnitSize" = 262144
-    },
-    @{
-        "fileSystem" = "NTFS"
-        "allocationUnitSize" = 524288
-    },
-    @{
-        "fileSystem" = "NTFS"
-        "allocationUnitSize" = 1048576
-    },
-    @{
-        "fileSystem" = "NTFS"
-        "allocationUnitSize" = 2097152
-    },
-    @{
-        "fileSystem" = "ReFS"
-        "allocationUnitSize" = 4096
-    },
-    @{
-        "fileSystem" = "ReFS"
-        "allocationUnitSize" = 65536
-    },
-    @{
-        "fileSystem" = "SMB"
-        "allocationUnitSize" = 4096
-        "skipDiskSetup" = $true
-    },
-    @{
-        "drivePath" = "C:\ClusterStorage\mirror-2way"
-        "fileSystem" = "mirror-2way"
-        "allocationUnitSize" = 4096
-        "skipDiskSetup" = $true
-    },
-    @{
-        "drivePath" = "C:\ClusterStorage\mirror-3way"
-        "fileSystem" = "mirror-3way"
-        "allocationUnitSize" = 4096
-        "skipDiskSetup" = $true
-    },
-    @{
-        "drivePath" = "C:\ClusterStorage\parity-single"
-        "fileSystem" = "parity-single"
-        "allocationUnitSize" = 4096
-        "skipDiskSetup" = $true
-    },
-    @{
-        "drivePath" = "C:\ClusterStorage\parity-double"
-        "fileSystem" = "parity-double"
-        "allocationUnitSize" = 4096
-        "skipDiskSetup" = $true
-    }
-);
-
-$outputFolder = "c:\tools";
+# While PowerShell 6+ supports comments in JSON older versions do not
+$configurations = Get-Content -Path $configurationsFile | %{ if ($_.Contains('//')){ $_.SubString(0, $_.IndexOf('//')) } else {$_}} | ConvertFrom-Json;
+$scenarios = (Import-Scenarios -ConfigurationFolder $ConfigFolder -Processors $logicalProcessors).GetEnumerator() | Sort-Object -Property Name;
 
 if(-not $SkipBenchmark)
 {
-    $driveLetter = "t";
-    $fileSize = "64G";
     $duration = 60;
     $warmup = 15;
     $cooldown = 15;
     $enableLatencyCollection = $true;
 
-    Invoke-Benchmark -Scenarios $scenarios -Configurations $configurations -DriveLetter $driveLetter -OutputFolder $outputFolder `
-        -FileSize $fileSize -Duration $duration -Warmup $warmup -Cooldown $cooldown -EnableLatencyCollection $enableLatencyCollection;
+    Invoke-Benchmark -Scenarios $scenarios -Configurations $configurations -OutputFolder $OutputFolder `
+        -Duration $duration -Warmup $warmup -Cooldown $cooldown -EnableLatencyCollection $enableLatencyCollection;
 }
 
 if(-not $SkipAnalysis)
 {
-    Invoke-Analysis -Scenarios $scenarios -Configurations $configurations -OutputFolder $outputFolder;
+    Invoke-Analysis -Scenarios $scenarios -Configurations $configurations -OutputFolder $OutputFolder;
 }
