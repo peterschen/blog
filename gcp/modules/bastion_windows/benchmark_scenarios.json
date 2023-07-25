@@ -5,7 +5,7 @@
 [
     // Based on https://cloud.google.com/compute/docs/disks/benchmarking-pd-performance
     {
-        "name": "write_throughput",
+        "name": "write_throughput_1M_sw",
         "incrementThreads": true,
         "incrementQueueDepth": true,
         "config": {
@@ -19,7 +19,7 @@
         }
     },
     {
-        "name": "write_iops",
+        "name": "write_iops_4K_rw",
         "incrementThreads": true,
         "incrementQueueDepth": true,
         "config": {
@@ -33,7 +33,7 @@
         }
     },
     {
-        "name": "read_throughput",
+        "name": "read_throughput_1M_sr",
         "incrementThreads": true,
         "incrementQueueDepth": true,
         "config": {
@@ -47,7 +47,7 @@
         }
     },
     {
-        "name": "read_iops",
+        "name": "read_iops_4K_rr",
         "incrementThreads": true,
         "incrementQueueDepth": true,
         "config": {
@@ -68,7 +68,7 @@
     // 
     // OLTP workloads are latency sensitive (more IOPS = better performance)
     {
-        "name": "sql_oltp_dataread_8k",
+        "name": "sql_oltp_dataread_8K_rr",
         "incrementThreads": true,
         "incrementQueueDepth": true,
         "config": {
@@ -82,7 +82,7 @@
         }
     },
     {
-        "name": "sql_oltp_dataread_128k",
+        "name": "sql_oltp_dataread_128K_rr",
         "incrementThreads": true,
         "incrementQueueDepth": true,
         "config": {
@@ -96,7 +96,7 @@
         }
     },
     {
-        "name": "sql_oltp_logwrite_4k",
+        "name": "sql_oltp_logwrite_4K_sw",
         "incrementThreads": true,
         "incrementQueueDepth": true,
         "config": {
@@ -110,7 +110,7 @@
         }
     },
     {
-        "name": "sql_oltp_logwrite_64k",
+        "name": "sql_oltp_logwrite_64K_sw",
         "incrementThreads": true,
         "incrementQueueDepth": true,
         "config": {
@@ -125,9 +125,10 @@
     },
 
     // Based on https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-R2-and-2012/dn894707(v=ws.11)#random-small-io-test-1-vary-outstanding-ios-per-thread
+    // https://learn.microsoft.com/en-us/azure-stack/hci/manage/diskspd-overview
     // OLAP workloads are throughput sensitive (better throughput = faster transactions)
     {
-        "name": "sql_olap",
+        "name": "sql_olap_512K_sr",
         "incrementThreads": true,
         "incrementQueueDepth": true,
         "config": {
@@ -145,7 +146,7 @@
     // Based on https://unhandled.wordpress.com/2016/07/20/madness-testing-smb-direct-network-throughput-with-diskspd/
     // Small files accessed with random 64K IOs
     {
-        "name": "smb_network_throughput_writethrough",
+        "name": "smb_network_throughput_writethrough_64K_rr",
         "incrementThreads": true,
         "incrementQueueDepth": true,
         "config": {
@@ -161,7 +162,7 @@
         }
     },
     {
-        "name": "smb_network_throughput_remotecache",
+        "name": "smb_network_throughput_remotecache_64K_rr",
         "incrementThreads": true,
         "incrementQueueDepth": true,
         "config": {
@@ -178,7 +179,7 @@
     },
     // Based on https://www.windowspro.de/marcel-kueppers/storage-performance-iops-unter-hyper-v-messen-diskspd
     {
-        "name": "smb_30_70_writethrough",
+        "name": "smb_writethrough_8K_30rw_70rr",
         "incrementThreads": true,
         "incrementQueueDepth": true,
         "config": {
@@ -193,7 +194,7 @@
         }
     },
     {
-        "name": "smb_30_70_remotecache",
+        "name": "smb_remotecache_8K_30rw_70rr",
         "incrementThreads": true,
         "incrementQueueDepth": true,
         "config": {
