@@ -4,7 +4,8 @@ param
     [string] $ConfigFolder = "C:\tools",
     [string] $OutputFolder = "C:\tools",
     [bool] $SkipBenchmark = $false,
-    [bool] $SkipAnalysis = $false
+    [bool] $SkipAnalysis = $false,
+    [string] $DiskId = ""
 );
 
 Set-StrictMode -Version Latest;
@@ -78,7 +79,8 @@ function Setup-Disk
     param
     (
         [CimInstance] $Disk,
-        [PSCustomObject] $Configuration,
+        [string] $FileSystem,
+        [int] $AllocationUnitSize,
         [String] $DriveLetter
     );
 
@@ -86,13 +88,12 @@ function Setup-Disk
     {
         Clear-Disk -UniqueId $Disk.UniqueId -RemoveData -RemoveOEM -Confirm:$false -ErrorAction "SilentlyContinue";
     
-        $fileSystem = $Configuration.fileSystem;
-        $allocationUnitSize = $Configuration.allocationUnitSize;
-        $label = "${fileSystem}-$($allocationUnitSize / 1024)K";
+        $fileSystem = $FileSystem;
+        $label = "${fileSystem}-$($AllocationUnitSize / 1024)K";
 
         Initialize-Disk -UniqueId $Disk.UniqueId -PartitionStyle GPT -PassThru |
             New-Partition -UseMaximumSize -DriveLetter $DriveLetter |
-            Format-Volume -AllocationUnitSize $allocationUnitSize -FileSystem $fileSystem -NewFileSystemLabel $label |
+            Format-Volume -AllocationUnitSize $AllocationUnitSize -FileSystem $FileSystem -NewFileSystemLabel $label |
             Out-Null;
     }
 }
@@ -150,13 +151,19 @@ function Invoke-Benchmark
         [int] $Duration,
         [int] $Warmup,
         [int] $Cooldown,
-        [bool] $EnableLatencyCollection 
+        [bool] $EnableLatencyCollection,
+        [string] $DiskId
     );
 
     process
     {
-        $disk = Get-PhysicalDisk | Where-Object { $_.Size -eq 1000GB };
-        foreach($configuration in $Configurations)
+        $disk = $null;
+        if($DiskId -ne "")
+        {
+            $disk = Get-Disk -UniqueId $DiskId;
+        }
+
+        foreach($configuration in $Configurations.GetEnumerator())
         {
             if("testPath" -in $Configuration.PSObject.Properties.Name)
             {
@@ -175,8 +182,14 @@ function Invoke-Benchmark
 
             if(-not $skipDiskSetup)
             {
+                if($disk -eq $null)
+                {
+                    throw "'DiskId' needs to be passed in arguments"
+                }
+
                 Write-Information -MessageData "Preparing disk '$($configuration.fileSystem)-$($configuration.allocationUnitSize)'";
-                Setup-Disk -Disk $disk -Configuration $configuration -DriveLetter (Split-Path -Path $Configuration.testPath -Qualifier);
+                Setup-Disk -Disk $disk -FileSystem $configuration.fileSystem -AllocationUnitSize $configuration.allocationUnitSize  `
+                    -DriveLetter (Split-Path -Path $Configuration.testPath -Qualifier);
             }
 
             foreach($scenario in $Scenarios.GetEnumerator())
@@ -255,7 +268,7 @@ function Invoke-Benchmark
         Parse benchmark output
 
     .PARAMETER Scenarios
-        Hashtable of disk test scenarios
+        Array of benchmark scenarios
 
     .PARAMETER Configuration
         Array of parameters for disk initialization
@@ -276,7 +289,7 @@ function Invoke-Analysis
 {
     param
     (
-        [Hashtable] $Scenarios,     
+        [Array] $Scenarios,     
         [Array] $Configurations,
         [string] $OutputFolder
     );
@@ -285,7 +298,7 @@ function Invoke-Analysis
     {
         $results = @();
 
-        foreach($configuration in $Configurations)
+        foreach($configuration in $Configurations.GetEnumerator())
         {
             foreach($scenario in $Scenarios.GetEnumerator())
             {
@@ -299,10 +312,9 @@ function Invoke-Analysis
                 }
 
                 $document = Join-Path -Path $OutputFolder -ChildPath "${fileName}.xml";
-
                 if(Test-Path -Path $document)
                 {
-                    Write-Information -MessageData "Parsing data ${document}";
+                    Write-Information -MessageData "Parsing data '${document}'";
 
                     $xml = [xml](Get-Content -Path $document);
                     $result = New-Object psobject;
@@ -425,6 +437,10 @@ function Invoke-Analysis
                     
                     $results += $result;
                 }
+                else
+                {
+                    Write-Warning -MessageData "Can't read file '${document}'";
+                }
             }
         }
 
@@ -535,7 +551,7 @@ function Import-Scenarios
         $configurations = Get-Content -Path $scenariosFile | %{ if ($_.Contains('//')){ $_.SubString(0, $_.IndexOf('//')) } else {$_}}
         $configurations = $configurations -Join "`n" | ConvertFrom-Json;
 
-        foreach($configuration in $configurations)
+        foreach($configuration in $configurations.GetEnumerator())
         {
             $startThreads = $Processors;
             $endThreads = $Processors;
