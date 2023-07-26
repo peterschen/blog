@@ -557,7 +557,7 @@ configuration ConfigurationWorkload
 
                 SetScript = {
                     $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "WindowsAdminCenter.msi";
-                    Start-Process -FilePath "msiexec" -ArgumentList "/i $path" "/qn", "SME_PORT=443", "SSL_CERTIFICATE_OPTION=generate" -Wait;
+                    Start-Process -FilePath "msiexec" -ArgumentList "/i $path", "/qn", "SME_PORT=443", "SSL_CERTIFICATE_OPTION=generate" -Wait;
                 }
 
                 DependsOn = "[Script]DownloadWindowsAdminCenter"
