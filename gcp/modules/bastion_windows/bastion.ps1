@@ -275,7 +275,7 @@ configuration ConfigurationWorkload
             Package "InstallSsms"
             {
                 Ensure = "Present"
-                Name = "Microsoft SQL Server Management Studio 19.1"
+                Name = "SQL Server Management Studio"
                 ProductID = ""
                 Path = "C:\Windows\temp\SSMS-Setup-ENU.exe"
                 Arguments = "/install /quiet"
