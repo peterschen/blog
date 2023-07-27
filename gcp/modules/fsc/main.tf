@@ -153,7 +153,7 @@ resource "google_compute_instance" "fsc" {
   }
 
   dynamic "attached_disk" {
-    for_each = range(count.index, local.capacity_disk_count * local.node_count, local.node_count)
+    for_each = local.capacity_disk_count == 0 ? [] : range(count.index, local.capacity_disk_count * local.node_count, local.node_count)
     content {
       source = google_compute_disk.capacity[attached_disk.value].id
       device_name = "fsc-${count.index}-capacity-${floor((attached_disk.value - count.index) / local.node_count)}"
