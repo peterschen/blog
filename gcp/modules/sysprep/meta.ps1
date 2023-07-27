@@ -16,7 +16,7 @@ configuration ConfigurationMeta
         {
             ConfigurationModeFrequencyMins = 15 
             RebootNodeIfNeeded = $true
-            ConfigurationMode = "ApplyAndMonitor"            
+            ConfigurationMode = "ApplyAndAutoCorrect"            
             ActionAfterReboot = "ContinueConfiguration"
             RefreshMode = "Push"
             DebugMode = "All"
