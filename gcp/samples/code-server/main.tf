@@ -101,9 +101,9 @@ resource "google_compute_resource_policy" "policy" {
 
   snapshot_schedule_policy {
     schedule {
-      daily_schedule {
-        days_in_cycle = 1
-        start_time = "02:00"
+      hourly_schedule {
+        hours_in_cycle = 1
+        start_time = "00:00"
       }
     }
 
