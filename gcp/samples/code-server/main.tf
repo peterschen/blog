@@ -241,3 +241,12 @@ resource "google_secret_manager_secret_iam_binding" "ssh_public_key" {
     "serviceAccount:${data.google_compute_default_service_account.default.email}",
   ]
 }
+
+resource "google_project_iam_binding" "code" {
+  project = local.secretmanager_project
+  role = "roles/source.reader"
+
+  members = [
+    "serviceAccount:${data.google_compute_default_service_account.default.email}"
+  ]
+}
