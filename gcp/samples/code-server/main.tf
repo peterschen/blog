@@ -163,6 +163,9 @@ resource "google_compute_instance" "code" {
       #!/usr/bin/env bash
       set +eux
 
+      # Set execution directory
+      cd /root
+
       # Install git and ansible
       apt-get install -y git ansible
 
