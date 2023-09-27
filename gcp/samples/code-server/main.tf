@@ -163,52 +163,23 @@ resource "google_compute_instance" "code" {
       #!/usr/bin/env bash
       set +eux
 
-      disk=/dev/disk/by-id/google-data
+      # Install git and ansible
+      apt-get install -y git ansible
 
-      # Install packages
-      apt-get install -y git
-
-      # Create folders
-      mkdir -p /root/config/sa
+      # Download SSH keypair
       mkdir -p /root/.ssh
-      
-      # Download key material
-      gcloud secrets versions access "latest" --project cbpetersen-shared --secret codeserver-sa --out-file /root/config/sa/codeserver@cbpetersen-shared.json
       gcloud secrets versions access "latest" --project cbpetersen-shared --secret codeserver-ssh-private-key --out-file /root/.ssh/id_rsa
       gcloud secrets versions access "latest" --project cbpetersen-shared --secret codeserver-ssh-public-key --out-file /root/.ssh/id_rsa.pub
-
-      # Fix SSH certificate permissions
       chmod 600 /root/.ssh/id_rsa
 
-      # Format data disk if it does not have a filesystem
-      file_system=`lsblk -no FSTYPE $disk`
-      if [ "$file_system" == "" ]; then
-        mkfs.ext4 $disk
+      # Clone or refresh repo & enact configuration
+      if [ ! -d /root/laptop ]; then
+        gcloud source repos clone laptop --project cbpetersen-shared
+      else
+        cd laptop && git pull origin master
       fi
 
-      # Mount data disk
-      mkdir -p /data
-      mount $disk /data
-      
-      # Create subdirectories on data disk
-      mkdir -p /data/user-data
-      mkdir -p /data/extension
-      mkdir -p /data/dev
-
-      # Set code-server configuration
-      mkdir -p /root/.config/code-server
-      cat <<- EOF > /root/.config/code-server/config.yaml
-        bind-addr: 0.0.0.0:8080
-        auth: none
-        cert: false
-
-        user-data-dir: /data/user-data
-        extensions-dir: /data/extensions
-      EOF
-
-      # Install and enable code-server
-      curl -fsSL https://code-server.dev/install.sh | sh
-      systemctl enable --now code-server@$USER
+      ansible-playbook /root/laptop/codeserver.yml
     EOM
   }
 
