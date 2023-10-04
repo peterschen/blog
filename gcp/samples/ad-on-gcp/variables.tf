@@ -51,7 +51,7 @@ variable "windows_core_image" {
 
 variable "adjoin_container_uri" {
   type = string
-  default = "gcr.io/cbpetersen-shared/adjoin:latest"
+  default = "europe-west4-docker.pkg.dev/cbpetersen-shared/gce-automated-ad-join/register-computer:latest"
 }
 
 variable "cloud_identity_domain" {
