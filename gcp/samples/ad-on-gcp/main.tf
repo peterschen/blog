@@ -487,7 +487,7 @@ resource "google_cloud_run_service" "adjoin" {
   count = local.enable_adjoin ? 1 : 0
   project = module.project.id
 
-  name = "adjoin"
+  name = "register-computer"
   location = local.regions[0]
 
   template {
