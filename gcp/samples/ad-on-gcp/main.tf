@@ -378,12 +378,12 @@ resource "google_service_account" "adjoin" {
   display_name = "Service Account for adjoin operations"
 }
 
-resource "google_service_account" "migration_center" {
+resource "google_service_account" "discoveryclient" {
   count = local.enable_discoveryclient ? 1 : 0
   project = module.project.id
 
-  account_id = "migration-center"
-  display_name = "Service Account for Migration Center operations"
+  account_id = "discoveryclient"
+  display_name = "Service Account for Migration Center Discovery Client operations"
 }
 
 resource "google_project_iam_binding" "adjoin_computeviewer" {
