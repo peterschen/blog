@@ -547,6 +547,8 @@ resource "google_cloud_run_service" "adjoin" {
       }
 
       service_account_name = google_service_account.adjoin[0].email
+
+      timeout_seconds = 1800
     }
 
     metadata {
@@ -642,8 +644,10 @@ resource "google_cloud_scheduler_job" "adjoin" {
   schedule = "0 0 * * *"
   time_zone = "Europe/Berlin"
 
+  attempt_deadline = "1800s"
+
   retry_config {
-    retry_count = 1
+    retry_count = 0
   }
 
   http_target {
@@ -692,7 +696,7 @@ resource "google_compute_instance_template" "adjoin" {
       spec:
         containers:
         - name: adjoin-n2-highcpu-8-57procs-v1
-          image: gcr.io/cbpetersen-sandbox/adjoin
+          image: ${local.adjoin_container_uri}
           env:
           - name: AD_DOMAIN
             value: ${local.domain_name}
