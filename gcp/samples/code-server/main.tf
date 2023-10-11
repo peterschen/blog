@@ -20,7 +20,7 @@ locals {
   
   network_range = "10.10.0.0/16"
 
-  machine_type = "e2-medium"
+  machine_type = var.machine_type
 
   boot_disk_type = "pd-balanced"
   boot_disk_size = 20
@@ -94,7 +94,7 @@ resource "google_compute_disk" "data" {
   size = local.data_disk_size
 }
 
-resource "google_compute_resource_policy" "policy" {
+resource "google_compute_resource_policy" "snapshot_policy" {
   project = module.project.id
   name = "data-daily"
   region = local.region
@@ -115,7 +115,7 @@ resource "google_compute_resource_policy" "policy" {
 
 resource "google_compute_disk_resource_policy_attachment" "attachment" {
   project = module.project.id
-  name = google_compute_resource_policy.policy.name
+  name = google_compute_resource_policy.snapshot_policy.name
   disk = google_compute_disk.data.name
   zone = local.zone
 }
@@ -158,6 +158,10 @@ resource "google_compute_instance" "code" {
     scopes = ["cloud-platform"]
   }
 
+  resource_policies = [ 
+    google_compute_resource_policy.shutdown_policy.self_link
+  ]
+
   metadata = {
     startup-script=<<-EOM
       #!/usr/bin/env bash
@@ -189,12 +193,40 @@ resource "google_compute_instance" "code" {
   allow_stopping_for_update = true  
 }
 
+resource "google_compute_resource_policy" "shutdown_policy" {
+  project = module.project.id
+  region = local.region
+  name = "code-8h-22h"
+  
+  instance_schedule_policy {
+    vm_start_schedule {
+      schedule = "0 8 * * *"
+    }
+
+    vm_stop_schedule {
+      schedule = "0 20 * * *"
+    }
+
+    time_zone = "Europe/Berlin"
+  }
+}
+
+resource "google_compute_instance_iam_binding" "compute_sa_admin" {
+  project = google_compute_instance.code.project
+  zone = google_compute_instance.code.zone
+  instance_name = google_compute_instance.code.name
+  role = "roles/compute.instanceAdmin"
+  members = [
+    "serviceAccount:service-${module.project.number}@compute-system.iam.gserviceaccount.com"
+  ]
+}
+
 resource "google_secret_manager_secret_iam_binding" "sa" {
   project = local.secretmanager_project
   secret_id = "codeserver-sa"
   role = "roles/secretmanager.secretAccessor"
   members = [
-    "serviceAccount:${data.google_compute_default_service_account.default.email}",
+    "serviceAccount:${data.google_compute_default_service_account.default.email}"
   ]
 }
 
@@ -203,7 +235,7 @@ resource "google_secret_manager_secret_iam_binding" "ssh_private_key" {
   secret_id = "codeserver-ssh-private-key"
   role = "roles/secretmanager.secretAccessor"
   members = [
-    "serviceAccount:${data.google_compute_default_service_account.default.email}",
+    "serviceAccount:${data.google_compute_default_service_account.default.email}"
   ]
 }
 
@@ -212,7 +244,7 @@ resource "google_secret_manager_secret_iam_binding" "ssh_public_key" {
   secret_id = "codeserver-ssh-public-key"
   role = "roles/secretmanager.secretAccessor"
   members = [
-    "serviceAccount:${data.google_compute_default_service_account.default.email}",
+    "serviceAccount:${data.google_compute_default_service_account.default.email}"
   ]
 }
 
