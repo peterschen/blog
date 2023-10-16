@@ -7,6 +7,8 @@ locals {
   enable_http_alt = var.enable_http_alt
   enable_https = var.enable_https
   enable_https_alt = var.enable_https_alt
+  enable_dotnet_http = var.enable_dotnet_http
+  enable_dotnet_https = var.enable_dotnet_https
 }
 
 resource "google_compute_firewall" "allow-rdp-iap" {
@@ -127,4 +129,44 @@ resource "google_compute_firewall" "allow-https-alt-iap" {
   source_ranges = ["35.235.240.0/20"]
 
   target_tags = ["https-alt-iap"]
+}
+
+resource "google_compute_firewall" "allow-dotnet-http-iap" {
+  count = local.enable_dotnet_http ? 1 : 0
+  
+  project = local.project
+  name = "allow-dotnet-http-iap"
+  network = local.network
+  priority = 5000
+
+  allow {
+    protocol = "tcp"
+    ports    = ["5000"]
+  }
+
+  direction = "INGRESS"
+
+  source_ranges = ["35.235.240.0/20"]
+
+  target_tags = ["dotnet-http-iap"]
+}
+
+resource "google_compute_firewall" "allow-dotnet-https-iap" {
+  count = local.enable_dotnet_https ? 1 : 0
+  
+  project = local.project
+  name = "allow-dotnet-https-iap"
+  network = local.network
+  priority = 5000
+
+  allow {
+    protocol = "tcp"
+    ports    = ["5001"]
+  }
+
+  direction = "INGRESS"
+
+  source_ranges = ["35.235.240.0/20"]
+
+  target_tags = ["dotnet-https-iap"]
 }

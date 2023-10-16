@@ -35,3 +35,13 @@ variable "enable_https_alt" {
     type = bool
     default = false
 }
+
+variable "enable_dotnet_http" {
+    type = bool
+    default = false
+}
+
+variable "enable_dotnet_https" {
+    type = bool
+    default = false
+}
