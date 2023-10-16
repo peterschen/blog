@@ -75,6 +75,8 @@ module "firewall_iap" {
   network = google_compute_network.network.name
   enable_rdp = false
   enable_http_alt = true
+  enable_dotnet_http = true
+  enable_dotnet_https = true
 }
 
 resource "google_compute_address" "code" {
