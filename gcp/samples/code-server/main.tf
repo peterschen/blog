@@ -1,11 +1,3 @@
-terraform {
-  required_providers {
-    google = {
-      version = "~> 3.1"
-    }
-  }
-}
-
 provider "google" {
 }
 
@@ -15,6 +7,8 @@ locals {
   zone = var.zone
 
   secretmanager_project = "cbpetersen-shared"
+  artifactregistry_project = "cbpetersen-shared"
+  artifactregistry_repository = "home"
 
   sample_name = "code"
   
@@ -254,6 +248,16 @@ resource "google_project_iam_binding" "code" {
   project = local.secretmanager_project
   role = "roles/source.reader"
 
+  members = [
+    "serviceAccount:${data.google_compute_default_service_account.default.email}"
+  ]
+}
+
+resource "google_artifact_registry_repository_iam_binding" "compute" {
+  project = local.artifactregistry_project
+  location = local.region
+  repository = local.artifactregistry_repository
+  role = "roles/artifactregistry.reader"
   members = [
     "serviceAccount:${data.google_compute_default_service_account.default.email}"
   ]
