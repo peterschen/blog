@@ -28,6 +28,10 @@ module "project" {
 
 data "google_compute_default_service_account" "default" {
   project = module.project.id
+
+  depends_on = [
+    module.project
+  ]
 }
 
 resource "google_compute_network" "network" {
