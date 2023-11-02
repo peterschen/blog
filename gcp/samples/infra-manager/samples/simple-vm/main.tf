@@ -2,7 +2,7 @@ provider "google" {
 }
 
 locals {
-  prefix = var.prefix
+  project_id = var.project_id
   region = var.region
   zone = var.zone
 
@@ -13,35 +13,22 @@ locals {
   machine_type = var.machine_type
 }
 
-module "project" {
-  source = "../../../../modules/project"
-
-  org_id = var.org_id
-  billing_account = var.billing_account
-
-  prefix = local.prefix
-
-  apis = [
-    "compute.googleapis.com"
-  ]
+data "google_project" "project" {
+  project_id = local.project_id
 }
 
 data "google_compute_default_service_account" "default" {
-  project = module.project.id
-
-  depends_on = [
-    module.project
-  ]
+  project = data.google_project.project.name
 }
 
 resource "google_compute_network" "network" {
-  project = module.project.id
+  project = data.google_project.project.name
   name = local.sample_name
   auto_create_subnetworks = false
 }
 
 resource "google_compute_subnetwork" "subnetwork" {
-  project = module.project.id
+  project = data.google_project.project.name
   region = local.region
   name = local.region
   ip_cidr_range = local.network_range
@@ -51,7 +38,7 @@ resource "google_compute_subnetwork" "subnetwork" {
 
 module "firewall_iap" {
   source = "../../../../modules/firewall_iap"
-  project = module.project.id
+  project = data.google_project.project.name
   network = google_compute_network.network.name
   enable_rdp = false
   enable_http_alt = true
@@ -60,7 +47,7 @@ module "firewall_iap" {
 }
 
 resource "google_compute_instance" "instance" {
-  project = module.project.id
+  project = data.google_project.project.name
   zone = local.zone
   name = "simple-vm"
   machine_type = local.machine_type

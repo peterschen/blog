@@ -1,8 +1,4 @@
-variable "org_id" {
-  type = number
-}
-
-variable "billing_account" {
+variable "project_id" {
   type = string
 }
 
