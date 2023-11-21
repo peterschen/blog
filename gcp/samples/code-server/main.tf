@@ -6,7 +6,10 @@ locals {
   region = var.region
   zone = var.zone
 
+  serviceaccount_project = "cbpetersen-shared"
+  serviceaccount_name = "deployment"
   secretmanager_project = "cbpetersen-shared"
+  sourcerepository_project = "cbpetersen-shared"
   artifactregistry_project = "cbpetersen-shared"
   artifactregistry_repository = "home"
 
@@ -38,8 +41,15 @@ module "project" {
   ]
 }
 
-data "google_compute_default_service_account" "default" {
+data "google_service_account" "shared_sa" {
+  project = local.serviceaccount_project
+  account_id = local.serviceaccount_name
+}
+
+resource "google_service_account" "local_sa" {
   project = module.project.id
+  account_id = "codeserver"
+  display_name = "code-server service account"
 }
 
 resource "google_compute_network" "network" {
@@ -152,7 +162,7 @@ resource "google_compute_instance" "code" {
   }
 
   service_account {
-    email  = data.google_compute_default_service_account.default.email
+    email  = google_service_account.local_sa.email
     scopes = ["cloud-platform"]
   }
 
@@ -170,6 +180,9 @@ resource "google_compute_instance" "code" {
 
       # Install git and ansible
       apt-get install -y git ansible
+
+      # Ensure that the correct service account is active
+      gcloud config set account ${google_service_account.local_sa.email}
 
       # Download SSH keypair
       mkdir -p /root/.ssh
@@ -209,58 +222,58 @@ resource "google_compute_resource_policy" "shutdown_policy" {
   }
 }
 
-resource "google_compute_instance_iam_binding" "compute_sa_admin" {
+resource "google_service_account_iam_member" "sa_user" {
+  service_account_id = data.google_service_account.shared_sa.name
+  role = "roles/iam.serviceAccountUser"
+  member = "serviceAccount:${google_service_account.local_sa.email}"
+}
+
+resource "google_service_account_iam_member" "sa_tokencreator" {
+  service_account_id = data.google_service_account.shared_sa.name
+  role = "roles/iam.serviceAccountTokenCreator"
+  member = "serviceAccount:${google_service_account.local_sa.email}"
+}
+
+resource "google_project_iam_member" "owner" {
+  project = module.project.id
+  role = "roles/owner"
+  member = "serviceAccount:${google_service_account.local_sa.email}"
+}
+
+resource "google_compute_instance_iam_member" "compute_sa_admin" {
   project = google_compute_instance.code.project
   zone = google_compute_instance.code.zone
   instance_name = google_compute_instance.code.name
   role = "roles/compute.instanceAdmin"
-  members = [
-    "serviceAccount:service-${module.project.number}@compute-system.iam.gserviceaccount.com"
-  ]
+  member = "serviceAccount:${google_service_account.local_sa.email}"
 }
 
-resource "google_secret_manager_secret_iam_binding" "sa" {
-  project = local.secretmanager_project
-  secret_id = "codeserver-sa"
-  role = "roles/secretmanager.secretAccessor"
-  members = [
-    "serviceAccount:${data.google_compute_default_service_account.default.email}"
-  ]
-}
-
-resource "google_secret_manager_secret_iam_binding" "ssh_private_key" {
+resource "google_secret_manager_secret_iam_member" "ssh_private_key" {
   project = local.secretmanager_project
   secret_id = "codeserver-ssh-private-key"
   role = "roles/secretmanager.secretAccessor"
-  members = [
-    "serviceAccount:${data.google_compute_default_service_account.default.email}"
-  ]
+  member = "serviceAccount:${google_service_account.local_sa.email}"
 }
 
-resource "google_secret_manager_secret_iam_binding" "ssh_public_key" {
+resource "google_secret_manager_secret_iam_member" "ssh_public_key" {
   project = local.secretmanager_project
   secret_id = "codeserver-ssh-public-key"
   role = "roles/secretmanager.secretAccessor"
-  members = [
-    "serviceAccount:${data.google_compute_default_service_account.default.email}"
-  ]
+  member = "serviceAccount:${google_service_account.local_sa.email}"
 }
 
-resource "google_project_iam_binding" "code" {
-  project = local.secretmanager_project
-  role = "roles/source.reader"
-
-  members = [
-    "serviceAccount:${data.google_compute_default_service_account.default.email}"
-  ]
+resource "google_project_iam_member" "shared_source_reader" {
+  project = local.sourcerepository_project
+  role = "roles/source.writer"
+  member = "serviceAccount:${google_service_account.local_sa.email}"
 }
 
-resource "google_artifact_registry_repository_iam_binding" "compute" {
+resource "google_artifact_registry_repository_iam_binding" "shared_registry_reader" {
   project = local.artifactregistry_project
   location = local.region
   repository = local.artifactregistry_repository
   role = "roles/artifactregistry.reader"
   members = [
-    "serviceAccount:${data.google_compute_default_service_account.default.email}"
+    "serviceAccount:${google_service_account.local_sa.email}"
   ]
 }
