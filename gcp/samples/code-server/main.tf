@@ -166,10 +166,6 @@ resource "google_compute_instance" "code" {
     scopes = ["cloud-platform"]
   }
 
-  resource_policies = [ 
-    google_compute_resource_policy.shutdown_policy.self_link
-  ]
-
   metadata = {
     startup-script=<<-EOM
       #!/usr/bin/env bash
@@ -202,24 +198,6 @@ resource "google_compute_instance" "code" {
   }
 
   allow_stopping_for_update = true  
-}
-
-resource "google_compute_resource_policy" "shutdown_policy" {
-  project = module.project.id
-  region = local.region
-  name = "code-8h-22h"
-  
-  instance_schedule_policy {
-    vm_start_schedule {
-      schedule = "0 8 * * *"
-    }
-
-    vm_stop_schedule {
-      schedule = "0 20 * * *"
-    }
-
-    time_zone = "Europe/Berlin"
-  }
 }
 
 resource "google_service_account_iam_member" "sa_user" {
