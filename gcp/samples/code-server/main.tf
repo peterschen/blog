@@ -32,7 +32,9 @@ module "project" {
   prefix = local.prefix
 
   apis = [
-    "compute.googleapis.com"
+    "cloudresourcemanager.googleapis.com",
+    "compute.googleapis.com",
+    "iamcredentials.googleapis.com"
   ]
 }
 
