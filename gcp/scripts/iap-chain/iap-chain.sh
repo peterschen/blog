@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 set -u
 
 EXIT_SCRIPTERROR=1
@@ -14,8 +13,12 @@ CHAIN_COMMAND=
 ZONE=
 DISABLE_CONNECTION_CHECK=false
 
-# Default to what Cloud Shell provides
-PROJECT=$GOOGLE_CLOUD_PROJECT
+if [ "${PROJECT-}" = "" ]; then
+  # Default to what Cloud Shell provides
+  if [ "${GOOGLE_CLOUD_PROJECT-}" != "" ]; then
+    PROJECT=$GOOGLE_CLOUD_PROJECT
+  fi
+fi
 
 while [[ $# -gt 0 ]]; do
   case $1 in

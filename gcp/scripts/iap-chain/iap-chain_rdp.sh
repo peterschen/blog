@@ -1,6 +1,4 @@
-#!/usr/bin/env sh
-
-set +e
+#!/usr/bin/env bash
 
 rdp()
 {
@@ -8,8 +6,15 @@ rdp()
 
   instance=
   port=3389
-  zone=$ZONE
-  project=$GOOGLE_CLOUD_PROJECT
+
+  if [ "${ZONE-}" != "" ]; then
+    zone=$ZONE
+  fi
+
+  if [ "${GOOGLE_CLOUD_PROJECT-}" != "" ]; then
+    project=$GOOGLE_CLOUD_PROJECT
+  fi
+  
   disable_connection_check=
   extra=
 
