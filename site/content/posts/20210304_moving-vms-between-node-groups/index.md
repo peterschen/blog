@@ -14,11 +14,12 @@ In this article I'll demonstrate how to manually change the affinity of VMs incl
 
 ## Environment
 
-In my environment I have two sole-tenant nodes. One named `ng-old` running on N1 in `europe-west1-c` and another one named `ng-new` running on N2 in `europe-west1-c`:
+In my environment I have two sole-tenant nodes. One named `ng-old` running on N1 in `europe-west1-c` and another one named `ng-new` running on N2 in `europe-west1-c` :
 ![](images/image-2.png)Sole-Tenant Nodes running in the environment
+
 ## Move to a different node group
 
-Updating the node affinity can be done through `gcloud`. Before the scheduling can be modified, the instance needs to be stopped.
+Updating the node affinity can be done through `gcloud` . Before the scheduling can be modified, the instance needs to be stopped.
 
 ```bash
 ZONE="europe-west1-c"
@@ -34,6 +35,7 @@ gcloud compute instances set-scheduling $VM --zone $ZONE --node-group $NODEGROUP
 # Start VM
 gcloud compute instances start $VM --zone $ZONE
 ```
+
 <figcaption>Script showing how to move a VM to a node group with the same machine family</figcaption>
 
 ## Move to a node group with a different machine family
@@ -58,4 +60,5 @@ gcloud compute instances set-scheduling $VM --zone $ZONE --node-group $NODEGROUP
 # Start VM
 gcloud compute instances start $VM --zone $ZONE
 ```
+
 <figcaption>Script showing how to move a VM to a node group with a different machine family</figcaption>
