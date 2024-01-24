@@ -10,7 +10,7 @@ cover:
 
 When running Storage Spaces Direct in Cloud environments where disk resources can be provisioned at a moments notice with any capacity, it can be the norm that disks will be (hot) added from a cluster to account for growing capacity or performance needs.
 
-By default,  disks added to cluster nodes will automatically claimed by Storage Spaces Direct. You can prevent the disks to be automatically added to storage pools by setting the following option to the cluster:
+By default, disks added to cluster nodes will automatically claimed by Storage Spaces Direct. You can prevent the disks to be automatically added to storage pools by setting the following option to the cluster:
 
 ```powershell
 Get-StorageSubSystem Cluster* | Set-StorageHealthSetting -Name "System.Storage.PhysicalDisk.AutoPool.Enabled" -Value False;

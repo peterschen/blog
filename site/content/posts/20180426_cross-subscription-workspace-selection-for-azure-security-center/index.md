@@ -8,7 +8,7 @@ tags: [azure, security-center, log-analytics]
 
 Around Ignite 2017 Azure Security Center was migrated to use Log Analytics as its foundation both for collecting data through the same agent and storing most of its data.
 
-Since then the option was added to select into which Log Analytics workspace the data would be save (no longer it had to be `DefaultWorkspace`!).
+Since then the option was added to select into which Log Analytics workspace the data would be save (no longer it had to be `DefaultWorkspace` !).
 
 No Microsoft added the option to select workspaces that are located in different subscriptions:
 

@@ -16,7 +16,7 @@ In this article I will go through the steps to deploy Cloud SQL and connect it w
 
 ## Prerequisites
 
-For this walk-through I'm using two separate projects called `vpc-host` and `vpc-service-1`. As the name indicates the former has [Shared VPC](https://cloud.google.com/vpc/docs/shared-vpc) configured to share a VPC (`csql-mad`) with attached projects. It will host the Managed AD domain so that it can be consumed throughout the organization by all projects attached to the host VPC.
+For this walk-through I'm using two separate projects called `vpc-host` and `vpc-service-1` . As the name indicates the former has [Shared VPC](https://cloud.google.com/vpc/docs/shared-vpc) configured to share a VPC ( `csql-mad` ) with attached projects. It will host the Managed AD domain so that it can be consumed throughout the organization by all projects attached to the host VPC.
 
 Creating the project structure and setting up Shared VPC is out of the scope for this article. Please refer to the documentation for [guidance on project creation](https://cloud.google.com/resource-manager/docs/creating-managing-projects) and [how to provision Shared VPC](https://cloud.google.com/vpc/docs/provisioning-shared-vpc).
 
@@ -28,19 +28,22 @@ In order to configure Windows authentication for SQL Server a principal (user or
 
 There are plenty of options to deploy a Managed Microsoft AD domain: Cloud Console, `gcloud` or IaC tools like Terraform. As creating a new domain through Cloud Console is pretty straight forward, I'll use this route.
 
-> **Note:** Before you start, make sure that you have selected the correct project in Cloud Console. We will deploy the domain to `vpc-host`.
+> **Note:** Before you start, make sure that you have selected the correct project in Cloud Console. We will deploy the domain to `vpc-host` .
 
 In Cloud Console select the[**burger menu > Security > Managed Microsoft AD**](https://console.cloud.google.com/security/cloud-ad).
+
 ![Cloud Console menu flow for Managed Microsoft AD](images/image-5.png)
 
 Select [**Create new AD domain**](https://console.cloud.google.com/security/cloud-ad/create) from the top menu:
 
 ![List of Managed Microsoft AD domains with create new AD domain button highlighted](images/image-8.png)
 
-In the wizard provide the name for the domain (I'll call it `csql-mad.lab`) select the network, provide a CIDR range that **is not used anywhere yet**, select the appropriate region and hit **Create domain**.
+In the wizard provide the name for the domain (I'll call it `csql-mad.lab` ) select the network, provide a CIDR range that **is not used anywhere yet**, select the appropriate region and hit **Create domain**.
+
 ![Managed Microsoft AD domain creation wizard](images/image-7.png)
 
 The new domain is now being deployed. The deployment usually takes around 25 Minutes to complete.
+
 ![Managed Microsoft AD domain being deployed](images/image-4.png)
 
 And that's it. Now this wasn't too hard and once the deployment has completed you can continue with the next step.
@@ -49,15 +52,18 @@ And that's it. Now this wasn't too hard and once the deployment has completed yo
 
 As with Managed Microsoft AD domains Cloud SQL can be deployed using various methods. As the deployment is somewhat more complex using Cloud Console, I'll use `gcloud` to facilitate this step.
 
-> **Note:** Before you start, make sure that you have selected the correct project in Cloud Console. We will deploy the Cloud SQL to `vpc-service-1`.
+> **Note:** Before you start, make sure that you have selected the correct project in Cloud Console. We will deploy the Cloud SQL to `vpc-service-1` .
 
 In Cloud Console, select [**burger menu > SQL**](https://console.cloud.google.com/sql):
+
 ![Cloud Console menu flow for Cloud SQL](images/image-9.png)
 
 Launch Cloud Shell from the top right corner:
+
 ![Activate Cloud Shell](images/image-10.png)
 
 Once Cloud Shell is activated it will launch a shell for you and pre-select the currently selected project. This is a good time to make sure you are working in the right project...
+
 ![Cloud Shell welcome message](images/image-11.png)
 
 ### Service Account & permissions
@@ -69,7 +75,8 @@ gcloud beta services identity create \
   --service=sqladmin.googleapis.com \
   --project=vpc-service-1
 ```
-<figcaption>`gcloud` command to create a service account for `sqladmin.googleapis.com` service</figcaption>
+
+<figcaption> `gcloud` command to create a service account for `sqladmin.googleapis.com` service</figcaption>
 
 The service account naming follows the schema `service-[PROJECT NUMBER]@gcp-sa-cloud-sql.iam.gserviceaccount.com` and the output from running this command looks similar to the following screenshot:
 
@@ -83,9 +90,11 @@ gcloud projects add-iam-policy-binding vpc-host \
   --member=serviceAccount:service-$projectNumber@gcp-sa-cloud-sql.iam.gserviceaccount.com \
   --role=roles/managedidentities.sqlintegrator
 ```
-<figcaption>`gcloud` command assigning the required roles to the service account for the project running the Managed AD domain</figcaption>
+
+<figcaption> `gcloud` command assigning the required roles to the service account for the project running the Managed AD domain</figcaption>
 
 The output will look similar to this:
+
 ![Output of `gcloud` command adding the role assignment to the host project](images/image-15.png)
 
 ### Private Service Access
@@ -120,13 +129,14 @@ gcloud services vpc-peerings connect \
   --network=csql-mad \
   --project=vpc-host
 ```
-<figcaption>`gcloud` command to setup Private Service Access</figcaption>
+
+<figcaption> `gcloud` command to setup Private Service Access</figcaption>
 
 ![Output of the `gcloud` command to setup Private Service Access](images/image-20.png)
 
 ### Deploy Cloud SQL instance
 
-With this this out of the way we can trigger the SQL Server deployment. The following command will deploy an instance of Cloud SQL running SQL Server 2019 Standard (`--database-version=SQLSERVER_2019_STANDARD`) with 4 vCPU (`--cpu=4`), 16 GiB (`--memory=16`) of memory.  It is integrated with the `csql-mad.lab` domain running in `vpc-host` (`--active-directory-domain=projects/vpc-host/locations/global/domains/csql-mad.lab`) and uses the Shared VPC `csql-mad` (`--network=projects/vpc-host/global/networks/csql-mad`). The instance will not have assigned a public IP address (`--no-assign-ip`) and will not have integrated backups (`--no-backup`).
+With this this out of the way we can trigger the SQL Server deployment. The following command will deploy an instance of Cloud SQL running SQL Server 2019 Standard ( `--database-version=SQLSERVER_2019_STANDARD` ) with 4 vCPU ( `--cpu=4` ), 16 GiB ( `--memory=16` ) of memory.  It is integrated with the `csql-mad.lab` domain running in `vpc-host` ( `--active-directory-domain=projects/vpc-host/locations/global/domains/csql-mad.lab` ) and uses the Shared VPC `csql-mad` ( `--network=projects/vpc-host/global/networks/csql-mad` ). The instance will not have assigned a public IP address ( `--no-assign-ip` ) and will not have integrated backups ( `--no-backup` ).
 
 ```bash
 gcloud beta sql instances create csqlmad01 \
@@ -141,7 +151,8 @@ gcloud beta sql instances create csqlmad01 \
   --network=projects/vpc-host/global/networks/csql-mad \
   --zone=europe-west4-a
 ```
-<figcaption>`gcloud` command deploying Cloud SQL</figcaption>
+
+<figcaption> `gcloud` command deploying Cloud SQL</figcaption>
 
 Deployment of the Cloud SQL instance will take a couple of moments.
 
@@ -153,7 +164,7 @@ Once the deployment of the Cloud SQL instance has completed it is now integrated
 
 In this last step you'll create a new login for SQL Server that uses a group in Active Directory allowing all members of that group to connect to this SQL Server instance.
 
-Login to your bastion host through RDP, open SQL Server Management Studio (SSMS) and connect to your instance (in our case `private.csqlmad01.europe-west4.vpc-service-1.cloudsql.csql-mad.lab`) using the default account (`sqlserver`) with the password that you have used when deploying your Cloud SQL instance:
+Login to your bastion host through RDP, open SQL Server Management Studio (SSMS) and connect to your instance (in our case `private.csqlmad01.europe-west4.vpc-service-1.cloudsql.csql-mad.lab` ) using the default account ( `sqlserver` ) with the password that you have used when deploying your Cloud SQL instance:
 
 ![SQL Server Management Studio connection dialog](images/image-18.png)
 

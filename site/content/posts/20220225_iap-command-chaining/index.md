@@ -13,6 +13,7 @@ cover:
 IAP adds *common *authentication and authorization infrastructure based on Cloud IAM to connections without the need for a change to program or protocol logic. By removing the need to expose connection endpoints to the public internet, IAP works from all networks without the need for a VPN connection. 
 
 ## Using IAP (for RDP)
+
 IAP works by establishing a tunnel between the local machine and a managed endpoint in Google Cloud (no setup required, works out of the box). The tunnel is opened through [gcloud](https://cloud.google.com/sdk/gcloud/reference/compute/start-iap-tunnel):
 
 ```bash
@@ -32,12 +33,15 @@ xfreerdp /v:localhost:15146 /d:sandbox.lab /u:johndoe /cert:ignore /log-level:WA
 Connecting to RDP through IAP
 
 Which establishes the RDP connection through IAP:
+
 ![xfreerdp session through IAP](images/iap_rdp.png)
 
 ## So what is the challenge?
+
 Whenever a service is exposed through IAP, the tunnel needs to be established first in order to be able to access the service. In a normal workflow this may only be a nuisance but for automation this is a non-starter.
 
 ## Enter `iap-chain.sh`
+
 `iap-chain.sh` ([available on GitHub](https://github.com/peterschen/blog/tree/master/gcp/scripts/iap-chain)) is a Bash script that chains IAP and an arbitrary local command together. The command is executed when the tunnel has been established. As the port is dynamically allocated a special variable can be used in the command syntax which is replaced before execution.
 
 This enables all kinds of scenarios. While my primary work environment is Linux I work a lot with Windows systems and need to connect to RDP fairly often. Following the 2-step process to get to a VM is cumbersome at times so I have a helper function around `iap-chain.sh` and [freerdp](https://freerdp.com):
@@ -108,12 +112,15 @@ rdp bastion -- /d:sandbox.lab /u:johndoe /cert:ignore
 ```
 
 Et Voilà, IAP tunnel established and chained command executed:
+
 ![RDP connection using `iap-chain.sh` and freerdp](images/iap_rdp-chain.png)
 
 ## Alternative considerations
+
 `iap-chain.sh` aims to generically applicable to many use cases. In this section I present some use-cases for which purpose built tools are available.
 
 ### SSH through IAP
+
 For SSH'ing into a VM running on Google Cloud there is a neat shortcut: 
 
 ```bash
@@ -123,5 +130,7 @@ gcloud compute ssh my-linux-box --tunnel-through-iap
 Not only will this establish the IAP tunnel and subsequently start SSH but also automatically manages the key according to your GCE project settings.
 
 ### RDP/SSH through IAP on Windows
+
 For Windows [Johannes Passing](https://jpassing.com/) has written [IAP Desktop](https://github.com/GoogleCloudPlatform/iap-desktop). Among others it provides RDP and SSH through IAP, connection management, project browsing for VMs. In short the swiss army knife for remote management on Windows.
+
 ![IAP Desktop in action](https://github.com/GoogleCloudPlatform/iap-desktop/raw/master/doc/images/iapdesktop-animated-800.gif)

@@ -18,11 +18,11 @@ Every route leads to Rome. Or so they say. There are a gazillion ways to impleme
 
 The Linux agent is based on Fluentd and can be extended through plugins. Fluentd already ships with a bunch of plugins and Microsoft adds some more that are specific to Log Analytics. One of the plugins that ships with Fluentd is the [exec Input Plugin](https://docs.fluentd.org/v0.12/articles/in_exec). That plugin will execute a command on a set interval and puts the output into the Fluentd pipeline for further processing.
 
-That is how the data will flow into Fluentd but how do we get the process list? I've written a fairly simple Python script that executes a `ps ax` and puts the results into a JSON output so that we can actually use it. This needs to be placed on each server where the monitoring shall take place. In my environment this is `/opt/scripts/getprocess.py`:
+That is how the data will flow into Fluentd but how do we get the process list? I've written a fairly simple Python script that executes a `ps ax` and puts the results into a JSON output so that we can actually use it. This needs to be placed on each server where the monitoring shall take place. In my environment this is `/opt/scripts/getprocess.py` :
 
-Now to the configuration of the agent. We need to instrument Fluentd to execute the script on a regular basis and upload the data to Log Analytics. The following configuration will do just that and pushes it out to Log Analytics through the [HTTP Data Collector](https://docs.microsoft.com/en-us/azure/log-analytics/log-analytics-data-collector-api). This file goes in `/etc/opt/microsoft/omsagent/conf/omsagent.d/process.conf`. If you changed the path of `getprocess.py`, you need to make sure to update the configuration accordingly:
+Now to the configuration of the agent. We need to instrument Fluentd to execute the script on a regular basis and upload the data to Log Analytics. The following configuration will do just that and pushes it out to Log Analytics through the [HTTP Data Collector](https://docs.microsoft.com/en-us/azure/log-analytics/log-analytics-data-collector-api). This file goes in `/etc/opt/microsoft/omsagent/conf/omsagent.d/process.conf` . If you changed the path of `getprocess.py` , you need to make sure to update the configuration accordingly:
 
-Finalize the configuration by restarting the agent. This can be done through issuing `/opt/microsoft/omsagent/bin/service_control restart`. You can check whether the configuration is in effect by checking the log file for the agent which is located at `/var/opt/microsoft/omsagent/log/omsagent.log`. This should show the configuration we just made as part of the overall configuration.
+Finalize the configuration by restarting the agent. This can be done through issuing `/opt/microsoft/omsagent/bin/service_control restart` . You can check whether the configuration is in effect by checking the log file for the agent which is located at `/var/opt/microsoft/omsagent/log/omsagent.log` . This should show the configuration we just made as part of the overall configuration.
 
 ## 2. Exploring the Data & Building an Alert Query
 
@@ -33,17 +33,17 @@ Now that data is flowing from the agent to Log Analytics a new custom log table 
 We can use the Advanced Analytics portal to explore the data and build interesting queries around the data we are gathering. As we are looking to do process monitoring we want to check if a certain process is actually running. One way to do this is to count the number of instances per host over time.
 
 Let's start from the beginning and get all processes:
-`process_CL`
+ `process_CL`
 
 ![process_cl](images/process_cl.png)
 
 Lets group by computer and put it in time buckets:
-`process_CL | summarize count() by bin(TimeGenerated, 1m), Computer`
+ `process_CL | summarize count() by bin(TimeGenerated, 1m), Computer`
 
 ![process_cl-summarize1](images/process_cl-summarize1.png)
 
 Almost there. We should also include the process name:
-`process_CL | summarize count() by bin(TimeGenerated, 1m), Computer, command_s`
+ `process_CL | summarize count() by bin(TimeGenerated, 1m), Computer, command_s`
 
 ![process_cl-summarize2](images/process_cl-summarize2.png)
 
@@ -64,7 +64,7 @@ When doing alerts on Log Analytics queries two different methods can be applied.
 The second option is to create a metric alert. A metric alert needs an aggregated value which is time bound but it can differ between all the instances that are part of the result. That means we can use a single query to do alerting for all computers at the same time and the alert will only fire for those instances that are violating the set threshold. Pretty neat.
 
 In order to to metric alerts we need to change the query a little bit as the alert engine needs a predefined column name to find the aggregation:
-`process_CL | where command_s contains "myapp" | summarize AggregatedValue=count() by bin(TimeGenerated, 1m), Computer, command_s`
+ `process_CL | where command_s contains "myapp" | summarize AggregatedValue=count() by bin(TimeGenerated, 1m), Computer, command_s`
 
 ### 3.1 Select the Target
 
