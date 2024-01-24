@@ -37,3 +37,4 @@ gcp/samples/gce-mapper/gce_machineTypes.json
 /site/assets/jsconfig.json
 /site/hugo_stats.json
 /site/.hugo_build.lock
+/site/converted/
