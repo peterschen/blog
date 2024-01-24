@@ -9,6 +9,8 @@ buildDrafts: false
 buildFuture: false
 buildExpired: false
 
+googleAnalytics: UA-134546123-1
+
 minify:
   disableXML: true
   minifyOutput: true
@@ -44,12 +46,8 @@ params:
   ShareButtons: ["linkedin", "x", "reddit"]
 
   homeInfoParams:
-      Title: "Hi there \U0001F44B"
-      Content: Welcome to my blog
-
-  # analytics:
-  #   google:
-  #     SiteVerificationTag: "XYZabc"
+      Title: "Order to Management"
+      Content: Ramblings about all things Cloud. Views expressed are my own.
 
   cover:
     hidden: true # hide everywhere but not in structured data
@@ -76,10 +74,6 @@ menu:
       name: Tags
       url: /tags/
       weight: 1
-    - identifier: about
-      name: About
-      url: /about/
-      weight: 10
     - identifier: imprint
       name: Imprint
       url: /imprint/
@@ -92,7 +86,7 @@ menu:
       name: Search
       url: /search/
       weight: 40
-      
+
 # Read: https://github.com/adityatelange/hugo-PaperMod/wiki/FAQs#using-hugos-syntax-highlighter-chroma
 pygmentsUseClasses: true
 markup:
