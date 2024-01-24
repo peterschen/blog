@@ -1,10 +1,9 @@
 ---
-author: ["Christoph Petersen"]
-title: "Cross Subscription Workspace Selection for Azure Security Center"
-date: "2018-04-26"
-description: "Cross Subscription Workspace Selection for Azure Security Center"
-tags: ["Azure", "Security Center", "Log Analytics"]
-ShowToc: true
+title: Cross Subscription Workspace Selection for Azure Security Center
+author: Christoph Petersen
+url: /cross-subscription-workspace-selection-for-azure-security-center
+date: 2018-04-26T07:53:47.000Z
+tags: [azure, security-center, log-analytics]
 ---
 
 Around Ignite 2017 Azure Security Center was migrated to use Log Analytics as its foundation both for collecting data through the same agent and storing most of its data.
@@ -13,8 +12,8 @@ Since then the option was added to select into which Log Analytics workspace the
 
 No Microsoft added the option to select workspaces that are located in different subscriptions:
 
-![Select cross-subscription workspace](/20180426_01/cross-subscription-workspace-access.png)
+![cross-subscription-workspace-access](images/cross-subscription-workspace-access.png)
 
 If you want to store your data in a workspace that is not in the same subscription, make sure you have the global subscription filter set correctly (otherwise resources from other subscriptions simply won't show up):
 
-![Global subscription filter](/20180426_01/asc-select-subscriptions.png)
+![asc-select-subscriptions](images/asc-select-subscriptions.png)
