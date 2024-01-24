@@ -88,6 +88,11 @@ menu:
       name: Privacy Policy
       url: /privacy/
       weight: 30
+    - identifier: search
+      name: Search
+      url: /search/
+      weight: 40
+      
 # Read: https://github.com/adityatelange/hugo-PaperMod/wiki/FAQs#using-hugos-syntax-highlighter-chroma
 pygmentsUseClasses: true
 markup:
@@ -98,3 +103,9 @@ markup:
     # guessSyntax: true
     # lineNos: true
     # style: monokai
+
+outputs:
+  home:
+    - HTML
+    - RSS
+    - JSON
