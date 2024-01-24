@@ -134,7 +134,7 @@ resource "google_compute_instance" "code" {
   name = "code"
   machine_type = local.machine_type
 
-  tags = ["ssh", "http-alt-iap", "dotnet-http-iap", "dotnet-https-iap"]
+  tags = ["ssh", "http-alt-iap", "dotnet-http-iap", "dotnet-https-iap", "hugo-iap"]
 
   boot_disk {
     initialize_params {
