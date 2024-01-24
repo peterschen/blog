@@ -41,6 +41,8 @@ params:
   showtoc: true
   tocopen: true
 
+  ShareButtons: ["linkedin", "x", "reddit"]
+
   homeInfoParams:
       Title: "Hi there \U0001F44B"
       Content: Welcome to my blog
