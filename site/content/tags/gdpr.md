@@ -1,0 +1,4 @@
+---
+title: GDPR
+slug: gdpr
+---

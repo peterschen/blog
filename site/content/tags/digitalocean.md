@@ -1,0 +1,4 @@
+---
+title: DigitalOcean
+slug: digitalocean
+---

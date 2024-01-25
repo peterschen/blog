@@ -1,0 +1,4 @@
+---
+title: GCE
+slug: gce
+---

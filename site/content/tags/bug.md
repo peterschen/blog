@@ -1,0 +1,4 @@
+---
+title: Bug
+slug: bug
+---

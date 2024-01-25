@@ -1,0 +1,4 @@
+---
+title: Ubuntu
+slug: ubuntu
+---

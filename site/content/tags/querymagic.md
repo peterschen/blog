@@ -1,0 +1,4 @@
+---
+title: QueryMagic
+slug: querymagic
+---
