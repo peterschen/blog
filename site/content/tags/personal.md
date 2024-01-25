@@ -1,4 +1,5 @@
 ---
-title: Personal
+title: personal
 slug: personal
+hiddenInHomelist: true
 ---
