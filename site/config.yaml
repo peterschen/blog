@@ -50,9 +50,10 @@ params:
       Content: Ramblings about all things Cloud. Views expressed are my own.
 
   cover:
-    hidden: true # hide everywhere but not in structured data
-    hiddenInList: true # hide on list pages and home
-    hiddenInSingle: true # hide on single page
+    hidden: true
+    hiddenInList: true
+    hiddenInSingle: false
+    responsiveImages: true
 
   editPost:
     URL: "https://github.com/peterschen/blog/tree/master/site/content"
