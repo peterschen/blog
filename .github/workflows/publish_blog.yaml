@@ -26,6 +26,7 @@ defaults:
 
 jobs:
   build:
+    name: Build site
     runs-on: ubuntu-latest
     env:
       HUGO_VERSION: 0.121.2
@@ -64,6 +65,7 @@ jobs:
 
   # Deployment job
   deploy:
+    name: Deploy site
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
