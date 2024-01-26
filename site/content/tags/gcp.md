@@ -1,5 +1,4 @@
 ---
-title: GCP
+title: Google Cloud
 slug: gcp
-hiddenInHomelist: true
 ---

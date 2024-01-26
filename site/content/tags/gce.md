@@ -1,5 +1,4 @@
 ---
-title: GCE
+title: Google Compute Engine
 slug: gce
-hiddenInHomelist: true
 ---
