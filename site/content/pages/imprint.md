@@ -1,13 +1,13 @@
 ---
 title: "Imprint"
-ShowToc: false
+url: /imprint/
 ---
 
 The opinions expressed herein are my own personal opinions and do not represent my employer’s view in any way.
 
 ## Angaben gemäß § 5 TMG: ##
-Christoph Petersen
-Apostelweg 11
+Christoph Petersen\
+Apostelweg 11\
 22143 Hamburg
 
 ## Kontakt ##
