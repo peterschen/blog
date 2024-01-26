@@ -1,9 +1,11 @@
 ---
 author: christoph
 title: Deny permissions on resources using tags and IAM deny rules
+url: /deny-resources-using-tags
 date: 2024-01-25T14:46:09.000Z
 tags: [gcp, iam, tags]
 cover:
+draft: true
 ---
 
 * Prevent disks from using unvalidated sources
