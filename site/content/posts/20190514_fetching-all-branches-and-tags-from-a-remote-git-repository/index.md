@@ -1,11 +1,10 @@
 ---
 title: Fetching all branches and tags from a remote Git repository
-author: Christoph Petersen
+author: christoph
 url: /fetching-all-branches-and-tags-from-a-remote-git-repository
 date: 2019-05-14T09:10:02.000Z
 tags: [azure, devops, git]
-cover: 
-  image: images/fetching-all-branches-and-tags-from-a-remote-git-repository_header.png
+cover: images/fetching-all-branches-and-tags-from-a-remote-git-repository_header.png
 ---
 
 In my first days at [HorseAnalytics](https://www.horseanalytics.com), one of the first tasks was to review the codebase and streamline the build and release process. That meant to move all repositories over to Azure DevOps so that we can use the pipelines to build and release new versions of our products.

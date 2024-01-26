@@ -1,6 +1,6 @@
 ---
 title: Cross Subscription Workspace Selection for Azure Security Center
-author: Christoph Petersen
+author: christoph
 url: /cross-subscription-workspace-selection-for-azure-security-center
 date: 2018-04-26T07:53:47.000Z
 tags: [azure, security-center, log-analytics]

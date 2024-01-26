@@ -1,11 +1,10 @@
 ---
 title: Azure Monitor Container Health Public Preview
-author: Christoph Petersen
+author: christoph
 url: /azure-monitor-container-health-public-preview
 date: 2018-05-08T08:50:29.000Z
 tags: [azure, container, kubernetes, aks, log-analytics, monitor]
-cover: 
-  image: images/photo-1493946740644-2d8a1f1a6aff
+cover: images/photo-1493946740644-2d8a1f1a6aff
 ---
 
 Photo by [frank mckenna](https://unsplash.com/@frankiefoto?utm_source=ghost&amp;utm_medium=referral&amp;utm_campaign=api-credit) / [Unsplash](https://unsplash.com/?utm_source=ghost&amp;utm_medium=referral&amp;utm_campaign=api-credit)

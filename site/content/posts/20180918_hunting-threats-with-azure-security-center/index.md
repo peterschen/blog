@@ -1,11 +1,10 @@
 ---
 title: Hunting Threats with Azure Security Center
-author: Christoph Petersen
+author: christoph
 url: /hunting-threats-with-azure-security-center
 date: 2018-09-18T19:39:17.000Z
 tags: [azure, security-center, powershell, dsc, arm, security]
-cover: 
-  image: images/asc.png
+cover: images/asc.png
 ---
 
 In February I had the chance to attend a session by [Yuri Diogenes](https://twitter.com/yuridiogenes), Program Manager at Microsoft, on how Azure Security Center works and how to demo it in a real life scenario.

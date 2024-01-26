@@ -1,11 +1,10 @@
 ---
 title: Setting App Service connection strings in ARM
-author: Christoph Petersen
+author: christoph
 url: /setting-app-service-connection-strings-in-arm
 date: 2019-05-29T18:53:31.000Z
 tags: [azure, arm, app-service, templates]
-cover: 
-  image: images/Screen-Shot-2019-05-29-at-20.52.10.png
+cover: images/Screen-Shot-2019-05-29-at-20.52.10.png
 ---
 
 For automatic deployment of test environments we are spinning up App Service instances and want to automatically set connection strings for the database and other services in the same template.

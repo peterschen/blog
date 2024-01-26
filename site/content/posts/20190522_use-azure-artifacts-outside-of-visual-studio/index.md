@@ -1,11 +1,10 @@
 ---
 title: Use Azure Artifacts outside of Visual Studio
-author: Christoph Petersen
+author: christoph
 url: /use-azure-artifacts-outside-of-visual-studio
 date: 2019-05-22T13:56:55.000Z
 tags: [azure-devops, azure-artifacts, vs-code, visual-studio-code]
-cover: 
-  image: images/Screen-Shot-2019-05-22-at-15.52.10-3.png
+cover: images/Screen-Shot-2019-05-22-at-15.52.10-3.png
 ---
 
 One of the major tasks since starting at HorseAnalytics has been to streamline our development efforts. Centralize the codebase on Azure Repos, refactor the code so that it can not only be built on Windows but also on other platforms like Mac OS.

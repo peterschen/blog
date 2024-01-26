@@ -1,11 +1,10 @@
 ---
 title: Download images with RestSharp
-author: Christoph Petersen
+author: christoph
 url: /download-images-with-restsharp
 date: 2019-05-28T12:17:02.000Z
 tags: [csharp, restsharp]
-cover: 
-  image: images/Screen-Shot-2019-05-28-at-14.00.51.png
+cover: images/Screen-Shot-2019-05-28-at-14.00.51.png
 ---
 
 We are using RestSharp for functional testing of our backend services. As part of this process we need to upload images and compare the uploaded bytes against the expected result.

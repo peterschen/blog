@@ -1,11 +1,10 @@
 ---
 title: Create functions in Application Insights through REST API
-author: Christoph Petersen
+author: christoph
 url: /create-functions-in-application-insights-through-rest-api
 date: 2018-12-11T12:03:53.000Z
 tags: [azure, application-insights, querymagic]
-cover: 
-  image: images/application-insights.png
+cover: images/application-insights.png
 ---
 
 I've learned about a "hidden feature" recently that enables some cool scenarios. Log Analytics or Azure Data Explorer aficionados will probably know all about functions already but for Application Insights this has not been documented yet and is not visible through the Azure portal.

@@ -1,11 +1,10 @@
 ---
 title: Update DigitalOcean DNS entry on DHCP bind
-author: Christoph Petersen
+author: christoph
 url: /update-digitalocean-dns-entry-on-dhcp-bind
 date: 2019-07-26T09:02:19.000Z
 tags: [networking, dns, digitalocean, script]
-cover: 
-  image: images/update-digitalocean-dns-entry-on-dhcp-bind.png
+cover: images/update-digitalocean-dns-entry-on-dhcp-bind.png
 ---
 
 Many use services like DynDNS to make systems behind a dail-up or dynamic line accessible from the outside. But if your primary DNS is hosted somewhere else (e.g. Azure DNS or some other provider) and this provider offers APIs to interact with the domain records, it is pretty easy to write a script that will take of updating the IP when it changes.

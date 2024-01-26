@@ -1,6 +1,6 @@
 ---
 title: "Azure Policy: Mapping Audit Log Events to Policy Objects"
-author: Christoph Petersen
+author: christoph
 url: /azure-policy-mapping-audit-log-events
 date: 2018-05-02T08:50:14.000Z
 tags: [azure, policy, log-analytics]

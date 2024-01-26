@@ -1,11 +1,10 @@
 ---
 title: Purging Records from Log Analytics / Application Insights for GDPR compliance
-author: Christoph Petersen
+author: christoph
 url: /purging-records-from-log-analytics-application-insights-for-gdpr-compliance
 date: 2018-05-28T11:20:26.000Z
 tags: [log-analytics, application-insights, gdpr]
-cover: 
-  image: images/photo-1504355080015-bba52674577b
+cover: images/photo-1504355080015-bba52674577b
 ---
 
 Photo by [Samuel Zeller](https://unsplash.com/@samuelzeller?utm_source=ghost&amp;utm_medium=referral&amp;utm_campaign=api-credit) / [Unsplash](https://unsplash.com/?utm_source=ghost&amp;utm_medium=referral&amp;utm_campaign=api-credit)

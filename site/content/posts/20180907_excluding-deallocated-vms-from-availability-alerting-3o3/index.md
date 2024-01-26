@@ -1,11 +1,10 @@
 ---
 title: "Excluding deallocated VMs from availability alerting (3/3: Alert rule excluding deallocated VMs)"
-author: Christoph Petersen
+author: christoph
 url: /excluding-deallocated-vms-from-availability-alerting-3o3
 date: 2018-09-07T12:51:56.000Z
 tags: [azure, logic-app, alerts, vm, monitor, log-analytics]
-cover: 
-  image: images/VM-deallocation-architecture.png
+cover: images/VM-deallocation-architecture.png
 ---
 
 This problem is probably as old as there are monitoring tools on the market. **"How can I exclude legitimately deallocated VMs from alerting"** is a question that I've heard many times.

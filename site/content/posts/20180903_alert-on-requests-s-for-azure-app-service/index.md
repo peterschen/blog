@@ -1,11 +1,10 @@
 ---
 title: Alert on requests/s for Azure App Service
-author: Christoph Petersen
+author: christoph
 url: /alert-on-requests-s-for-azure-app-service
 date: 2018-09-03T09:26:23.000Z
 tags: [azure, monitor, alerts, application-insights]
-cover: 
-  image: images/2018-09-03-11_25_34-Microsoft-Edge.png
+cover: images/2018-09-03-11_25_34-Microsoft-Edge.png
 ---
 
 A customer of mine had the following rule configured:

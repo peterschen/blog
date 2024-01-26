@@ -1,11 +1,10 @@
 ---
 title: Data and cost estimation for Log Analytics
-author: Christoph Petersen
+author: christoph
 url: /data-and-cost-estimation-for-log-analytics
 date: 2019-02-12T13:33:54.000Z
 tags: [log-analytics, querymagic, azure-monitor]
-cover: 
-  image: images/2019-02-12-14_33_17-Standard-properties-in-Azure-Monitor-log-records-_-Microsoft-Docs.png
+cover: images/2019-02-12-14_33_17-Standard-properties-in-Azure-Monitor-log-records-_-Microsoft-Docs.png
 ---
 
 [A while ago I wrote an article on how to estimate data consumption for Log Analytics.](/data-volume-estimation-for-log-analytics/) Since then there were changes to the way that Log Analytics tracks the volume and the cost associated with data flowing into the workspace. 

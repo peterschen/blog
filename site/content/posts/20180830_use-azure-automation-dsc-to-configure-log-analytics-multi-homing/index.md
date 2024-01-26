@@ -1,11 +1,10 @@
 ---
 title: Use Azure Automation DSC to configure Log Analytics multi-homing
-author: Christoph Petersen
+author: christoph
 url: /use-azure-automation-dsc-to-configure-log-analytics-multi-homing
 date: 2018-08-30T10:57:59.000Z
 tags: [azure, automation, dsc, log-analytics]
-cover: 
-  image: images/2018-08-30-11_59_52-Clipboard.png
+cover: images/2018-08-30-11_59_52-Clipboard.png
 ---
 
 The Microsoft Monitoring Agent is able to send data to more than one workspace at the same time. Unfortunately only a single workspace at a time can be configured through the Azure Portal.

@@ -1,11 +1,10 @@
 ---
 title: "Moving on: Leaving Microsoft"
-author: Christoph Petersen
+author: christoph
 url: /moving-on-leaving-microsoft
 date: 2019-04-29T07:22:14.000Z
 tags: [personal, azure, microsoft]
-cover: 
-  image: images/fullsizeoutput_15.jpeg
+cover: images/fullsizeoutput_15.jpeg
 ---
 
 After spending close to eight years in different roles at Microsoft, my time with Microsoft has come to an end. I accepted a new role, starting on May 1st, as Chief Technology Officer with [HorseAnalytics](https://www.horseanalytics.com) an animal tech startup focused on providing a telemetry data platform for horses.

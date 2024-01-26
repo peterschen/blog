@@ -1,11 +1,10 @@
 ---
 title: Removing (unclaiming) disks from Storage Spaces Direct (S2D)
-author: Christoph Petersen
+author: christoph
 url: /removing-disks-from-storage-spaces-direct
 date: 2023-07-19T10:14:46.000Z
 tags: [storage, windows-server, storage-spaces-direct, s2d]
-cover: 
-  image: images/Screenshot-2023-07-19-12.13.50.png
+cover: images/Screenshot-2023-07-19-12.13.50.png
 ---
 
 When running Storage Spaces Direct in Cloud environments where disk resources can be provisioned at a moments notice with any capacity, it can be the norm that disks will be (hot) added from a cluster to account for growing capacity or performance needs.

@@ -1,11 +1,10 @@
 ---
 title: Publish to social with Logic Apps
-author: Christoph Petersen
+author: christoph
 url: /publish-to-social-with-logic-apps
 date: 2018-05-31T14:15:50.000Z
 tags: [azure, logic-app, linkedin, blog]
-cover: 
-  image: images/photo-1519782155514-88ba7f754268.png
+cover: images/photo-1519782155514-88ba7f754268.png
 ---
 
 Photo by [rawpixel](https://unsplash.com/@rawpixel?utm_source=ghost&amp;utm_medium=referral&amp;utm_campaign=api-credit) / [Unsplash](https://unsplash.com/?utm_source=ghost&amp;utm_medium=referral&amp;utm_campaign=api-credit)

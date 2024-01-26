@@ -1,11 +1,10 @@
 ---
 title: "Office 365 Security & Compliance Center multi-tenancy (1/2: Subscribe to data)"
-author: Christoph Petersen
+author: christoph
 url: /office-365-security-compliance-multi-tenancy-1o2
 date: 2019-02-01T15:34:09.000Z
 tags: [office-365, api, logic-app, service-principal, azure-active-directory, security-compliance-center, azure-function-apps, storage-queue]
-cover: 
-  image: images/2019-02-01-12_54_27-Home---Security---Compliance.png
+cover: images/2019-02-01-12_54_27-Home---Security---Compliance.png
 ---
 
 The data available through the Office 365 Security & Compliance Center contains data for all entities stored in that particular Office 365 / Azure Active Directory tenant.

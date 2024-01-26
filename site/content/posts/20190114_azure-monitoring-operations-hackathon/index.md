@@ -1,11 +1,10 @@
 ---
 title: Azure Monitoring & Operations hackathon
-author: Christoph Petersen
+author: christoph
 url: /azure-monitoring-operations-hackathon
 date: 2019-01-14T08:04:38.000Z
 tags: [azure, log-analytics, querymagic, sla, operations-management, alerts]
-cover: 
-  image: images/gh.png
+cover: images/gh.png
 ---
 
 A request that I get many times is to provide guidance and best-practices on how to implement monitoring and operations management with and/or for Azure. Most organizations have subtle differences which makes it hard to put out a generic concept of how to enable this. There are high-level ideas but in my discussions with customers and partners I'm hearing that this is not detailed enough.

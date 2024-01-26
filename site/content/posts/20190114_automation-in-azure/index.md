@@ -1,11 +1,10 @@
 ---
 title: Automation in Azure
-author: Christoph Petersen
+author: christoph
 url: /automation-in-azure
 date: 2019-01-14T10:47:41.000Z
 tags: [azure, automation, powershell, dsc, ansible, functions, logic-app, arm]
-cover: 
-  image: images/au.png
+cover: images/au.png
 ---
 
 Deploying resources and workloads at scale requires a healthy amount of automation. Automation helps to deliver consistent and repeatable results. I've tried to categorize some of the technology and provide some pointers to areas of application and pros and cons.

@@ -1,11 +1,10 @@
 ---
 title: Visio stencils for Azure
-author: Christoph Petersen
+author: christoph
 url: /visio-stencils-for-azure
 date: 2019-07-26T12:28:39.000Z
 tags: [azure, visio, architecture]
-cover: 
-  image: images/visio-stencils-for-azure.png
+cover: images/visio-stencils-for-azure.png
 ---
 
 Yes. Visio is still a thing. To draw expressive diagrams with the correct visual representation of the underlying services you need to have access to quality stencils.

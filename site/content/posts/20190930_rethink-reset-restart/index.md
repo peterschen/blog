@@ -1,11 +1,10 @@
 ---
 title: Rethink. Reset. Restart.
-author: Christoph Petersen
+author: christoph
 url: /rethink-reset-restart
 date: 2019-09-30T06:56:51.000Z
 tags: [personal, google, gcp]
-cover: 
-  image: images/66DFB4EA-5531-4FE4-9C92-B8E1792805F8.jpeg
+cover: images/66DFB4EA-5531-4FE4-9C92-B8E1792805F8.jpeg
 ---
 
 ## Rethink.

@@ -1,11 +1,10 @@
 ---
 title: Format of logs archived to storage through Azure Monitor to change
-author: Christoph Petersen
+author: christoph
 url: /format-of-diagnostic-logs-archived-to-storage-through-azure-monitor-to-change
 date: 2018-08-22T06:20:21.000Z
 tags: [azure, monitor, breaking-change, storage]
-cover: 
-  image: images/azure-monitor.png
+cover: images/azure-monitor.png
 ---
 
 If you are archiving [diagnostic logs](https://docs.microsoft.com/en-us/azure/monitoring-and-diagnostics/monitoring-archive-diagnostic-logs) or [activity logs](https://docs.microsoft.com/en-us/azure/monitoring-and-diagnostics/monitoring-archive-activity-log) to a storage account through Azure Monitor be aware that on Nov 1, 2018 there will be a breaking change in the format.

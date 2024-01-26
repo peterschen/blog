@@ -1,11 +1,10 @@
 ---
 title: Agent instrumentation for Log Analytics based services (such as Azure Security Center)
-author: Christoph Petersen
+author: christoph
 url: /agent-instrumentation-for-log-analytics-based-services-such-as-azure-security-center
 date: 2018-09-05T21:28:47.000Z
 tags: [azure, security-center, log-analytics, oss, windows]
-cover: 
-  image: images/Log-Analytics-configuration-flow.png
+cover: images/Log-Analytics-configuration-flow.png
 ---
 
 I've had a question today coming from a colleague that has no prior experience in System Center Operations Manager (SCOM). He wanted to know how data flows from connected agents (regardless of Windows or Linux) to Log Analytics and subsequently to Azure Security Center.

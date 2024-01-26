@@ -1,6 +1,6 @@
 ---
 title: Azure Security Center cost for stopped VMs
-author: Christoph Petersen
+author: christoph
 url: /azure-security-center-billing-for-stopped-vms
 date: 2018-05-02T12:38:21.000Z
 tags: [azure, security-center, pricing]

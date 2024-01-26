@@ -1,11 +1,10 @@
 ---
 title: Manually re-balance VMs on sole-tenant nodes with "Migrate within node group" maintenance policy set
-author: Christoph Petersen
+author: christoph
 url: /manually-re-balance-vms-on-sole-tenant-nodes-with-migrate-within-node-group-maintenance-policy-set
 date: 2021-09-06T15:00:50.000Z
 tags: [gce, windows-server, google, gcp, sole-tenancy]
-cover: 
-  image: images/stn_teaser.png
+cover: images/stn_teaser.png
 ---
 
 Sole-tenant nodes are an important service on Google Cloud Platform to run workloads that require workload isolation or need to comply to specific licensing requirements that demand dedicated infrastructure. A detailed description what a Sole-Tenant Node is and how it is different from general fleet VMs can be found in the [Compute Engine documentation](https://cloud.google.com/compute/docs/nodes/sole-tenant-nodes).

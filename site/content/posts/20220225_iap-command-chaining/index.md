@@ -1,11 +1,10 @@
 ---
 title: IAP command chaining
-author: Christoph Petersen
+author: christoph
 url: /iap-command-chaining
 date: 2022-02-25T16:04:37.000Z
 tags: [iap, windows-server, gcp, iap-desktop, rdp, gce, iam]
-cover: 
-  image: images/iap_rdp-chain-1.png
+cover: images/iap_rdp-chain-1.png
 ---
 
 [Identity-Aware Proxy (IAP)](https://cloud.google.com/iap) is a powerful tool in the tool chain of Google Cloud administrators and users. It can be used to control access to cloud-based and on-premises applications and VMs running on Google Cloud.

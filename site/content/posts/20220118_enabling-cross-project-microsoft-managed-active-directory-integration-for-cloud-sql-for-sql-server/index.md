@@ -1,11 +1,10 @@
 ---
 title: Enabling cross-project Microsoft Managed Active Directory integration for Cloud SQL for SQL Server
-author: Christoph Petersen
+author: christoph
 url: /enabling-cross-project-microsoft-managed-active-directory-integration-for-cloud-sql-for-sql-server
 date: 2022-01-18T14:02:20.000Z
 tags: [active-directory, windows, authentication, sql-server, cloud-sql, managed-microsoft-ad, gcp, google]
-cover: 
-  image: images/2022-01-18_12-39.png
+cover: images/2022-01-18_12-39.png
 ---
 
 One of the most requested features from customers that deploy [Cloud SQL for SQL Server (Cloud SQL)](https://cloud.google.com/sql/docs/sqlserver) has been [Active Directory integration](https://cloud.google.com/sql/docs/sqlserver/configure-ad) which was released last year. Since then Google Cloud has [added cross-project capability](https://cloud.google.com/sql/docs/sqlserver/configure-ad#enable-cross-project-auth) which allows you to connect your Cloud SQL instance into a project that is different than the one hosting [Managed Microsoft AD (Managed AD)](https://cloud.google.com/managed-microsoft-ad/docs/overview).

@@ -1,11 +1,10 @@
 ---
 title: Alerting at scale with Azure Monitor
-author: Christoph Petersen
+author: christoph
 url: /alerting-at-scale-with-azure-monitor
 date: 2019-01-29T08:50:32.000Z
 tags: [azure-monitor, alerts, scale, governance, enterprise]
-cover: 
-  image: images/teaser.png
+cover: images/teaser.png
 ---
 
 In most enterprise environments governance dictates how alerting for a certain resource needs to look like. Until just recently Azure Monitor only supported to configure alerts based on individual resources and this had to be replicated throughout the organization.

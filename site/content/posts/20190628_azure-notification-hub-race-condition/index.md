@@ -1,11 +1,10 @@
 ---
 title: Azure Notification Hub race condition
-author: Christoph Petersen
+author: christoph
 url: /azure-notification-hub-race-condition
 date: 2019-06-28T14:47:14.000Z
 tags: [azure, deployment, arm, notification-hubs, error]
-cover: 
-  image: images/fullsizeoutput_1a.jpeg
+cover: images/fullsizeoutput_1a.jpeg
 ---
 
 Both development and production environments are deployed in a fully automated fashion using ARM templates. As part of these deployments we also create Notification Hubs and related authorization rules.

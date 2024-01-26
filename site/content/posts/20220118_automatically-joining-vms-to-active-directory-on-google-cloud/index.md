@@ -1,11 +1,10 @@
 ---
 title: Automatically joining VMs to Active Directory on Google Cloud
-author: Christoph Petersen
+author: christoph
 url: /automatically-joining-vms-to-active-directory-on-google-cloud
 date: 2022-01-18T13:30:52.000Z
 tags: [active-directory, oauth, compute-engine, domain-join, secret-manager, cloud-run, google, gcp]
-cover: 
-  image: images/2022-01-12_19-03-1.png
+cover: images/2022-01-12_19-03-1.png
 ---
 
 Many enterprises that migrate their IT estate to cloud will face the question on how to continue to support operations across workloads that remain on-premises and workloads that are migrated to cloud.

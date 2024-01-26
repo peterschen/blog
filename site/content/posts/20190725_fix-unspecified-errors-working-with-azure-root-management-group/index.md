@@ -1,11 +1,10 @@
 ---
 title: Fix unspecified errors working with Azure root Management Group
-author: Christoph Petersen
+author: christoph
 url: /fix-unspecified-errors-working-with-azure-root-management-group
 date: 2019-07-25T20:44:21.000Z
 tags: [azure, management-groups, rbac, iam]
-cover: 
-  image: images/fix-unspecified-errors-working-with-azure-root-management-group.png
+cover: images/fix-unspecified-errors-working-with-azure-root-management-group.png
 ---
 
 If you have not been working with Management Groups to manage Azure at scale, I recommend to review [the documentation](https://docs.microsoft.com/en-us/azure/governance/management-groups/). You should also take a look at the [Microsoft Cloud Adoption Framework](https://docs.microsoft.com/en-us/azure/architecture/cloud-adoption/) (which was just recently updated).

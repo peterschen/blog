@@ -1,11 +1,10 @@
 ---
 title: Azure Monitor alert time period vs. ago()
-author: Christoph Petersen
+author: christoph
 url: /azure-monitor-alert-time-period-vs-ago
 date: 2018-09-04T07:32:45.000Z
 tags: [azure, alerts, monitor, log-analytics]
-cover: 
-  image: images/2018-09-04-09_31_39-.png
+cover: images/2018-09-04-09_31_39-.png
 ---
 
 Every once in a while you might need to create an alert which runs a Log Analytics or Application Insights query. When designing the alert you need to define some attributes: the query, the time period, the frequency and the threshold.

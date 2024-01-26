@@ -1,11 +1,10 @@
 ---
 title: Moving VMs between sole-tenant node groups
-author: Christoph Petersen
+author: christoph
 url: /moving-vms-between-node-groups
 date: 2021-03-04T10:58:39.000Z
 tags: [gcp, gce, compute-engine, sole-tenancy, windows]
-cover: 
-  image: images/image-2-1.png
+cover: images/image-2-1.png
 ---
 
 [Sole-tenant nodes](https://cloud.google.com/compute/docs/nodes/sole-tenant-nodes) are being used by customers for workload isolation and also for licensing compliance (e.g. [bringing Window Server licenses](https://cloud.google.com/compute/docs/instances/windows/ms-licensing)). Throughout the life cycle of a sole-tenant node there might be the necessity of moving virtual machines to another node group or even to another machine family (e.g. moving to N2 from N1). [Refer to the documentation, to learn more about Node affinity and anti-affinity options](https://cloud.google.com/compute/docs/nodes/sole-tenant-nodes#node_affinity_and_anti-affinity).

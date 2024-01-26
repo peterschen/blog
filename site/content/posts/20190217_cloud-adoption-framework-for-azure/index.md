@@ -1,11 +1,10 @@
 ---
 title: Cloud Adoption Framework for Azure
-author: Christoph Petersen
+author: christoph
 url: /cloud-adoption-framework-for-azure
 date: 2019-02-17T18:47:11.000Z
 tags: [azure, governance, cloud-adoption-framework, policy, cost-management, blueprints]
-cover: 
-  image: images/20190217_184021769_iOS.jpg
+cover: images/20190217_184021769_iOS.jpg
 ---
 
 Governance is one of the major adoption challenges when it comes to cloud computing. Organizations find themselves "not ready" to consume cloud services whether that perception is more a gut feeling or comes from experience.

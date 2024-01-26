@@ -1,11 +1,10 @@
 ---
 title: Data volume estimation for Log Analytics
-author: Christoph Petersen
+author: christoph
 url: /data-volume-estimation-for-log-analytics
 date: 2018-09-18T20:01:51.000Z
 tags: [azure, log-analytics, querymagic]
-cover: 
-  image: images/2018-09-18-22_01_14-Demo---Analytics.png
+cover: images/2018-09-18-22_01_14-Demo---Analytics.png
 ---
 
 **[UPDATE 02/12/2019] There has been changes to the way Log Analytics tracks usage data. [Check out the post on the updated mechanisms](/data-and-cost-estimation-for-log-analytics/).**

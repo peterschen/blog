@@ -1,6 +1,6 @@
 ---
 title: Using Update Management in Isolated Environments
-author: Christoph Petersen
+author: christoph
 url: /using-update-management-in-isolated-environments
 date: 2018-05-04T15:18:48.000Z
 tags: [azure, log-analytics, update-management, oss, windows]

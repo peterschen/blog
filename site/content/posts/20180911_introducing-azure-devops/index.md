@@ -1,11 +1,10 @@
 ---
 title: "Introducing: Azure DevOps"
-author: Christoph Petersen
+author: christoph
 url: /introducing-azure-devops
 date: 2018-09-11T06:08:24.000Z
 tags: [azure, devops, vsts, oss, development]
-cover: 
-  image: images/Azure_DevOps.png
+cover: images/Azure_DevOps.png
 ---
 
 Yesterday Microsoft announced the evolution of DevOps. Or rather the evolution of DevOps tooling from Microsoft known as Visual Studio Team Services: Azure DevOps. 

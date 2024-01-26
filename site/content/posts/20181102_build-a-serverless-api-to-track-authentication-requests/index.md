@@ -1,11 +1,10 @@
 ---
 title: Build a serverless API to track authentication requests
-author: Christoph Petersen
+author: christoph
 url: /build-a-serverless-api-to-track-authentication-requests
 date: 2018-11-02T11:23:00.000Z
 tags: [azure, log-analytics, api-management, logic-app, power-bi, azure-monitor, querymagic]
-cover: 
-  image: images/Serverless-API-to-track-authentication-requests-2.svg
+cover: images/Serverless-API-to-track-authentication-requests-2.svg
 ---
 
 This is why my job is so much fun. I have been working with the CISO of a large retailer that operates multiple independent web portals (some with shopping functions enabled).

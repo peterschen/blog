@@ -1,11 +1,10 @@
 ---
 title: Merge Azure Backup reporting data into one storage account using Logic Apps
-author: Christoph Petersen
+author: christoph
 url: /merge-azure-backup-reporting-data-into-one-storage-account-using-logic-apps
 date: 2018-08-21T14:41:22.000Z
 tags: [azure, backup, reporting, logic-app, storage, event-grid, monitor]
-cover: 
-  image: images/azure-backup-dashboard.png
+cover: images/azure-backup-dashboard.png
 ---
 
 When using Azure Backup to manage (geo-)distributed backups across a company you may find that the [Azure Backup Reports with Power BI](https://docs.microsoft.com/en-us/azure/backup/backup-azure-configure-reports) is limited to a single storage account. Unfortunately the reporting telemetry coming from Azure Backup needs to be written to a storage account that is in the same region as the Recovery Services Vault.

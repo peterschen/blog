@@ -1,11 +1,10 @@
 ---
 title: Use Change Tracking to monitor file deployment
-author: Christoph Petersen
+author: christoph
 url: /use-change-tracking-to-monitor-file-deployment
 date: 2018-08-17T15:39:32.000Z
 tags: [change-tracking, log-analytics, azure, dashboard-tag, monitor]
-cover: 
-  image: images/photo-1512317049220-d3c6fcaf6681
+cover: images/photo-1512317049220-d3c6fcaf6681
 ---
 
 Photo by [Ilya Pavlov](https://unsplash.com/@ilyapavlov?utm_source=ghost&utm_medium=referral&utm_campaign=api-credit) / [Unsplash](https://unsplash.com/?utm_source=ghost&utm_medium=referral&utm_campaign=api-credit)

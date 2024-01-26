@@ -1,11 +1,10 @@
 ---
 title: Azure File Sync network bandwidth calculator
-author: Christoph Petersen
+author: christoph
 url: /azure-file-sync-network-bandwidth-calculator
 date: 2018-12-11T12:03:37.000Z
 tags: [azure, networking, file-sync]
-cover: 
-  image: images/2018-12-11-12_52_14-Azure-File-Sync-Bandwidth-Calculation---Excel.png
+cover: images/2018-12-11-12_52_14-Azure-File-Sync-Bandwidth-Calculation---Excel.png
 ---
 
 When deploying Azure File Sync one question many customers routinely ask is how the network bandwidth required can be calculated. This depends of course on a variety of factors.

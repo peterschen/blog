@@ -1,11 +1,10 @@
 ---
 title: Remove data from BACPAC file
-author: Christoph Petersen
+author: christoph
 url: /remove-data-from-bacpac-file
 date: 2019-05-07T18:36:19.000Z
 tags: [azure, sql, databases]
-cover: 
-  image: images/Screen-Shot-2019-05-07-at-20.37.41.png
+cover: images/Screen-Shot-2019-05-07-at-20.37.41.png
 ---
 
 Today I needed to create a test database for one of the products I'm working on. In the backend it uses LINQ to SQL against a SQL Azure Database. Exporting the production database and cleaning it up with millions of records in it turned out to be not the most efficient way of creating an empty test database.

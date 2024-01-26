@@ -1,11 +1,10 @@
 ---
 title: Local time for programmatically created Azure Dashboards
-author: Christoph Petersen
+author: christoph
 url: /local-time-for-programmatically-created-azure-dashboards
 date: 2019-07-08T08:50:23.000Z
 tags: [azure, dashboard-tag, arm, templates]
-cover: 
-  image: images/local-time-for-programmatically-created-azure-dashboards.png
+cover: images/local-time-for-programmatically-created-azure-dashboards.png
 ---
 
 When you begin to operationalize your deployments and want to add monitoring one of the things you might do is to create shared dashboards as part of your deployment. A shared dashboard is basically the same as a non-shared dashboard except it is a full Azure resource, lives in a resource group and can be created through ARM.

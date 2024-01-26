@@ -1,6 +1,6 @@
 ---
 title: Process Monitoring for Linux with Log Analytics & Azure Monitor
-author: Christoph Petersen
+author: christoph
 url: /process-monitoring-with-log-analytics-azure-monitor
 date: 2018-04-27T12:02:16.000Z
 tags: [azure, log-analytics, oss, monitor]

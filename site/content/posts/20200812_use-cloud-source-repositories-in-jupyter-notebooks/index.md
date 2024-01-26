@@ -1,11 +1,10 @@
 ---
 title: Use Cloud Source Repositories in AI Platform Notebooks (aka Jupyter Notebooks)
-author: Christoph Petersen
+author: christoph
 url: /use-cloud-source-repositories-in-jupyter-notebooks
 date: 2020-08-12T10:38:19.000Z
 tags: [ai-platform-notebooks, jupyter, cloud-source-repositories, git, authentication]
-cover: 
-  image: images/jupyter.jpg
+cover: images/jupyter.jpg
 ---
 
 Who doesn't want to version their Jupyter Notebooks? Integrating Cloud Source Repositories and AI Platform Notebooks is not hard but I wasn't able to find documentation to set it up.

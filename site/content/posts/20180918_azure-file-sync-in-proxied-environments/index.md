@@ -1,11 +1,10 @@
 ---
 title: Azure File Sync in proxied environments
-author: Christoph Petersen
+author: christoph
 url: /azure-file-sync-in-proxied-environments
 date: 2018-09-18T12:47:13.000Z
 tags: [azure, file-sync, security, proxy, networking, storage]
-cover: 
-  image: images/a2c61b6f-ed72-4088-9a71-c1914ca82dd6.png
+cover: images/a2c61b6f-ed72-4088-9a71-c1914ca82dd6.png
 ---
 
 [Azure File Sync](https://docs.microsoft.com/en-us/azure/storage/files/storage-sync-files-planning) lets you tier data from on-premises systems to a cloud share based on Azure File. Local nodes can act as hot-caches, caching data based on access and modification patterns. Azure File Sync supports multi-master sync so that you can deploy those caches to multiple offices and replicate data across your organization.

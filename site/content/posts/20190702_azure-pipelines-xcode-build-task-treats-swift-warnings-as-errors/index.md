@@ -1,11 +1,10 @@
 ---
 title: Azure Pipelines Xcode build task treats swift warnings as errors
-author: Christoph Petersen
+author: christoph
 url: /azure-pipelines-xcode-build-task-treats-swift-warnings-as-errors
 date: 2019-07-02T12:36:56.000Z
 tags: [azure-devops, azure-pipelines, xcode, ios]
-cover: 
-  image: images/download.png
+cover: images/download.png
 ---
 
 Migrating the build pipeline for one of our apps to Azure DevOps turned out to be a rather lengthy process. Building on my local machine with the same version [Xcode](https://developer.apple.com/xcode/) and [CocoaPods](https://cocoapods.org/) ran through seamlessly, but the CI build was failing continuously.

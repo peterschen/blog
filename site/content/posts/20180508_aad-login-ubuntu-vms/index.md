@@ -1,6 +1,6 @@
 ---
 title: Azure Active Directory Login for Ubuntu VMs in preview
-author: Christoph Petersen
+author: christoph
 url: /aad-login-ubuntu-vms
 date: 2018-05-08T10:03:30.000Z
 tags: [azure, active-directory, oss, ubuntu, security]

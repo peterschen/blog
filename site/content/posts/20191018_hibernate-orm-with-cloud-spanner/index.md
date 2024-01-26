@@ -1,11 +1,10 @@
 ---
 title: Hibernate ORM with Cloud Spanner
-author: Christoph Petersen
+author: christoph
 url: /hibernate-orm-with-cloud-spanner
 date: 2019-10-18T07:57:17.000Z
 tags: [gcp, development, cloud-spanner, hibernate]
-cover: 
-  image: images/Screenshot-2019-10-18-at-09.54.57.png
+cover: images/Screenshot-2019-10-18-at-09.54.57.png
 ---
 
 Google just released beta support for Cloud Spanner dialect for Hibernate ORM. This enables Java (and other JVM based languages) developers integrating their applications directly with Cloud Spanner and helps them to increase productivity. Support for Hibernate ORM is built on top of the [open source Cloud Spanner JDBC driver](https://cloud.google.com/spanner/docs/use-oss-jdbc).

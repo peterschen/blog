@@ -1,11 +1,10 @@
 ---
 title: Install Azure PowerShell Cmdlets through proxy
-author: Christoph Petersen
+author: christoph
 url: /install-azure-powershell-cmdlets-through-proxy
 date: 2018-08-13T12:54:35.000Z
 tags: [azure, file-sync, powershell, proxy]
-cover: 
-  image: images/photo-1524821505188-18975b5a913f
+cover: images/photo-1524821505188-18975b5a913f
 ---
 
 Photo by [rawpixel](https://unsplash.com/@rawpixel?utm_source=ghost&amp;utm_medium=referral&amp;utm_campaign=api-credit) / [Unsplash](https://unsplash.com/?utm_source=ghost&amp;utm_medium=referral&amp;utm_campaign=api-credit)

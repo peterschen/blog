@@ -1,11 +1,10 @@
 ---
 title: Authenticate against Ghost with cURL
-author: Christoph Petersen
+author: christoph
 url: /authenticate-against-ghost-with-curl
 date: 2018-06-18T08:54:42.000Z
 tags: [ghost-tag, vsts, automation]
-cover: 
-  image: images/photo-1487029752779-a0c17b1f5ec9.png
+cover: images/photo-1487029752779-a0c17b1f5ec9.png
 ---
 
 Photo by [Clem Onojeghuo](https://unsplash.com/@clemono2?utm_source=ghost&amp;utm_medium=referral&amp;utm_campaign=api-credit) / [Unsplash](https://unsplash.com/?utm_source=ghost&amp;utm_medium=referral&amp;utm_campaign=api-credit)

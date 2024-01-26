@@ -1,6 +1,6 @@
 ---
 title: First post.
-author: Christoph Petersen
+author: christoph
 url: /first-post
 date: 2018-04-25T16:03:09.000Z
 tags: [blog]

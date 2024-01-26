@@ -1,11 +1,10 @@
 ---
 title: Inventory VMs with PowerShell DSC and Log Analytics
-author: Christoph Petersen
+author: christoph
 url: /inventory-vms-with-powershell-dsc-and-log-analytics
 date: 2018-08-17T11:30:34.000Z
 tags: [azure, powershell, dsc, log-analytics, arm, templates, cloudformation]
-cover: 
-  image: images/photo-1503791774117-08c379dd7f7c.png
+cover: images/photo-1503791774117-08c379dd7f7c.png
 ---
 
 Photo by [Matt Artz](https://unsplash.com/@mattartz?utm_source=ghost&amp;utm_medium=referral&amp;utm_campaign=api-credit) / [Unsplash](https://unsplash.com/?utm_source=ghost&amp;utm_medium=referral&amp;utm_campaign=api-credit)

@@ -1,11 +1,10 @@
 ---
 title: "Office 365 Security & Compliance Center multi-tenancy (2/2: Process data)"
-author: Christoph Petersen
+author: christoph
 url: /office-365-security-compliance-multi-tenancy-2o2
 date: 2019-02-14T19:34:29.000Z
 tags: [office-365, api, storage-queue, service-principal, log-analytics, siem, azure-function-apps, azure-active-directory, security-compliance-center]
-cover: 
-  image: images/2019-02-01-12_54_27-Home---Security---Compliance-1.png
+cover: images/2019-02-01-12_54_27-Home---Security---Compliance-1.png
 ---
 
 The data available through the Office 365 Security & Compliance Center contains data for all entities stored in that particular Office 365 / Azure Active Directory tenant.

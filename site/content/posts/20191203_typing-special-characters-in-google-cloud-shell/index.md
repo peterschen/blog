@@ -1,11 +1,10 @@
 ---
 title: Typing special characters in Google Cloud Shell
-author: Christoph Petersen
+author: christoph
 url: /typing-special-characters-in-google-cloud-shell
 date: 2019-12-03T13:09:13.000Z
 tags: [gcp, cloud-shell]
-cover: 
-  image: images/Screenshot-2019-12-03-at-14.03.46.png
+cover: images/Screenshot-2019-12-03-at-14.03.46.png
 ---
 
 If you happen to use a Mac based keyboard and Google Cloud Shell you might be facing some issues when typing special chars such as `\`, `|`. There is a simple fix, that'll get you going.

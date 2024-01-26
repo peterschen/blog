@@ -1,11 +1,10 @@
 ---
 title: Azure M-series VMs are now SAP HANA certified
-author: Christoph Petersen
+author: christoph
 url: /azure-m-series-vms-are-now-sap-hana-certified
 date: 2018-05-07T12:54:03.000Z
 tags: [azure, sap]
-cover: 
-  image: images/photo-1516865726149-4994d7c63800.png
+cover: images/photo-1516865726149-4994d7c63800.png
 ---
 
 Photo by [Igor Ovsyannykov](https://unsplash.com/@igorovsyannykov?utm_source=ghost&amp;utm_medium=referral&amp;utm_campaign=api-credit) / [Unsplash](https://unsplash.com/?utm_source=ghost&amp;utm_medium=referral&amp;utm_campaign=api-credit)

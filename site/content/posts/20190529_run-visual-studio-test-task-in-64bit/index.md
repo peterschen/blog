@@ -1,11 +1,10 @@
 ---
 title: Run Visual Studio Test task in 64bit
-author: Christoph Petersen
+author: christoph
 url: /run-visual-studio-test-task-in-64bit
 date: 2019-05-29T11:26:37.000Z
 tags: [azure-devops, azure-pipelines, visual-studio, testing]
-cover: 
-  image: images/Screen-Shot-2019-05-29-at-13.22.38.png
+cover: images/Screen-Shot-2019-05-29-at-13.22.38.png
 ---
 
 All of our managed assemblies are build with the `any cpu` target and we can use both the 32-bit and 64-bit task runner of Azure Pipelines.

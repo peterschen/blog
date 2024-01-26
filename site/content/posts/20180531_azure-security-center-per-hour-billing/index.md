@@ -1,11 +1,10 @@
 ---
 title: Azure Security Center per-hour billing
-author: Christoph Petersen
+author: christoph
 url: /azure-security-center-per-hour-billing
 date: 2018-05-31T07:39:33.000Z
 tags: [azure, security-center, billing]
-cover: 
-  image: images/photo-1519377345644-937ef9754740
+cover: images/photo-1519377345644-937ef9754740.jpeg
 ---
 
 Photo by [rawpixel](https://unsplash.com/@rawpixel?utm_source=ghost&amp;utm_medium=referral&amp;utm_campaign=api-credit) / [Unsplash](https://unsplash.com/?utm_source=ghost&amp;utm_medium=referral&amp;utm_campaign=api-credit)
