@@ -23,7 +23,7 @@
 			{{ partial "cover-blog.html" (dict "context" . "image" .Params.cover) }}
 		</div>
 	</header>
-	{{/* partial "loop.html" (.Paginate $pages) */}}
+	{{ partial "loop.html" (.Paginate $pages) }}
 {{ end }}
 
 {{ define "scripts"}}
