@@ -45,8 +45,6 @@ jobs:
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v4
-      - name: Install Node.js dependencies
-        run: "[[ -f site/package-lock.json || -f site/npm-shrinkwrap.json ]] && npm ci site/ || true"
       - name: Build with Hugo
         env:
           # For maximum backward compatibility with Hugo modules
