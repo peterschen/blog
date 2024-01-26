@@ -1,0 +1,5 @@
+{{- $.Scratch.Add "posts" slice -}}
+{{- range (where .Site.RegularPages "Section" "in" .Site.MainSections) -}}
+        {{- $.Scratch.Add "posts" (dict "title" .Title "date" .Date "content" .Plain "permalink" .Permalink "summary" .Summary) -}}
+{{- end -}}
+{{- $.Scratch.Get "posts" | jsonify -}}
