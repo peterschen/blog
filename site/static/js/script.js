@@ -44,12 +44,6 @@ jQuery(function($) {
 
   function search() {
       'use strict';
-      if (
-          typeof gh_search_key == 'undefined' ||
-          gh_search_key == '' ||
-          typeof gh_search_migration == 'undefined'
-      )
-      return;
 
       html.addClass('has-search');
 
@@ -57,13 +51,10 @@ jQuery(function($) {
       var searchButton = $('.search-button');
       var searchResult = $('.search-result');
       var popular = $('.popular-wrapper');
-      var includeContent = typeof gh_search_content == 'undefined' || gh_search_content == true ? true : false;
 
       var url =
           siteUrl +
-          '/ghost/api/v3/content/posts/?key=' +
-          gh_search_key +
-          '&limit=all&fields=id,title,excerpt,url,updated_at,visibility&order=updated_at%20desc&formats=plaintext';
+          '/index.json'
       var indexDump = JSON.parse(localStorage.getItem('ease_search_index'));
       var index;
 
@@ -73,36 +64,30 @@ jQuery(function($) {
       localStorage.removeItem('ease_last');
 
       function update(data) {
-          data.posts.forEach(function (post) {
+          data.forEach(function (post) {
               index.addDoc(post);
           });
 
           try {
               localStorage.setItem('dawn_search_index', JSON.stringify(index));
-              localStorage.setItem('dawn_search_last', data.posts[0].updated_at);
+              localStorage.setItem('dawn_search_last', data[0].date);
           } catch (e) {
               console.error('Your browser local storage is full. Update your search settings following the instruction at https://github.com/TryGhost/Dawn#disable-content-search');
           }
       }
 
       if (
-          !indexDump ||
-          gh_search_migration != localStorage.getItem('ease_search_migration')
+          !indexDump
       ) {
           $.get(url, function (data) {
-              if (data.posts.length > 0) {
+              if (data.length > 0) {
                   index = elasticlunr(function () {
                       this.addField('title');
-                      this.addField('plaintext');
-                      this.setRef('id');
+                      this.addField('content');
+                      this.setRef('permalink');
                   });
 
                   update(data);
-
-                  localStorage.setItem(
-                      'ease_search_migration',
-                      gh_search_migration
-                  );
               }
           });
       } else {
@@ -117,7 +102,7 @@ jQuery(function($) {
                       .replace(/T/, ' ') +
                   "'",
               function (data) {
-                  if (data.posts.length > 0) {
+                  if (data.length > 0) {
                       update(data);
                   }
               }
@@ -137,7 +122,7 @@ jQuery(function($) {
                   '<div class="search-result-row-title">' +
                   post.doc.title +
                   '</div><div class="search-result-row-excerpt">' +
-                  post.doc.excerpt +
+                  post.doc.summary +
                   '</div></a>' +
                   '</div>';
           });
