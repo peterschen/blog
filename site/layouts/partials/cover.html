@@ -1,11 +1,14 @@
 {{ $classes := "blog-cover cover" }}
-{{ if eq .type "post" }}
-    {{ $classes = "post-cover cover" }}
-{{ end }}
-
+{{ $resource := resources.GetMatch .image }}
 {{ $title := .context.Title }}
 
-{{ with resources.GetMatch .image }}
+{{ if eq .type "post" }}
+    {{ $classes = "post-cover cover" }}
+    {{ $resource = .context.Resources.GetMatch .image }}
+{{ end }}
+
+
+{{ with $resource }}
     <div class="{{ $classes }}">
         {{ $coverS := . }}
         {{ $coverM := . }}
