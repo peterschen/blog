@@ -1,6 +1,6 @@
 {{ define "main" }}
 	{{ $title := .Title }}
-	{{ $pages := where .Site.RegularPages "Params.author" "in" .Params.id }}
+	{{ $pages := where .Site.RegularPages "Params.author" "in" .Slug }}
 	<header class="blog-header {{ if .Params.cover }} has-cover {{ end }}">
 		<div class="inner">
 			<div class="archive archive-author box archive-box">
