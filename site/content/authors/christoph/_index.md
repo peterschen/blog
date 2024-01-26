@@ -1,6 +1,6 @@
 ---
-id: christoph
 title: "Christoph Petersen"
+slug: christoph
 image: images/christoph.jpg
 aliases: 
  - /author/christoph
