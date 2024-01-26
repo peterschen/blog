@@ -30,6 +30,7 @@ params:
     disableHLJS: true
 
 taxonomies:
+  tag: tags
   author: authors
 
 menu:
@@ -65,4 +66,5 @@ markup:
 outputs:
   home:
     - HTML
-    - RSS
+    # - RSS
+    - JSON
