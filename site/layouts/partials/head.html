@@ -1,0 +1,77 @@
+<head>
+  <meta charset="utf-8">
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  {{ hugo.Generator }}
+
+  {{ $opts := dict "transpiler" "dartsass" "targetPath" "css/style.css" }}
+  {{ with resources.Get "sass/style.scss" | toCSS $opts | minify | fingerprint }}
+    <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" crossorigin="anonymous" />
+  {{ end }}
+
+  <!-- tocbot.js -->
+  <link rel="stylesheet" href="/js/libs/tocbot/tocbot.min.css"
+    integrity="sha512-4q0OX9NAYcRTFEfy9nTK0AV9N7MxM665neDXEW3CjAj1pXc6+8Bcd6ryXl6cY8mTBBXt0aXepnSDLLQZSuJRww=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <script src="/js/libs/jquery.min.js"
+    integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"></script>
+
+  <script src="/js/libs/jquery.fitvids.min.js"
+    integrity="sha512-/2sZKAsHDmHNoevKR/xsUKe+Bpf692q4tHNQs9VWWz0ujJ9JBM67iFYbIEdfDV9I2BaodgT5MIg/FTUmUv3oyQ=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"></script>
+
+  {{ partial "favicons.html" }}
+
+  {{ $title := print .Title " | " .Site.Title }}
+  {{ if .IsHome }}
+  {{ $title = .Site.Title }}
+  {{ end }}
+  <title>{{ $title }}</title>
+
+  <script>
+    var siteUrl = '{{ .Site.Params.baseURL }}';
+    var localTheme = localStorage.getItem('attila_theme');
+    switch (localTheme) {
+      case 'dark':
+        document.documentElement.classList.add('theme-dark');
+        break;
+      case 'light':
+        document.documentElement.classList.add('theme-light');
+        break;
+      default:
+        break;
+    }
+  </script>
+
+  <style>
+    .blog-header.has-cover {
+      padding-top: calc(10rem + 8vw);
+    }
+
+    .blog-header.has-cover .blog-box {
+      padding-bottom: calc(4rem + 4vw)
+    }
+
+    .container .post .post-box {
+      padding-top: calc(4rem + 1vw);
+      padding-bottom: calc(4rem + 1vw);
+    }
+
+    .nav-footer {
+      padding-top: calc(8vw);
+    }
+
+    /* Hide login/subscribe buttons */
+    .nav-login {
+      display: none;
+    }
+
+    .nav-subscribe {
+      display: none;
+    }
+  </style>
+</head>

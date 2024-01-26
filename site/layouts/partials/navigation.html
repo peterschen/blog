@@ -1,0 +1,31 @@
+<div class="nav-header">
+    <nav class="nav-wrapper" aria-label="Main">
+        <ul>
+            {{ $currentPage := . }}
+            {{ range site.Menus.main }}
+                <li class="nav-{{ .Identifier }}{{ if eq $currentPage.RelPermalink .URL }} active{{end}}">
+                    <a href="{{ .URL }}" title="{{ .Title | default .Name }}">
+                        <span>{{ .Name }}</span>
+                    </a>
+                </li>
+            {{ end }}
+        </ul>
+        
+        <ul class="nav-meta">
+            <li class="nav-search" style="display: none;">
+                <a title="Search">
+                    <i class="icon icon-search" aria-hidden="true"></i>
+                    <span>Search</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="nav-wrapper-control">
+        <div class="inner">
+            <a class="nav-menu" role="button"><i class="icon icon-menu" aria-hidden="true"></i>Menu</a>
+            <a class="nav-search" style="display: none;" title="Search" role="button"><i class="icon icon-search" aria-hidden="true"></i></a>
+        </div>
+    </div>
+</div>
+<div class="nav-close" role="button" aria-label="Close"></div>

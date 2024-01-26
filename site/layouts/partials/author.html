@@ -1,0 +1,4 @@
+{{ $author := (.Params.author | default site.Params.author ) }}
+{{ with site.GetPage ( printf "/authors/%s" $author ) }}
+    <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+{{ end }}

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+{{ $lang := .Site.Language.Lang | default "en" }}
+<html lang="{{ $lang }}">
+    {{ partial "head.html" . }}
+
+    <!-- <body class="body_class"> -->
+    <body class="home-template">
+        {{ partial "navigation.html" . }}
+
+        <section class="page-wrapper">
+            {{ block "main" . }}{{ end }}
+            {{ partial "search.html" . }}
+            {{ partial "footer.html" . }}
+        </section>
+
+        {{ partial "scripts.html" . }}
+    </body>
+</html>

@@ -1,0 +1,20 @@
+<div class="search-wrapper">
+    <div class="search">
+        <form class="search-form">
+            <input class="search-field" type="text" placeholder="Search …">
+            <button class="search-button" type="submit">
+                <i class="icon icon-search" aria-hidden="true"></i>
+            </button>
+        </form>
+        <div class="popular-wrapper">
+            <h4 class="popular-title">Tags</h4>
+            <span class="popular-tags post-tags">
+                {{ range .Site.Taxonomies.tags }}
+                    <a href='{{ .Page.Permalink }}'>{{ .Page.Title }}: {{ .Count }}</a>
+                {{ end }}
+            </span>
+        </div>
+        <div class="search-result"></div>
+    </div>
+    <button class="search-wrapper-close" aria-label="Close"></button>
+</div>

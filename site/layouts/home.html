@@ -1,0 +1,23 @@
+{{ define "main" }}
+    <header class="blog-header has-cover">
+        <div class="inner">
+            <div class="box blog-box">
+                <h1 class="blog-name">{{ .Site.Title }}</h1>
+                <span class="blog-description">{{ .Site.Params.description }}</span>
+            </div>
+            {{ partial "cover-blog.html" (dict "context" .Site "image" site.Params.cover ) }}
+        </div>
+    </header>
+
+    {{ partial "loop.html" (.Paginate (where .Site.RegularPages "Section" "in" .Site.MainSections)) }}
+{{ end }}
+
+{{ define "scripts"}}
+    <script>
+        $(document).ready(function () {
+            var post = $('.post-content');
+            // Responsive videos with fitVids
+            post.fitVids();
+        });
+    </script>
+{{ end }}

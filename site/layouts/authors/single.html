@@ -1,0 +1,48 @@
+{{ define "main" }}
+	{{ $title := .Title }}
+	{{ $pages := where .Site.RegularPages "Params.author" "in" .Params.id }}
+	<header class="blog-header {{ if .Params.cover }} has-cover {{ end }}">
+		<div class="inner">
+			<div class="archive archive-author box archive-box">
+				<span class="archive-info">
+					<span class="archive-type">Author</span>
+					<span class="archive-count">{{ i18n "posts" (len $pages) }}</span>
+				</span>
+				<figure class="archive-avatar avatar">
+					{{ with resources.Get .Params.image }}
+						{{ with .Resize "100x" }}
+							<img src="{{ .RelPermalink }}" alt="{{ $title }}" />
+						{{ end }}
+					{{ end }}
+				</figure>
+				<h2 class="archive-title">{{ $title }}</h2>
+				{{ if .Content }}
+					<span class="archive-description">{{ partial "headings.html" .Content }}</span>
+				{{ end }}
+			</div>
+			{{ partial "cover-blog.html" (dict "context" . "image" .Params.cover) }}
+		</div>
+	</header>
+	{{/*  jsonify (dict "indent" "  ") $pages }}
+
+	{{ $topaginate := slice }}
+
+	{{ range $k, $v := .Data.Terms}}
+		{{ print $.Data.Plural "/" $v.Term }}
+		{{ $topaginate = $topaginate | append  (site.GetPage (print $.Data.Plural "/" $v.Term )) }}
+	{{ end }}
+
+	{{ $topaginate }}
+
+	{{ partial "loop.html" (.Paginate $topaginate) */}}
+{{ end }}
+
+{{ define "scripts"}}
+<script>
+	$(document).ready(function () {
+		var post = $('.post-content');
+        // Responsive videos with fitVids
+        post.fitVids();
+	});
+</script>
+{{ end }}
