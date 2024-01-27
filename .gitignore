@@ -24,6 +24,7 @@ local.ps1
 
 # Visual Studio Code
 .vscode
+blog.sln
 
 # Apple
 .DS_Store
