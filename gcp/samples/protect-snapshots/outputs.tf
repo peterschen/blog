@@ -10,10 +10,10 @@ output "zone" {
 
 output "tag_key_id" {
     description = "Tag Key ID"
-    value = google_tags_tag_key.image_type.id
+    value = google_tags_tag_key.protection.id
 }
 
 output "tag_value_id" {
     description = "Tag Value ID"
-    value = google_tags_tag_value.payg.id
+    value = google_tags_tag_value.enabled.id
 }
