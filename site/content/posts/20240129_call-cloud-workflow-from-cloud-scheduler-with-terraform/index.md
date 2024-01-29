@@ -1,15 +1,16 @@
 ---
 author: christoph
-title: Call Cloud Workflow from Cloud Scheduler with Terraform
-url: /call_cloud_workflow_from_cloud_scheduler_with_terraform
-date: 2024-01-29 16:28:00
-tags: [cloud scheduler, cloud workflows, terraform]
-category: cloud_scheduler
-cover:
-    image: images/Screenshot 2024-01-29 17.04.02.png
+title: Call Cloud Workflow from Cloud Scheduler with Terraform asdasd
+url: /call-cloud-workflow-from-cloud-scheduler-with-terraform
+date: 2024-01-29 17:24:00+02:00
+tags: 
+  - cloud-scheduler
+  - cloud-workflows
+  - terraform
+category: cloud-scheduler
 ---
 
-[Cloud Workflows}(https://cloud.google.com/workflows/docs) provide an easy way for platform automation and integration without the need to write any code. It also integrates seamlessly with Event Arc and other platform components.
+[Cloud Workflows](https://cloud.google.com/workflows/docs) provide an easy way for platform automation and integration without the need to write any code. It also integrates seamlessly with Event Arc and other platform components.
 
 Sometimes you may want to run a workflow on a schedule though and Cloud Scheduler can serve as the executiong trigger. When configured through the Cloud Console this is fairly straight forward and the necessary configuration steps required to call the workflow execution endpoint are abstracted away:
 
@@ -87,9 +88,9 @@ If you want to pass data to the workflow, these can be included in the `argument
 
 The `callLogLevel` attribute can be omitted or take [one of these values](https://cloud.google.com/workflows/docs/reference/rest/v1/projects.locations.workflows#callloglevel):
 
-* LOG_ALL_CALLS
-* LOG_ERRORS_ONLY
-* LOG_NONE
+* LOG_ALL_CALLS: Detailed logging of every step in the worklow
+* LOG_ERRORS_ONLY: Error logging only
+* LOG_NONE: No logging
 
 ### Headers & OAuth configuration
 
