@@ -3,6 +3,11 @@ output "project_id" {
     value = module.project.id
 }
 
+output "project_number" {
+    description = "Project number"
+    value = module.project.number
+}
+
 output "zone" {
     description = "Zone"
     value = local.zone

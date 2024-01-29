@@ -11,6 +11,11 @@ variable "region" {
   default = "europe-west4"
 }
 
+variable "region_scheduler" {
+  type = string
+  default = "europe-west3"
+}
+
 variable "prefix" {
   type = string
   default = null

@@ -1,12 +1,27 @@
 main:
-  params: [event]
+  params: [args]
   steps:
-    - log_event:
-      call: sys.log
-      args:
-        text: ${event}
-        severity: INFO
-    - check_operation:
-      switch:
-        condition: ${event.operation.last == true}
-        return: ${event}
+    - start:
+        call: sys.log
+        args:
+          text: ${"!! snapshot-release !!, project_id = " + args.project_id + ", zone = " + args.zone}
+          severity: INFO
+    - set_variables:
+        assign:
+          - project: ${args.project_id}
+          - zone: ${args.zone}
+          - timestamp: ${time.format(sys.now() - 60 * 60 * 24 * 31)} 
+    - list_snapshots:
+        call:  googleapis.compute.v1.snapshots.list
+        args:
+          project: ${args.project_id}
+          filter: ${"creationTimestamp <= '" + timestamp + "'"}
+        result: snapshots
+    - the_end:
+        return: ${snapshots}
+
+# get snapshots
+# iterate snapshots
+# check creationTimestamp
+# check tag
+# untag snapshot
