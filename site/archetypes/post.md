@@ -1,8 +1,9 @@
 ---
-author: ["Christoph Petersen"]
-title: "TITLE"
-date: "2024-01-24"
+author: christoph
+title: 
+date: 0000-00-00 00:00:00
 tags: ["blog"]
+category: 
 cover:
     image: 
 ---
