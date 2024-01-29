@@ -84,7 +84,9 @@ The request should be submitted as `POST`. In the body we can pass data and conf
 }
 ```
 
-If you want to pass data to the workflow, these can be included in the `argument` attribute.
+If you want to pass data to the workflow, these can be included in the `argument` attribute. 
+
+> **Note:** The JSON needs to be escaped and enclosed with quotes as otherwise the call will fail with an `INVALID_ARGUMENT` exception.
 
 The `callLogLevel` attribute can be omitted or take [one of these values](https://cloud.google.com/workflows/docs/reference/rest/v1/projects.locations.workflows#callloglevel):
 
