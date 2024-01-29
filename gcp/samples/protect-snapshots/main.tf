@@ -26,12 +26,66 @@ module "project" {
     "compute.googleapis.com",
     "eventarc.googleapis.com",
     "pubsub.googleapis.com",
-    "workflows.googleapis.com"
+    "workflows.googleapis.com",
+    "logging.googleapis.com"
   ]
 }
 
 data "google_compute_default_service_account" "default" {
   project = module.project.id
+}
+
+resource "google_service_account" "snapshot_automation" {
+  project = module.project.id
+  account_id = "snapshot-automation"
+  display_name = "Service account for snapshot automation (tagging/untagging)"
+}
+
+resource "google_project_iam_member" "pubsub_serviceAccountTokenCreator" {
+  project = module.project.id
+  role = "roles/iam.serviceAccountTokenCreator"
+  member = "serviceAccount:service-${module.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+}
+
+resource "google_project_iam_member" "eventReceiver" {
+  project = module.project.id
+  role = "roles/eventarc.eventReceiver"
+  member = "serviceAccount:${google_service_account.snapshot_automation.email}"
+}
+
+resource "google_project_iam_member" "storageAdmin" {
+  project = module.project.id
+  role = "roles/compute.storageAdmin"
+  member = "serviceAccount:${google_service_account.snapshot_automation.email}"
+}
+
+resource "google_project_iam_member" "workflowsInvoker" {
+  project = module.project.id
+  role = "roles/workflows.invoker"
+  member = "serviceAccount:${google_service_account.snapshot_automation.email}"
+}
+
+resource "google_project_iam_member" "loggingLogWriter" {
+  project = module.project.id
+  role = "roles/logging.logWriter"
+  member = "serviceAccount:${google_service_account.snapshot_automation.email}"
+}
+
+resource "google_project_iam_audit_config" "project" {
+  project = module.project.id
+  service = "compute.googleapis.com"
+
+  audit_log_config {
+    log_type = "ADMIN_READ"
+  }
+
+  audit_log_config {
+    log_type = "DATA_WRITE"
+  }
+
+  audit_log_config {
+    log_type = "DATA_READ"
+  }
 }
 
 resource "google_compute_network" "network" {
@@ -58,17 +112,6 @@ resource "google_tags_tag_value" "enabled" {
   parent = "tagKeys/${google_tags_tag_key.protection.name}"
   short_name = "enabled"
 }
-
-# data "external" "disk" {
-#   program = ["gcloud", "compute", "disks", "describe", "${google_compute_disk.disk.name}", "--project=${module.project.id}", "--format=json(id)"]
-#   depends_on = [ google_compute_disk.disk ]
-# }
-
-# resource "google_tags_location_tag_binding" "disk" {
-#   parent = "//compute.googleapis.com/projects/${module.project.id}/zones/${local.zone}/disks/${data.external.disk.result.id}"
-#   tag_value = "tagValues/${google_tags_tag_value.payg.name}"
-#   location = local.zone
-# }
 
 resource "google_compute_resource_policy" "snapshot" {
   project = module.project.id
@@ -107,13 +150,14 @@ resource "google_compute_disk_resource_policy_attachment" "snapshot" {
 resource "google_compute_instance" "workload" {
   project = module.project.id
   zone = local.zone
-  name = "worklaod"
+  name = "workload"
   machine_type = local.machine_type
 
   tags = ["ssh"]
 
   boot_disk {
     source = google_compute_disk.workload.name
+    auto_delete = false
   }
 
   network_interface {
@@ -155,5 +199,39 @@ resource "google_iam_deny_policy" "deny_snapshot_delete" {
         "compute.googleapis.com/snapshots.delete"
       ]
     }
+  }
+}
+
+resource "google_workflows_workflow" "snapshot_insert" {
+  project = module.project.id
+  region = local.region
+  name = "snapshot-insert"
+  service_account = google_service_account.snapshot_automation.email
+  source_contents = file("workflow.yaml")
+}
+
+resource "google_eventarc_trigger" "snapshot_insert" {
+  project = module.project.id
+  name = "snapshot-insert"
+  location = "global"
+  service_account = google_service_account.snapshot_automation.email
+
+  matching_criteria {
+    attribute = "type"
+    value = "google.cloud.audit.log.v1.written"
+  }
+
+  matching_criteria {
+    attribute = "serviceName"
+    value = "compute.googleapis.com"
+  }
+
+  matching_criteria {
+    attribute = "methodName"
+    value = "v1.compute.snapshots.insert"
+  }
+
+  destination {
+    workflow = google_workflows_workflow.snapshot_insert.id
   }
 }
