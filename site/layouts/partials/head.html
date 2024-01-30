@@ -1,8 +1,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="HandheldFriendly" content="True" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta name="referrer" content="no-referrer-when-downgrade" />
   {{ hugo.Generator }}
+
+  <meta name="description" content="{{ .Site.Params.description }}">
+  <link rel="canonical" href="{{ .Site.Params.baseURL }}">
+  <meta name="referrer" content="no-referrer-when-downgrade">
+
+  {{ partial "head_twitter.html" . }}
+  {{ partial "head_opengraph.html" . }}
+  {{ template "_internal/google_analytics.html" . }}
 
   {{ $opts := dict "transpiler" "dartsass" "targetPath" "css/style.css" }}
   {{ with resources.Get "sass/style.scss" | toCSS $opts | minify | fingerprint }}
@@ -33,12 +42,12 @@
 
   {{ $title := print .Title " | " .Site.Title }}
   {{ if .IsHome }}
-  {{ $title = .Site.Title }}
+    {{ $title = .Site.Title }}
   {{ end }}
   <title>{{ $title }}</title>
 
   <script>
-    var siteUrl = '{{ .Site.Params.baseURL }}';
+    var siteUrl = '{{ .Site.BaseURL }}';
     var localTheme = localStorage.getItem('attila_theme');
     switch (localTheme) {
       case 'dark':
@@ -51,32 +60,4 @@
         break;
     }
   </script>
-
-  <style>
-    .blog-header.has-cover {
-      padding-top: calc(10rem + 8vw);
-    }
-
-    .blog-header.has-cover .blog-box {
-      padding-bottom: calc(4rem + 4vw)
-    }
-
-    .container .post .post-box {
-      padding-top: calc(4rem + 1vw);
-      padding-bottom: calc(4rem + 1vw);
-    }
-
-    .nav-footer {
-      padding-top: calc(8vw);
-    }
-
-    /* Hide login/subscribe buttons */
-    .nav-login {
-      display: none;
-    }
-
-    .nav-subscribe {
-      display: none;
-    }
-  </style>
 </head>

@@ -1,0 +1,13 @@
+{{ $cover :=  resources.GetMatch .Site.Params.cover }}
+{{ if not .IsHome }}
+    {{ $cover = .Resources.GetMatch .Params.cover }}
+{{ end }}
+
+{{ with $cover }}
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="{{ .Permalink }}" />
+{{- else -}}
+<meta name="twitter:card" content="summary"/>
+{{- end -}}
+<meta name="twitter:title" content="{{ .Title }}"/>
+<meta name="twitter:description" content="{{ with .Description }}{{ . }}{{ else }}{{if .IsPage}}{{ .Summary }}{{ else }}{{ with .Site.Params.description }}{{ . }}{{ end }}{{ end }}{{ end -}}"/>

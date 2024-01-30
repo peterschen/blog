@@ -4,7 +4,7 @@
     {{ partial "head.html" . }}
 
     <!-- <body class="body_class"> -->
-    <body class="home-template">
+    <body class="{{- if .IsHome -}}home{{- else -}}post{{- end -}}-template">
         {{ partial "navigation.html" . }}
 
         <section class="page-wrapper">

@@ -823,7 +823,7 @@ textarea {
     padding-top: calc(16rem + 4vw);
 
     &.has-cover {
-        padding-top: calc(24rem + 8vw);
+        padding-top: calc(10rem + 8vw);
         color: white;
         background: black;
         overflow: hidden;
@@ -844,7 +844,7 @@ textarea {
 
     &.has-cover .blog-box {
         border: none;
-        padding-bottom: calc(8rem + 4vw);
+        padding-bottom: calc(4rem + 4vw);
     }
 }
 
@@ -1727,7 +1727,7 @@ textarea {
 .nav-footer {
     position: relative;
     z-index: 20;
-    padding-top: calc(12rem + 8vw);
+    padding-top: calc(8vw);
     padding-bottom: 4rem;
     margin-top: auto;
 
@@ -1906,8 +1906,8 @@ textarea {
     position: relative;
 
     .post .post-box {
-        padding-top: calc(4rem + 2vw);
-        padding-bottom: calc(4rem + 2vw);
+        padding-top: calc(4rem + 1vw);
+        padding-bottom: calc(4rem + 1vw);
         border-bottom: 1px solid var(--color-background-contrast);
     }
 
@@ -2633,4 +2633,43 @@ textarea {
     .pagination-box {
         border-bottom: 1px solid var(--color-background-contrast);
     }
+}
+
+/* ==========================================================================
+   TOC
+   ========================================================================== */
+
+   .toc-container {
+    order: 1;
+
+    .toc {
+        position: sticky;
+        top: 70px;
+        min-width: 260px;
+        font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Open Sans, Helvetica Neue, sans-serif;
+        font-size: 1.6rem;
+        line-height: 1.6em;
+        padding: 0 0.8em;
+    }
+}
+
+.is-active-link::before {
+    background-color: #3eb0ef;
+}
+
+ol.toc-list {
+    margin: 0;
+}
+
+.post-template {
+    overflow-x: unset;
+
+    article {
+        display: grid;
+        grid-template-columns: 1fr 290px;
+    }
+}
+
+article .inner.post {
+    padding-left: calc(8rem + 290px)
 }

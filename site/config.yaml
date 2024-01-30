@@ -65,6 +65,6 @@ markup:
 
 outputs:
   home:
-    - HTML
-    # - RSS
-    - JSON
+    - html
+    - rss
+    - json
