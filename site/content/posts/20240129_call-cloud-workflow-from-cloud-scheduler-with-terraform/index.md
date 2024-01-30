@@ -8,6 +8,7 @@ tags:
   - cloud-workflows
   - terraform
 category: cloud-scheduler
+cover: images/Screenshot 2024-01-29 17.04.02.png
 ---
 
 [Cloud Workflows](https://cloud.google.com/workflows/docs) provide an easy way for platform automation and integration without the need to write any code. It also integrates seamlessly with Event Arc and other platform components.
