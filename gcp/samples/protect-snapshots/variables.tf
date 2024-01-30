@@ -25,3 +25,9 @@ variable "zone" {
   type = string
   default = "europe-west4-a"
 }
+
+variable "retention" {
+  type = number
+  description = "Retention time of snapshots in seconds"
+  default = 60 * 60 * 24 * 31
+}

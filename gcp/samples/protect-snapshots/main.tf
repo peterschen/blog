@@ -12,6 +12,8 @@ locals {
   network_range = "10.11.0.0/16"
 
   machine_type = "e2-medium"
+
+  retention = var.retention
 }
 
 module "project" {
@@ -62,6 +64,12 @@ resource "google_project_iam_member" "workflowsInvoker" {
 resource "google_project_iam_member" "loggingLogWriter" {
   project = module.project.id
   role = "roles/logging.logWriter"
+  member = "serviceAccount:${google_service_account.snapshot_automation.email}"
+}
+
+resource "google_project_iam_member" "tagUser" {
+  project = module.project.id
+  role = "roles/resourcemanager.tagUser"
   member = "serviceAccount:${google_service_account.snapshot_automation.email}"
 }
 
@@ -214,7 +222,9 @@ resource "google_cloud_scheduler_job" "snapshot_release" {
         {
           "argument": "{
             \"project_id\": \"${module.project.id}\",
-            \"zone\": \"${local.zone}\"
+            \"tag_key\": \"${google_tags_tag_key.protection.id}\",
+            \"tag_value\": \"${google_tags_tag_value.disabled.id}\",
+            \"retention\": ${local.retention}
           }",
           "callLogLevel": "LOG_ALL_CALLS"
         }

@@ -1,27 +1,186 @@
 main:
-  params: [args]
+  params:
+    - args
+  steps:
+    - set_variables:
+        assign:
+          - project: ${args.project_id}
+          - tag_key: ${args.tag_key}
+          - tag_value: ${args.tag_value}
+          - retention: ${args.retention}       
+          - timestamp: ${sys.now() - retention}
+          - snapshots_untagged: []
+    - start:
+        call: sys.log
+        args:
+          text: '${
+            "snapshot-release::main " + 
+            "- project = " + project + 
+            ", tag_key = " + tag_key + 
+            ", tag_value = " + tag_value + 
+            ", retention = " + retention
+            }'
+          severity: DEBUG
+    - list_snapshots:
+        call:  googleapis.compute.v1.snapshots.list
+        args:
+          project: ${project}
+          orderBy: creationTimestamp desc
+        result: snapshots
+    - process_snapshots:
+        parallel:
+          shared: [snapshots_untagged]
+          for:
+            in: ${snapshots.items}
+            value: snapshot
+            steps:
+              - filter_creationTimestamp:
+                  call: filter_creationTimestamp
+                  args:
+                    project: ${project}
+                    snapshot: ${snapshot}
+                    timestamp: ${timestamp}
+                  result: snapshot_filtered_creationTimestamp
+              - filter_tag:
+                  call: filter_tag
+                  args:
+                    project: ${project}
+                    snapshot: ${snapshot_filtered_creationTimestamp}
+                    tag_value: ${tag_value}
+                  result: snapshot_filtered_tag
+              - untag_snapshot:
+                  call: untag_snapshot
+                  args:
+                    project: ${project}
+                    snapshot: ${snapshot_filtered_tag}
+                    tag_key: ${tag_key}
+                    tag_value: ${tag_value}
+                  result: snapshot_untagged
+              - set_results:
+                  switch:
+                    - condition: ${snapshot_untagged != null}
+                      steps:
+                        - assign_result:
+                            assign:
+                              - snapshots_untagged: ${list.concat(snapshots_untagged, snapshot_untagged)}
+    - return_data:
+        return: ${snapshots_untagged}
+
+filter_creationTimestamp:
+  params:
+    - project
+    - snapshot
+    - timestamp
   steps:
     - start:
         call: sys.log
         args:
-          text: ${"!! snapshot-release !!, project_id = " + args.project_id + ", zone = " + args.zone}
-          severity: INFO
+          text: '${
+            "snapshot-release::filter_creationTimestamp " + 
+            "- project = " + project + 
+            ", snapshot.name = " + snapshot.name + 
+            ", timestamp = " + timestamp
+            }'
+          severity: DEBUG
+    - compare_timestamps:
+        switch:
+          - condition: ${time.parse(snapshot.creationTimestamp) <= timestamp}
+            steps:
+              - write_log:
+                  call: sys.log
+                  args:
+                    text: '${
+                      "snapshot-release::filter_creationTimestamp " + 
+                      "- " + snapshot.name + " (" + time.parse(snapshot.creationTimestamp) + " <= " + timestamp + ")"
+                      }'
+                    severity: DEBUG
+              - return_data:
+                  return: ${snapshot}
+
+filter_tag:
+  params:
+    - project
+    - snapshot
+    - tag_value
+  steps:
     - set_variables:
         assign:
-          - project: ${args.project_id}
-          - zone: ${args.zone}
-          - timestamp: ${time.format(sys.now() - 60 * 60 * 24 * 31)} 
-    - list_snapshots:
-        call:  googleapis.compute.v1.snapshots.list
-        args:
-          project: ${args.project_id}
-          filter: ${"creationTimestamp <= '" + timestamp + "'"}
-        result: snapshots
-    - the_end:
-        return: ${snapshots}
+          - snapshot_result: ${snapshot}
+    - check_snapshot:
+        switch:
+          - condition: ${snapshot != null}
+            steps:
+              - start:
+                  call: sys.log
+                  args:
+                    text: '${
+                      "snapshot-release::filter_tag " + 
+                      "- project = " + project + 
+                      ", snapshot.name = " + snapshot.name + 
+                      ", tag_value = " + tag_value
+                      }'
+                    severity: DEBUG
+              - retrieve_tag:
+                  call: googleapis.cloudresourcemanager.v3.tagBindings.list
+                  args:
+                    parent: ${"//compute.googleapis.com/projects/" + project + "/global/snapshots/" + snapshot.id}
+                  result: result
+              - assert_tag:
+                  switch:
+                    - condition: ${len(result) > 0 and len(result.tagBindings) > 0}
+                      for:
+                        value: binding
+                        in: ${result.tagBindings}
+                        steps:
+                          - check_tag_value:
+                              switch:
+                                # Check against the value is sufficient as the value is bound to the key
+                                - condition: ${binding.tagValue == tag_value}
+                                  steps:
+                                    - assign_result:
+                                        assign:
+                                          - snapshot_result: null
+    - return_data:
+        return: ${snapshot_result}
 
-# get snapshots
-# iterate snapshots
-# check creationTimestamp
-# check tag
-# untag snapshot
+untag_snapshot:
+  params:
+    - project
+    - snapshot
+    - tag_key
+    - tag_value
+  steps:
+    - check_snapshot:
+        switch:
+          - condition: ${snapshot != null}
+            steps:
+              - start:
+                  call: sys.log
+                  args:
+                    text: '${"snapshot-release::untag_snapshots " + 
+                      "- project = " + project + 
+                      ", snapshot.name = " + snapshot.name + 
+                      ", tag_key = " + tag_key + 
+                      ", tag_value = " + tag_value
+                      }'
+                    severity: DEBUG
+              - create_tag_binding:
+                  try:
+                    call: googleapis.cloudresourcemanager.v3.tagBindings.create
+                    args:
+                      body:
+                        parent: ${"//compute.googleapis.com/projects/" + project + "/global/snapshots/" + snapshot.id}
+                        tagValue: ${tag_value}
+                  # Known issue with Cloud Resource Manager API: https://cloud.google.com/workflows/docs/issues#long-running_operation_exception_when_using_cloud_connector
+                  except:
+                    as: error
+                    steps:
+                      - response_type_error:
+                          switch:
+                            - condition: ${"ResponseTypeError" in error.tags and error.operation.done == true}
+                              next: return_data
+                      - unhandled_exception:
+                          raise: ${error}
+              - return_data:
+                  return: ${snapshot}
+            next: end
