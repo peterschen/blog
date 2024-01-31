@@ -6,7 +6,7 @@
   {{ hugo.Generator }}
 
   <meta name="description" content="{{ .Site.Params.description }}">
-  <link rel="canonical" href="{{ .Site.Params.baseURL }}">
+  <link rel="canonical" href="{{ .Permalink }}">
   <meta name="referrer" content="no-referrer-when-downgrade">
 
   {{ partial "head_twitter.html" . }}
