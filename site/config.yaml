@@ -63,6 +63,9 @@ markup:
     renderer:
       unsafe: true
 
+sitemap:
+  changeFreq: monthly
+
 outputs:
   home:
     - html
