@@ -9,7 +9,15 @@ buildDrafts: false
 buildFuture: false
 buildExpired: false
 
-googleAnalytics: 368035176
+services:
+  googleAnalytics:
+    ID: G-R7YMX3FVQ5
+
+privacy:
+  googleAnalytics:
+    anonymizeIP: true
+    disable: false
+    respectDoNotTrack: true
 
 minify:
   disableXML: true
