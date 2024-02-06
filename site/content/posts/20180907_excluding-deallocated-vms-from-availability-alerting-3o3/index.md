@@ -15,9 +15,9 @@ This article series consisting of three articles walks through how to build a me
 
 **This is the second part of a 3-post series:**
 
-* 1/3: [Track VM state](__GHOST_URL__/excluding-deallocated-vms-from-availability-alerting-1o3/)
-* 2/3: [Validate VM state](__GHOST_URL__/excluding-deallocated-vms-from-availability-alerting-2o3/)
-* **3/3: [Alert rule excluding deallocated VMs](__GHOST_URL__/excluding-deallocated-vms-from-availability-alerting-3o3/)**
+* 1/3: [Track VM state](/excluding-deallocated-vms-from-availability-alerting-1o3/)
+* 2/3: [Validate VM state](/excluding-deallocated-vms-from-availability-alerting-2o3/)
+* **3/3: [Alert rule excluding deallocated VMs](/excluding-deallocated-vms-from-availability-alerting-3o3/)**
 
 ## Architecture
 
