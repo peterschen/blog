@@ -16,80 +16,75 @@ locals {
   retention = var.retention
 }
 
-module "project" {
+module "project_workload" {
   source = "../../modules/project"
 
   org_id = var.org_id
   billing_account = var.billing_account
 
-  prefix = local.prefix
+  prefix = "workload"
 
   apis = [
     "cloudresourcemanager.googleapis.com",
     "compute.googleapis.com",
+  ]
+}
+
+module "project_automation" {
+  source = "../../modules/project"
+
+  org_id = var.org_id
+  billing_account = var.billing_account
+
+  prefix = "automation"
+
+  apis = [
+    "cloudresourcemanager.googleapis.com",
     "pubsub.googleapis.com",
+    "cloudscheduler.googleapis.com",
     "workflows.googleapis.com",
     "logging.googleapis.com"
   ]
 }
 
-data "google_compute_default_service_account" "default" {
-  project = module.project.id
-}
-
 resource "google_service_account" "snapshot_automation" {
-  project = module.project.id
+  project = module.project_automation.id
   account_id = "snapshot-automation"
   display_name = "Service account for snapshot automation (tagging/untagging)"
 }
 
 resource "google_project_iam_member" "pubsub_serviceAccountTokenCreator" {
-  project = module.project.id
+  project = module.project_automation.id
   role = "roles/iam.serviceAccountTokenCreator"
-  member = "serviceAccount:service-${module.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
-}
-
-resource "google_project_iam_member" "storageAdmin" {
-  project = module.project.id
-  role = "roles/compute.storageAdmin"
-  member = "serviceAccount:${google_service_account.snapshot_automation.email}"
+  member = "serviceAccount:service-${module.project_automation.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
 }
 
 resource "google_project_iam_member" "workflowsInvoker" {
-  project = module.project.id
+  project = module.project_automation.id
   role = "roles/workflows.invoker"
   member = "serviceAccount:${google_service_account.snapshot_automation.email}"
 }
 
 resource "google_project_iam_member" "loggingLogWriter" {
-  project = module.project.id
+  project = module.project_automation.id
   role = "roles/logging.logWriter"
   member = "serviceAccount:${google_service_account.snapshot_automation.email}"
 }
 
+resource "google_project_iam_member" "storageAdmin" {
+  project = module.project_workload.id
+  role = "roles/compute.storageAdmin"
+  member = "serviceAccount:${google_service_account.snapshot_automation.email}"
+}
+
 resource "google_project_iam_member" "tagUser" {
-  project = module.project.id
+  project = module.project_workload.id
   role = "roles/resourcemanager.tagUser"
   member = "serviceAccount:${google_service_account.snapshot_automation.email}"
 }
 
-resource "google_compute_network" "network" {
-  project = module.project.id
-  name = local.sample_name
-  auto_create_subnetworks = false
-}
-
-resource "google_compute_subnetwork" "subnetwork" {
-  project = module.project.id
-  region = local.region
-  name = local.region
-  ip_cidr_range = local.network_range
-  network = google_compute_network.network.id
-  private_ip_google_access = true
-}
-
 resource "google_tags_tag_key" "protection" {
-  parent = "projects/${module.project.id}"
+  parent = "projects/${module.project_workload.id}"
   short_name = "protection"
 }
 
@@ -104,12 +99,12 @@ resource "google_tags_tag_value" "disabled" {
 }
 
 resource "google_tags_tag_binding" "enabled" {
-    parent = "//cloudresourcemanager.googleapis.com/projects/${module.project.number}"
+    parent = "//cloudresourcemanager.googleapis.com/projects/${module.project_workload.number}"
     tag_value = "tagValues/${google_tags_tag_value.enabled.name}"
 }
 
 resource "google_compute_resource_policy" "snapshot" {
-  project = module.project.id
+  project = module.project_workload.id
   name = "snapshot-hourly-30d-retention"
   region = local.region
 
@@ -128,7 +123,7 @@ resource "google_compute_resource_policy" "snapshot" {
 }
 
 resource "google_compute_disk" "workload" {
-  project = module.project.id
+  project = module.project_workload.id
   name  = "workload"
   type = "pd-balanced"
   zone = local.zone
@@ -136,49 +131,17 @@ resource "google_compute_disk" "workload" {
 }
 
 resource "google_compute_disk_resource_policy_attachment" "snapshot" {
-  project = module.project.id
+  project = module.project_workload.id
   name = google_compute_resource_policy.snapshot.name
   disk = google_compute_disk.workload.name
   zone = google_compute_disk.workload.zone
 }
 
-resource "google_compute_instance" "workload" {
-  project = module.project.id
-  zone = local.zone
-  name = "workload"
-  machine_type = local.machine_type
-
-  tags = ["ssh"]
-
-  boot_disk {
-    source = google_compute_disk.workload.name
-    auto_delete = false
-  }
-
-  network_interface {
-    network = google_compute_network.network.id
-    subnetwork = google_compute_subnetwork.subnetwork.id
-  }
-
-  shielded_instance_config {
-    enable_secure_boot = true
-    enable_vtpm = true
-    enable_integrity_monitoring = true
-  }
-
-  service_account {
-    email  = data.google_compute_default_service_account.default.email
-    scopes = ["cloud-platform"]
-  }
-
-  allow_stopping_for_update = true
-}
-
 resource "google_iam_deny_policy" "deny_snapshot_delete" {
-  parent = urlencode("cloudresourcemanager.googleapis.com/projects/${module.project.id}")
+  parent = urlencode("cloudresourcemanager.googleapis.com/projects/${module.project_workload.id}")
 
-  name  = "deny-untagged-disks"
-  display_name = "Denies VM start() operation when using untagged disks"
+  name  = "deny-delete-tagged-disks"
+  display_name = "Denies snapshot.delete() with tag set"
 
   rules {
     deny_rule {
@@ -198,7 +161,7 @@ resource "google_iam_deny_policy" "deny_snapshot_delete" {
 }
 
 resource "google_workflows_workflow" "snapshot_release" {
-  project = module.project.id
+  project = module.project_automation.id
   region = local.region
   name = "snapshot-release"
   service_account = google_service_account.snapshot_automation.email
@@ -206,7 +169,7 @@ resource "google_workflows_workflow" "snapshot_release" {
 }
 
 resource "google_cloud_scheduler_job" "snapshot_release" {
-  project = module.project.id
+  project = module.project_automation.id
   region = local.region_scheduler
   name = "snapshot_release"
   schedule = "0 0,12 * * *"
@@ -221,12 +184,12 @@ resource "google_cloud_scheduler_job" "snapshot_release" {
     body = base64encode(<<-EOM
         {
           "argument": "{
-            \"project_id\": \"${module.project.id}\",
+            \"project_id\": \"${module.project_workload.id}\",
             \"tag_key\": \"${google_tags_tag_key.protection.id}\",
             \"tag_value\": \"${google_tags_tag_value.disabled.id}\",
             \"retention\": ${local.retention}
           }",
-          "callLogLevel": "LOG_ALL_CALLS"
+          "callLogLevel": "LOG_ERRORS_ONLY"
         }
       EOM
     )

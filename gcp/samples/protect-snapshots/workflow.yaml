@@ -28,41 +28,43 @@ main:
           orderBy: creationTimestamp desc
         result: snapshots
     - process_snapshots:
-        parallel:
-          shared: [snapshots_untagged]
-          for:
-            in: ${snapshots.items}
-            value: snapshot
-            steps:
-              - filter_creationTimestamp:
-                  call: filter_creationTimestamp
-                  args:
-                    project: ${project}
-                    snapshot: ${snapshot}
-                    timestamp: ${timestamp}
-                  result: snapshot_filtered_creationTimestamp
-              - filter_tag:
-                  call: filter_tag
-                  args:
-                    project: ${project}
-                    snapshot: ${snapshot_filtered_creationTimestamp}
-                    tag_value: ${tag_value}
-                  result: snapshot_filtered_tag
-              - untag_snapshot:
-                  call: untag_snapshot
-                  args:
-                    project: ${project}
-                    snapshot: ${snapshot_filtered_tag}
-                    tag_key: ${tag_key}
-                    tag_value: ${tag_value}
-                  result: snapshot_untagged
-              - set_results:
-                  switch:
-                    - condition: ${snapshot_untagged != null}
-                      steps:
-                        - assign_result:
-                            assign:
-                              - snapshots_untagged: ${list.concat(snapshots_untagged, snapshot_untagged)}
+        switch:
+          - condition: ${"items" in snapshots}
+            parallel:
+              shared: [snapshots_untagged]
+              for:
+                in: ${snapshots.items}
+                value: snapshot
+                steps:
+                  - filter_creationTimestamp:
+                      call: filter_creationTimestamp
+                      args:
+                        project: ${project}
+                        snapshot: ${snapshot}
+                        timestamp: ${timestamp}
+                      result: snapshot_filtered_creationTimestamp
+                  - filter_tag:
+                      call: filter_tag
+                      args:
+                        project: ${project}
+                        snapshot: ${snapshot_filtered_creationTimestamp}
+                        tag_value: ${tag_value}
+                      result: snapshot_filtered_tag
+                  - untag_snapshot:
+                      call: untag_snapshot
+                      args:
+                        project: ${project}
+                        snapshot: ${snapshot_filtered_tag}
+                        tag_key: ${tag_key}
+                        tag_value: ${tag_value}
+                      result: snapshot_untagged
+                  - set_results:
+                      switch:
+                        - condition: ${snapshot_untagged != null}
+                          steps:
+                            - assign_result:
+                                assign:
+                                  - snapshots_untagged: ${list.concat(snapshots_untagged, snapshot_untagged)}
     - return_data:
         return: ${snapshots_untagged}
 

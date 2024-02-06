@@ -1,11 +1,6 @@
-output "project_id" {
+output "project_workload_id" {
     description = "Project ID"
-    value = module.project.id
-}
-
-output "project_number" {
-    description = "Project number"
-    value = module.project.number
+    value = module.project_workload.id
 }
 
 output "zone" {
