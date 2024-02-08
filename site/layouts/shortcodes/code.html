@@ -1,0 +1,10 @@
+{{- $u := .Get 0 -}}
+{{- with resources.GetRemote $u -}}
+  {{- with .Err -}}
+    {{- errorf "%s" . -}}
+  {{- else -}}
+    {{- .Content | safeHTML -}}
+  {{- end -}}
+{{- else -}}
+  {{ errorf "Unable to get remote resource." }}
+{{- end -}}
