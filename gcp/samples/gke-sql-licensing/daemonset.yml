@@ -1,0 +1,63 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: sql-lics
+  labels:
+    name: sql-lics
+
+# ---
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: pd-balanced
+#   namespace: sql-lics
+# provisioner: pd.csi.storage.gke.io
+# volumeBindingMode: WaitForFirstConsumer
+# allowVolumeExpansion: true
+# parameters:
+#   type: pd-balanced # Low latency, high IOPS for our DB!
+
+# ---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: mssql
+#   namespace: pass-inline
+# spec:
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 10Gi
+#   storageClassName: pd-balanced # Data live in a PVC
+
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: sql-lics
+  namespace: sql-lics
+  labels:
+    name: sql-lics
+    namespace: sql-lics
+spec:
+  selector:
+    matchLabels:
+      name: sql-lics
+  template:
+    metadata:
+      labels:
+        name: sql-lics
+        namespace: sql-lics
+    spec:
+      containers:
+        - name: noop
+          image: debian
+          command:
+            - "sh"
+            - "-c"
+            - "while true; do sleep 60; done"
+        # volumes:
+        #   - name: licensed-disk
+        #     persistentVolumeClaim:
+        #       claimName: licensed-disk

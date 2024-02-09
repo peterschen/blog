@@ -83,6 +83,67 @@ module "firewall_iap" {
   network = google_compute_network.network.name
 }
 
+resource "google_compute_disk" "licensed_disk_01" {
+  project = module.project.id
+  name  = "licensed-disk-01"
+  type = "pd-standard"
+  zone = local.zone
+  licenses = [
+    "projects/windows-sql-cloud/global/licenses/sql-server-2019-standard"
+  ]
+}
+
+resource "google_compute_disk" "licensed_disk_02" {
+  project = module.project.id
+  name  = "licensed-disk-02"
+  type = "pd-standard"
+  zone = local.zone
+  licenses = [
+    "projects/windows-sql-cloud/global/licenses/sql-server-2019-standard"
+  ]
+}
+
+resource "google_compute_instance" "test_01" {
+  project = module.project.id
+  zone = local.zone
+  name = "test-01"
+  machine_type = local.machine_type
+
+  tags = ["ssh"]
+
+  boot_disk {
+    initialize_params {
+      image = "debian-cloud/debian-12"
+    }
+  }
+
+  attached_disk {
+    source = google_compute_disk.licensed_disk_01.name
+  }
+
+  attached_disk {
+    source = google_compute_disk.licensed_disk_02.name
+  }
+
+  network_interface {
+    network = google_compute_network.network.id
+    subnetwork = google_compute_subnetwork.subnetwork.id
+  }
+
+  shielded_instance_config {
+    enable_secure_boot = true
+    enable_vtpm = true
+    enable_integrity_monitoring = true
+  }
+
+  service_account {
+    email  = "default"
+    scopes = ["cloud-platform"]
+  }
+
+  allow_stopping_for_update = true
+}
+
 resource "google_container_cluster" "cluster" {
   project = module.project.id
   location = local.zone
