@@ -14,17 +14,21 @@ cover:
 draft: true
 ---
 
-Enterprises have strong data protection requirements related to their backups. In traditional environments they may have off-site tape storage so that data is recoverable in case of disasters like fire or flooding. But also to protect against newer threats like cybercrime in the form of trojans or malicous actors trying to steal or damage data. 
+It could happen. Total mahem. An administrative pricipal for a project was accidentally leaked. An attacker has taken you projects hostage. You need to recover and fast. Restoring project access is the least of your worries your concern is to restore services. Luckily you have all workloads protected with snapshots! All deleted by the attacker! This is an exaggerated and hypothetical scenario but I have seen similar things happening. In this article I'm exploring an approach to protect against such a scenario.
 
-While Cloud environments can provide off-site replication for select services this is not available for all and may not meet all the requirements enterprises have. One of the requirements is off-site and vaulted storage for disk snapshots. While these can be stored in a multi-regional bucket which protects them agains local disasters it does not protect the against tempering or deletion.
+# Solution design
 
-In this article I want to present a solution that will protect snapshots against deletion (and potentially other modifications) using Google Cloud components and a little elbow grease.
+To protect against scenarios as described above, prevent operator error and ensure that enteprises can meet their string data protection requirements can be met, additional security should be enabled for backups and snapshots in particular. Where traditionally backups would have been store off-site in a secure vault this this concept is not entirely transferrable to cloud environments. While many services offer multi-regional capabilities or storing data in a different location than the primary workload this helps with protecting against local disaster but is not a good defense against malicious actors intentionally damaging or deleting data.
+
+In this article I will explore an approach which focuses on snapshots and protects them against deletion (and potentially other modifications too!). The following diagram describes the solution design at a high level:
+
+![Solution design](images/design.png)
+
+The following chapters describe the individual components and how they fit together.
 
 ## IAM deny policies
 
-At the center of the solution are IAM deny policies and resource tags. By using IAM deny policies we can prevent the execution of API calls on resources irrespective of of the configured IAM permissions. Deny policies always superseed allow policies and prevent evaluation of any allow policies if a deny policy has been configured for the requested action (for more information see the [policy evaluation section in the IAM documentation](https://cloud.google.com/iam/docs/deny-overview#policy-eval)).
-
-PICTURE
+One of the core building blocks for this solution are IAM deny policies and resource tags. By using IAM deny policies we can prevent the execution of API calls on resources irrespective of of the configured IAM permissions. Deny policies always superseed allow policies and prevent evaluation of any allow policies if a deny policy has been configured for the requested action (for more information see the [policy evaluation section in the IAM documentation](https://cloud.google.com/iam/docs/deny-overview#policy-eval)).
 
 Deny policies can be scoped to principals (including and/or excluding users, groups or service accounts) and can have an optional condition. Conditions can be used to match against a certain resource type or a *resource tag*. We will make use of the latter to protect all snapshots within a project.
 
