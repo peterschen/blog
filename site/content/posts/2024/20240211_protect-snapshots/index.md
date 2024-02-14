@@ -10,7 +10,7 @@ tags:
   - gce
   - disks
   - snapshots
-cover:
+cover: images/design.png
 draft: true
 ---
 
