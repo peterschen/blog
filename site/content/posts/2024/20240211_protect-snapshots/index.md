@@ -140,3 +140,7 @@ Specifically the following measures were considered:
 The article shows how to protect snapshots from malicious tampering or accidental deletion. While only specifc permissions are denied this can be extended to other operations and other resources to fit organizational needs.
 
 A fully working sample can be [found in my GitHub repository](https://github.com/peterschen/blog/tree/master/gcp/samples/protect-snapshots) which implements this solution including standing up projects and the creation of of all required resources like tags, disk, resource poliy (to schedule snapshot creation), service account and workflow.
+
+## Caveats
+
+While the IAM deny policy will deny all matching API calls, there is one scenario that is not covered: (Scheduled snapshots)[https://cloud.google.com/compute/docs/disks/scheduled-snapshots]. As this service is using another API path it won't be affected by the IAM deny policy described in this article. Scheduled snapshot policy execution only acts on snapshots that were created with the active configuration of the policy (that means no retroactive deletion of snapshots) and only snapshots that were created by the same policy configuration. While a caveat to the approach described in this article, it wont offer an attack surface for the scenario outline in the introduction.
