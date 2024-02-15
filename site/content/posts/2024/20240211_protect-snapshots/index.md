@@ -37,18 +37,22 @@ Tags are key-value pairs attached to resources. These pairs can be defined on th
 
 ## Protecting snapshots
 
-The easiest way to protect snapshots would be to put a deny policy in place and limit the principals which can modify and delete these resources. The following simplyfied policy definition would deny the `snapshot.delete` permission for `christoph@example.com`:
+The easiest way to protect snapshots would be to put a deny policy in place and limit the principals which can modify and delete these resources. The following simplyfied policy definition would deny the `snapshot.delete` permission for all principals but `christoph@example.com`:
 
 ```json
 {
-  "displayName": "Denies snapshot.delete for christoph@example.com",
+  "displayName": "Denies snapshot.delete for all but Christoph",
   "rules": [
     {
+      
       "denyRule": {
         "deniedPermissions": [
           "compute.googleapis.com/snapshots.delete"
         ],
         "deniedPrincipals": [
+          "principalSet://goog/public:all"
+        ],
+        "exceptionPrincipals": [
           "principalSet://goog/subject/christoph@example.com"
         ]
       }
