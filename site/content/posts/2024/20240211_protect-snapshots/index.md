@@ -34,11 +34,7 @@ Deny policies can be scoped to principals (including and/or excluding users, gro
 
 ## Resource tags
 
-Tags are key-value pairs attached to resources. These pairs can be defined on the project or organizational level and are passed to descendants of the resource (the [Tag inheritance section of the Resource Manager documentation](https://cloud.google.com/resource-manager/docs/tags/tags-overview#inheritance) has a nice visualization). They also have their own IAM permissions which allows fine grained control over tags and the principals that can use them.
-
-While tag values are inherited, an assignment on a descendant will override the inherited value and be the effective value. The following picture illustrates this concept where on the left the inherited tag from the project is also the effective tag for the snapshot. Whereas for the right the snapshot has its own tag binding effectively overriding the project assignment.
-
-![Tag inheritance override](images/tag-inheritance-override.png)
+Tags are key-value pairs attached to resources. These pairs can be defined on the project or organizational level and are passed to descendants of the resource (the [Tag inheritance section of the Resource Manager documentation](https://cloud.google.com/resource-manager/docs/tags/tags-overview#inheritance) has a nice visualization). They also have their own IAM permissions which allows fine grained control over tags and the principals that can use them. 
 
 ## Protecting snapshots
 
@@ -143,4 +139,4 @@ A fully working sample can be [found in my GitHub repository](https://github.com
 
 ## Caveats
 
-While the IAM deny policy will deny all matching API calls, there is one scenario that is not covered: [Scheduled snapshots](https://cloud.google.com/compute/docs/disks/scheduled-snapshots). As this service is using another API path it won't be affected by the IAM deny policy described in this article. Scheduled snapshot policy execution only acts on snapshots that were created with the active configuration of the policy (that means no retroactive deletion of snapshots) and only snapshots that were created by the same policy configuration. While a caveat to the approach described in this article, it wont offer an attack surface for the scenario outline in the introduction.
+While the IAM deny policy will deny all matching API calls, there is one scenario that is not covered: [Scheduled snapshots](https://cloud.google.com/compute/docs/disks/scheduled-snapshots). As this service is using another API path it won't be affected by the IAM deny policy described in this article. When a new snapshot is created during the snapshot policy execution, the expiration date is set to the snapshot. Later modification of the schedule will not mutate the initial expiration. That means that snapshot schedules can't be misused to purge snapshots from a project. While a caveat to the approach described in this article, it wont offer an attack surface for the scenario outline in the introduction.
