@@ -2,7 +2,7 @@
 author: christoph
 title: Protect disk snapshots against accidental deletion or malicious tampering
 url: /protect-disk-snapshots-against-accidental-deletion-or-malicious-tampering
-date: 2024-02-01T14:46:09.000Z
+date: 2024-02-15T14:54:00.000Z
 tags: 
   - gcp
   - iam
@@ -11,7 +11,6 @@ tags:
   - disks
   - snapshots
 cover: images/design.png
-draft: true
 ---
 
 It could happen. Total mahem. An administrative pricipal for a project was accidentally leaked. An attacker has taken you projects hostage. You need to recover and fast. Restoring project access is the least of your worries your concern is to restore services. Luckily you have all workloads protected with snapshots! All deleted by the attacker! This is an exaggerated and hypothetical scenario but I have seen similar things happening. In this article I'm exploring an approach to protect against such a scenario.
