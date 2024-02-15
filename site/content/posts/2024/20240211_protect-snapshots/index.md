@@ -41,7 +41,7 @@ The easiest way to protect snapshots would be to put a deny policy in place and 
 
 ```json
 {
-  "displayName": "Denies snapshot.delete with tag set",
+  "displayName": "Denies snapshot.delete for christoph@example.com",
   "rules": [
     {
       "denyRule": {
@@ -59,18 +59,18 @@ The easiest way to protect snapshots would be to put a deny policy in place and 
 
 ### Selectively allowing modifications 
 
-But what if there are automated processes like snapshot schedules with auto-delete or Google Cloud Backup & DR acting on those snapshots? We could include the principals (e.g. service accounts) that these services operate under to the deny policy. This would not allow us to excert fine-grained access control and enforce strict seggragation of duties.
+But what if there are automated solutions like Google Cloud Backup & DR acting on those snapshots? We could include the principals (e.g. service accounts) that these services operate under to the deny policy. This would not allow us to excert fine-grained access control and enforce strict seggragation of duties.
 
-To workaround this, we will make use of tags and how tag inheritance works. We adapt our deny policy like this:
+We modify the deny policy to include a condition:
 
 ```json
 {
-  "displayName": "Denies snapshot.delete() with tag set",
+  "displayName": "Denies snapshot.delete unless tag is set",
   "rules": [
     {
       "denyRule": {
         "denialCondition": {
-          "expression": "resource.matchTagId('tagKeys/123456789012345', 'tagValues/123456789012345')"
+          "expression": "!resource.matchTag('12345678/retentionMet', 'true')"
         },
         "deniedPermissions": [
           "compute.googleapis.com/snapshots.delete"
@@ -84,7 +84,7 @@ To workaround this, we will make use of tags and how tag inheritance works. We a
 }
 ```
 
-So instead of just denying a single user account, we deny all principals (`public:all`) the `snapshot.delete` permission except when a specific tag value has been set (tag keys and tag values are tightly coupled!). The deny policy is explicit as it matches the tag key and its value.
+We use tags instead of jsut denying select principals to allow for better control which snapshots can be deleted. we deny all principals (`public:all`) the `snapshot.delete` permission except when a specific tag value has been set (tag keys and tag values are tightly coupled!). The deny policy is explicit as it matches the tag key and its value.
 
 ### Unlocking snapshots
 
