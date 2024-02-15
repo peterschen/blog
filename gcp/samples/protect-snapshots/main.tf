@@ -83,24 +83,19 @@ resource "google_project_iam_member" "tagUser" {
   member = "serviceAccount:${google_service_account.snapshot_automation.email}"
 }
 
-resource "google_tags_tag_key" "protection" {
+resource "google_tags_tag_key" "retention_met" {
   parent = "projects/${module.project_workload.id}"
-  short_name = "protection"
+  short_name = "retentionMet"
 }
 
-resource "google_tags_tag_value" "enabled" {
-  parent = "tagKeys/${google_tags_tag_key.protection.name}"
-  short_name = "enabled"
+resource "google_tags_tag_value" "true" {
+  parent = "tagKeys/${google_tags_tag_key.retention_met.name}"
+  short_name = "true"
 }
 
-resource "google_tags_tag_value" "disabled" {
-  parent = "tagKeys/${google_tags_tag_key.protection.name}"
-  short_name = "disabled"
-}
-
-resource "google_tags_tag_binding" "enabled" {
+resource "google_tags_tag_binding" "true" {
     parent = "//cloudresourcemanager.googleapis.com/projects/${module.project_workload.number}"
-    tag_value = "tagValues/${google_tags_tag_value.enabled.name}"
+    tag_value = "tagValues/${google_tags_tag_value.true.name}"
 }
 
 resource "google_compute_resource_policy" "snapshot" {
@@ -149,7 +144,7 @@ resource "google_iam_deny_policy" "deny_snapshot_delete" {
       
       denial_condition {
         expression = <<EOT
-          resource.matchTagId("${google_tags_tag_key.protection.id}", "${google_tags_tag_value.enabled.id}")
+          !resource.matchTagId("${google_tags_tag_key.retention_met.id}", "${google_tags_tag_value.true.id}")
         EOT
       }
       
@@ -177,16 +172,12 @@ resource "google_cloud_scheduler_job" "snapshot_release" {
   http_target {
     uri = "https://workflowexecutions.googleapis.com/v1/${google_workflows_workflow.snapshot_release.id}/executions"
     http_method = "POST"
-    headers = {
-      "Content-Type" = "application/octet-stream"
-      "User-Agent" = "Google-Cloud-Scheduler"
-    }
     body = base64encode(<<-EOM
         {
           "argument": "{
             \"project_id\": \"${module.project_workload.id}\",
-            \"tag_key\": \"${google_tags_tag_key.protection.id}\",
-            \"tag_value\": \"${google_tags_tag_value.disabled.id}\",
+            \"tag_key\": \"${google_tags_tag_key.retention_met.id}\",
+            \"tag_value\": \"${google_tags_tag_value.true.id}\",
             \"retention\": ${local.retention}
           }",
           "callLogLevel": "LOG_ERRORS_ONLY"
