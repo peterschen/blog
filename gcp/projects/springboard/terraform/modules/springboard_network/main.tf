@@ -14,7 +14,7 @@ resource "google_compute_network" "network" {
 
 resource "google_compute_network_peering" "peer_network" {
   count = length(local.peer_networks)
-  name = "${google_compute_network.network.name} to ${local.peer_networks[count.index]}"
+  name = basename(local.peer_networks[count.index])
   network = google_compute_network.network.name
   peer_network = local.peer_networks[count.index]
 
