@@ -3,11 +3,6 @@ provider "google" {
 
 locals {
   prefix = var.prefix
-
-  sample_name = "infra-manager"
-
-  serviceaccount_project = "cbpetersen-shared"
-  serviceaccount_name =  "deployment"
 }
 
 module "project" {
@@ -18,9 +13,12 @@ module "project" {
 
   prefix = local.prefix
 
+  # APIs that are required directly or indirect (e.g. by the template that is deployed)
   apis = [
-    "cloudbilling.googleapis.com", # Required to configure the billing account
-    "config.googleapis.com"
+    "config.googleapis.com",
+    "cloudbilling.googleapis.com",
+    "serviceusage.googleapis.com",
+    "cloudresourcemanager.googleapis.com"
   ]
 }
 
