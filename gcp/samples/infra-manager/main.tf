@@ -2,12 +2,8 @@ provider "google" {
 }
 
 locals {
+  name = var.name
   prefix = var.prefix
-
-  sample_name = "infra-manager"
-
-  serviceaccount_project = "cbpetersen-shared"
-  serviceaccount_name =  "deployment"
 }
 
 module "project" {
@@ -16,12 +12,13 @@ module "project" {
   org_id = var.org_id
   billing_account = var.billing_account
 
+  name = local.name
   prefix = local.prefix
 
   apis = [
     "config.googleapis.com",
     "cloudbilling.googleapis.com",
-    "compute.googleapis.com",
+    "serviceusage.googleapis.com",
     "cloudresourcemanager.googleapis.com"
   ]
 }
