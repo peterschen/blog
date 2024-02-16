@@ -23,6 +23,12 @@ module "project" {
   ]
 }
 
+resource "google_project_service_identity" "config_sa" {
+  provider = google-beta
+  project = module.project.id
+  service = "config.googleapis.com"
+}
+
 resource "google_service_account" "service_account" {
   project = module.project.id
   account_id = "inframanager"
@@ -31,7 +37,7 @@ resource "google_service_account" "service_account" {
 resource "google_service_account_iam_member" "config_serviceagent" {
   service_account_id = google_service_account.service_account.id
   role  = "roles/cloudconfig.serviceAgent"
-  member = "serviceAccount:service-${module.project.number}@gcp-sa-config.iam.gserviceaccount.com"
+  member = "serviceAccount:${google_project_service_identity.config_sa.email}"
 }
 
 resource "google_project_iam_member" "agent" {
