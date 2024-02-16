@@ -49,6 +49,13 @@ locals {
       enforce = true
       allowed_values = []
       denied_values = []
+    },
+    {
+      constraint = "iam.disableServiceAccountKeyCreation"
+      type = "boolean"
+      enforce = true
+      allowed_values = []
+      denied_values = []
     }
   ]
 

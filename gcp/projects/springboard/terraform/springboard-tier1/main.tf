@@ -8,7 +8,52 @@ locals {
   core_apis = []
 
   # Constraints that are always enforced
-  core_constraints = []
+  core_constraints = [
+    {
+      constraint = "iam.allowedPolicyMemberDomains"
+      type = "list"
+      enforce = null
+      allowed_values = [
+        "is:principalSet://iam.googleapis.com/organizations/${local.org_id}"
+      ]
+      denied_values = []
+    },
+    {
+      constraint = "compute.requireShieldedVm"
+      type = "boolean"
+      enforce = true
+      allowed_values = []
+      denied_values = []
+    },
+    {
+      constraint = "compute.vmCanIpForward"
+      type = "list"
+      enforce = true
+      allowed_values = []
+      denied_values = []
+    },
+    {
+      constraint = "compute.disableSerialPortAccess"
+      type = "boolean"
+      enforce = true
+      allowed_values = []
+      denied_values = []
+    },
+    {
+      constraint = "storage.publicAccessPrevention"
+      type = "boolean"
+      enforce = true
+      allowed_values = []
+      denied_values = []
+    },
+    {
+      constraint = "storage.uniformBucketLevelAccess"
+      type = "boolean"
+      enforce = true
+      allowed_values = []
+      denied_values = []
+    },
+  ]
 
   # Merge core APIs with allowed APIs
   allowed_apis = concat(local.core_apis, var.allowed_apis)
