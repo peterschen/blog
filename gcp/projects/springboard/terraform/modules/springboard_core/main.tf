@@ -15,12 +15,14 @@ locals {
     {
       constraint = "gcp.restrictServiceUsage"
       type = "list"
+      enforced = null # optional attributes are not available with TF 1.2.3
       allowed_values = local.allowed_apis
       denied_values = []
     },
     {
       constraint = "gcp.resourceLocations"
       type = "list"
+      enforced = null # optional attributes are not available with TF 1.2.3
       allowed_values = [
         for region in local.allowed_regions:
             "in:${region}-locations"
