@@ -15,14 +15,14 @@ locals {
     {
       constraint = "gcp.restrictServiceUsage"
       type = "list"
-      enforced = null # optional attributes are not available with TF 1.2.3
+      enforce = null # optional attributes are not available with TF 1.2.3
       allowed_values = local.allowed_apis
       denied_values = []
     },
     {
       constraint = "gcp.resourceLocations"
       type = "list"
-      enforced = null # optional attributes are not available with TF 1.2.3
+      enforce = null # optional attributes are not available with TF 1.2.3
       allowed_values = [
         for region in local.allowed_regions:
             "in:${region}-locations"
@@ -32,14 +32,14 @@ locals {
     {
       constraint = "iam.automaticIamGrantsForDefaultServiceAccounts"
       type = "boolean"
-      enforced = true
+      enforce = true
       allowed_values = []
       denied_values = []
     },
     {
       constraint = "compute.skipDefaultNetworkCreation"
       type = "boolean"
-      enforced = true
+      enforce = true
       allowed_values = []
       denied_values = []
     },
