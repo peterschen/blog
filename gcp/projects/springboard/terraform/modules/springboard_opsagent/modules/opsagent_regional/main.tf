@@ -208,18 +208,13 @@ locals {
   }
 }
 
-data "google_compute_zones" "zones" {
-  project = local.project_name
-  region = local.region
-}
-
 resource "google_os_config_os_policy_assignment" "ensure_opsagent_windows" {
   count = length(local.region_zone_map[local.region])
 
   project = local.project_name
-  location = data.google_compute_zones.zones.names[count.index]
+  location = local.region_zone_map[local.region][count.index]
   name = "ensure-opsagent-windows"
-  description = "Ensuring OpsAgent is deployed on Windows instances in ${data.google_compute_zones.zones.names[count.index]}"
+  description = "Ensuring OpsAgent is deployed on Windows instances in ${local.region_zone_map[local.region][count.index]}"
 
   instance_filter {
     all = false
