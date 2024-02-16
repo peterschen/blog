@@ -60,8 +60,6 @@ locals {
 
 module "project" {
   source  = "github.com/peterschen/blog//gcp/projects/springboard/terraform/modules/springboard_project"
-  version = "~> 1.0.0"
-
   org_id = local.org_id
   folder_id = local.folder_id
   billing_account = local.billing_account
