@@ -63,7 +63,7 @@ The easiest way to protect snapshots would be to put a deny policy in place and 
 
 ### Selectively allowing modifications 
 
-But what if there are automated solutions like Google Cloud Backup & DR acting on those snapshots? We could include the principals (e.g. service accounts) that these services operate under to the deny policy. This would not allow us to excert fine-grained access control and enforce strict seggragation of duties.
+But what if there are automated solutions like Google Cloud Backup & DR acting on those snapshots? We could include the principals (e.g. service accounts) that these services operate under to the deny policy. This would not allow us to excert fine-grained access control and enforce strict separation of duties.
 
 We modify the deny policy to include a condition:
 
@@ -120,11 +120,11 @@ Let's dig a little deeper what these steps actually do:
 
 I've added the full code for the workflow to my [GitHub repository](https://github.com/peterschen/blog/blob/master/gcp/samples/protect-snapshots/workflow.yaml).
 
-## Seggregation of duties
+## Separation of duties
 
 We now have a way to lock snapshots aginst deletion. We also have automation in place that will lift that lock according to business rules. It needs to be ensured that VM admins, operators or users are not able to escalate their priviliges. For instance a user being able to create a workflow with their own logic removing the tag binding or an administrator being able to directly remove the tag binding.
 
-In order to prevent these scenarios we operate with strict seggregation of duties. The automation project in which the workflows are kept and executed is separated from the workload project(s). A service account from the automation project is given permission to operate in the workload project. Additionally permissions to use the tag are scoped only to the same service account.
+In order to prevent these scenarios we operate with strict separation of duties. The automation project in which the workflows are kept and executed is separated from the workload project(s). A service account from the automation project is given permission to operate in the workload project. Additionally permissions to use the tag are scoped only to the same service account.
 
 Specifically the following measures were considered:
 
