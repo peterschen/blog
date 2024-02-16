@@ -1,6 +1,6 @@
 locals {
   project_name = var.project_name
-  name = var.name != null ? var.name : local.project_name
+  name = var.name != null ? var.name : replace(local.project_name, "-", "")
   peer_networks = var.peer_networks
   shared_networks = var.shared_networks
 }
