@@ -93,11 +93,6 @@ resource "google_tags_tag_value" "true" {
   short_name = "true"
 }
 
-resource "google_tags_tag_binding" "true" {
-    parent = "//cloudresourcemanager.googleapis.com/projects/${module.project_workload.number}"
-    tag_value = "tagValues/${google_tags_tag_value.true.name}"
-}
-
 resource "google_compute_resource_policy" "snapshot" {
   project = module.project_workload.id
   name = "snapshot-hourly-30d-retention"
