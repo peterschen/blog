@@ -1,7 +1,7 @@
 # Deploy Springboard
 
 ```sh
-tfdir=../samples/infra-manager
+tfdir=../../samples/infra-manager
 project_id=`terraform -chdir=$tfdir output -raw project_id`
 sa_id=`terraform -chdir=$tfdir output -raw sa_id`
 location="europe-west1"
@@ -20,7 +20,7 @@ gcloud infra-manager deployments apply springboard-$tier \
 # Tear down
 
 ```sh
-tfdir=../samples/infra-manager
+tfdir=../../samples/infra-manager
 project_id=`terraform -chdir=$tfdir output -raw project_id`
 location="europe-west1"
 tier="tier1"
@@ -36,7 +36,7 @@ gcloud infra-manager deployments delete springboard-$tier \
 ## Export state file
 
 ```sh
-tfdir=../samples/infra-manager
+tfdir=../../samples/infra-manager
 project_id=`terraform -chdir=$tfdir output -raw project_id`
 location="europe-west1"
 tier="tier1"
@@ -52,7 +52,7 @@ curl -o default.tfstate "$uri"
 ## Import state file
 
 ```sh
-tfdir=../samples/infra-manager
+tfdir=../../samples/infra-manager
 project_id=`terraform -chdir=$tfdir output -raw project_id`
 location="europe-west1"
 tier="tier1"
