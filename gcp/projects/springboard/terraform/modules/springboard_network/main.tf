@@ -15,7 +15,7 @@ resource "google_compute_network" "network" {
 resource "google_compute_network_peering" "peer_network" {
   count = length(local.peer_networks)
   name = basename(local.peer_networks[count.index])
-  network = google_compute_network.network.name
+  network = google_compute_network.network.self_link
   peer_network = local.peer_networks[count.index]
 
   import_custom_routes = true
