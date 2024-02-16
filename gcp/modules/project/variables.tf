@@ -18,6 +18,11 @@ variable "apis" {
     default = []
 }
 
+variable "name" {
+    type = string
+    default = null
+}
+
 variable "prefix" {
     type = string
     default = null
