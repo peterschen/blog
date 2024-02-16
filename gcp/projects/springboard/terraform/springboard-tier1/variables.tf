@@ -40,3 +40,13 @@ variable "constraints" {
     )
     default = []
 }
+
+variable "peer_networks" {
+  type = list(string)
+  default = []
+}
+
+variable "shared_networks" {
+  type = list(string)
+  default = []
+}
