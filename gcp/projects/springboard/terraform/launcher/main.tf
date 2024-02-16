@@ -19,6 +19,7 @@ module "project" {
   prefix = local.prefix
 
   apis = [
+    "cloudbilling.googleapis.com", # Required to configure the billing account
     "config.googleapis.com"
   ]
 }
