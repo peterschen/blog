@@ -72,16 +72,12 @@ module "project" {
 
 module "organization_policy" {
   source = "github.com/peterschen/blog//gcp/projects/springboard/terraform/modules/springboard_policy"
-  version = "~> 1.0.0"
-
   project_name = module.project.name
   constraints = local.constraints
 }
 
 module "opsagent" {
   source = "github.com/peterschen/blog//gcp/projects/springboard/terraform/modules/springboard_opsagent"
-  version = "~> 1.0.0"
-
   project_name = module.project.name
   regions = local.allowed_regions
 }
