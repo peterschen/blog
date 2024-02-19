@@ -16,11 +16,11 @@
     {{- with .OutputFormats.Get "amp" -}}
         <link rel="amphtml" href="{{ .Permalink }}">
     {{- end -}}
+    {{ template "_internal/google_analytics.html" . }}
 {{- end -}}
 
 {{ partial "head_twitter.html" . }}
 {{ partial "head_opengraph.html" . }}
-{{ template "_internal/google_analytics.html" . }}
 
 {{ $opts := dict "transpiler" "dartsass" "targetPath" "css/style.css" }}
 {{- with resources.Get "sass/style.scss" | toCSS $opts | minify | fingerprint -}}
