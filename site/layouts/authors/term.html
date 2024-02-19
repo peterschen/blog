@@ -11,7 +11,7 @@
 				<figure class="archive-avatar avatar">
 					{{ with resources.Get .Params.image }}
 						{{ with .Resize "100x" }}
-							<img src="{{ .RelPermalink }}" alt="{{ $title }}" />
+							<img src="{{ .Permalink }}" alt="{{ $title }}" />
 						{{ end }}
 					{{ end }}
 				</figure>

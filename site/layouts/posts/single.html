@@ -25,8 +25,8 @@
                         <figure class="post-meta-avatar avatar">
                             {{ with resources.Get $authorDetails.Params.image }}
                                 {{ with .Resize "100x" }}
-                                    <a href="{{ $authorDetails.RelPermalink }}" class="author-avatar">
-                                        <img class="author-profile-image" src="{{ .RelPermalink }}" alt="{{ $authorDetails.Title }}" />
+                                    <a href="{{ $authorDetails.Permalink }}" class="author-avatar">
+                                        <img class="author-profile-image" src="{{ .Permalink }}" alt="{{ $authorDetails.Title }}" />
                                     </a>
                                 {{ end }}
                             {{ end }}
@@ -34,7 +34,7 @@
                     {{ end }}
                 </div>
 
-                <h4 class="post-meta-author"><a href="{{ $authorDetails.RelPermalink }}">{{ $authorDetails.Title }}</a></h4>
+                <h4 class="post-meta-author"><a href="{{ $authorDetails.Permalink }}">{{ $authorDetails.Title }}</a></h4>
                 <time datetime="{{ .Date }}">{{ .Date.Format .Site.Params.dateFormat }}</time> &bull; {{ (printf "%d min read" .ReadingTime) }}
             </div>
             {{ partial "cover-post.html" (dict "context" . "image" .Params.cover ) }}
@@ -75,7 +75,7 @@
                             <span class="post-info-label">Topic</span>
                             {{- range .Params.tags -}}
                                 {{- with site.GetPage ( printf "/tags/%s" . ) -}}
-                                    <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+                                    <a href="{{ .Permalink }}">{{ .Title }}</a>
                                 {{- end -}}
                             {{- end -}}
                         </aside>

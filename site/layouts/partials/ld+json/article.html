@@ -27,10 +27,10 @@
                     {{ $coverL = .Resize "960x" }}
                     {{ $coverXL = .Resize "1920x" }}
                 {{ end }}
-                {{ $coverS.RelPermalink }},
-                {{ $coverM.RelPermalink }},
-                {{ $coverL.RelPermalink }},
-                {{ $coverXL.RelPermalink }}
+                {{ $coverS.Permalink }},
+                {{ $coverM.Permalink }},
+                {{ $coverL.Permalink }},
+                {{ $coverXL.Permalink }}
             {{- end -}}
         ],
         "description": {{ .Description }},
