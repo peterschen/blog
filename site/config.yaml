@@ -44,6 +44,13 @@ params:
   assets:
     disableHLJS: true
 
+permalinks:
+  page:
+    posts: /:slug/
+  term:
+    authors: "/author/:slug/"
+    tags: "/tag/:slug/"
+
 taxonomies:
   tag: tags
   author: authors
@@ -56,7 +63,7 @@ menu:
       weight: 10
     - identifier: about
       name: About
-      url: /authors/christoph/
+      url: /author/christoph/
       weight: 20
     - identifier: imprint
       name: Imprint
