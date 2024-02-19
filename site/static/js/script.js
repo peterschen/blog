@@ -128,7 +128,7 @@ jQuery(function($) {
               output +=
                   '<div class="search-result-row">' +
                   '<a class="search-result-row-link" href="' +
-                  post.doc.url +
+                  post.doc.permalink +
                   '">' +
                   '<div class="search-result-row-title">' +
                   post.doc.title +
