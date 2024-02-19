@@ -25,8 +25,7 @@
 
     {{- if eq $format "amp" -}}
         <amp-img srcset="{{ $coverS.Permalink }} 320w,{{ $coverM.Permalink }} 640w,{{ $coverL.Permalink }} 960w,{{ $coverXL.Permalink }} 1920w"
-            width="{{ $coverM.Width }}"
-            height="{{ $coverM.Height }}"
+            width="640"
             src="{{ $coverM.Permalink }}"
             alt="{{ $title }}" />
     {{- else -}}
