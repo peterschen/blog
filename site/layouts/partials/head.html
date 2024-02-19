@@ -1,63 +1,74 @@
-<head>
-  <meta charset="utf-8">
-  <meta name="HandheldFriendly" content="True" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-  <meta name="referrer" content="no-referrer-when-downgrade" />
-  {{ hugo.Generator }}
+<meta charset="utf-8">
+<meta name="HandheldFriendly" content="True" />
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+<meta name="referrer" content="no-referrer-when-downgrade" />
+{{ hugo.Generator }}
 
-  <meta name="description" content="{{ .Site.Params.description }}">
+<meta name="description" content="{{ .Site.Params.description }}">
+{{ with .OutputFormats.Get "html" -}}
   <link rel="canonical" href="{{ .Permalink }}">
-  <meta name="referrer" content="no-referrer-when-downgrade">
+{{ end }}
+<meta name="referrer" content="no-referrer-when-downgrade">
 
-  {{ partial "head_twitter.html" . }}
-  {{ partial "head_opengraph.html" . }}
-  {{ template "_internal/google_analytics.html" . }}
+{{ $format := .Scratch.Get "output-format" }}
+{{- if eq $format "amp" -}}
+  {{ partial "amp.html" . }}
+{{- end -}}
+{{ partial "head_twitter.html" . }}
+{{ partial "head_opengraph.html" . }}
+{{ template "_internal/google_analytics.html" . }}
 
-  {{ $opts := dict "transpiler" "dartsass" "targetPath" "css/style.css" }}
-  {{- with resources.Get "sass/style.scss" | toCSS $opts | minify | fingerprint -}}
-    <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" crossorigin="anonymous" />
-  {{- end -}}
+{{ $opts := dict "transpiler" "dartsass" "targetPath" "css/style.css" }}
+{{- with resources.Get "sass/style.scss" | toCSS $opts | minify | fingerprint -}}
+  <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" crossorigin="anonymous" />
+{{- end -}}
 
-  <!-- tocbot.js -->
-  <link rel="stylesheet" href="/js/libs/tocbot/tocbot.min.css"
-    integrity="sha512-4q0OX9NAYcRTFEfy9nTK0AV9N7MxM665neDXEW3CjAj1pXc6+8Bcd6ryXl6cY8mTBBXt0aXepnSDLLQZSuJRww=="
-    crossorigin="anonymous" referrerpolicy="no-referrer" />
+<!-- tocbot.js -->
+<link rel="stylesheet" href="/js/libs/tocbot/tocbot.min.css"
+  integrity="sha512-4q0OX9NAYcRTFEfy9nTK0AV9N7MxM665neDXEW3CjAj1pXc6+8Bcd6ryXl6cY8mTBBXt0aXepnSDLLQZSuJRww=="
+  crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-  <script src="/js/libs/jquery.min.js"
-    integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"></script>
+<script src="/js/libs/jquery.min.js"
+  integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"></script>
 
-  <script src="/js/libs/jquery.fitvids.min.js"
-    integrity="sha512-/2sZKAsHDmHNoevKR/xsUKe+Bpf692q4tHNQs9VWWz0ujJ9JBM67iFYbIEdfDV9I2BaodgT5MIg/FTUmUv3oyQ=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"></script>
+<script src="/js/libs/jquery.fitvids.min.js"
+  integrity="sha512-/2sZKAsHDmHNoevKR/xsUKe+Bpf692q4tHNQs9VWWz0ujJ9JBM67iFYbIEdfDV9I2BaodgT5MIg/FTUmUv3oyQ=="
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"></script>
 
-  <script src="/js/libs/elasticlunr/elasticlunr.min.js"
-    integrity="sha512-0QarUp4p9r5IqUgSRyP89BHga45OpEd7VR8lbRkJkf48p/EhcU742fWUpKpoDyu9N6XYAEq/vz6m6z1OolnsDw=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"></script>
+<script src="/js/libs/elasticlunr/elasticlunr.min.js"
+  integrity="sha512-0QarUp4p9r5IqUgSRyP89BHga45OpEd7VR8lbRkJkf48p/EhcU742fWUpKpoDyu9N6XYAEq/vz6m6z1OolnsDw=="
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"></script>
 
-  {{- partial "favicons.html" -}}
+{{- partial "favicons.html" -}}
 
-  {{ $title := print .Title " | " .Site.Title }}
-  {{ if .IsHome }}
-    {{ $title = .Site.Title }}
+{{ $title := print .Title " | " .Site.Title }}
+{{ if .IsHome }}
+  {{ $title = .Site.Title }}
+  {{ partial "ld+json/organization.html" . }}
+  {{ partial "ld+json/website.html" . }}
+{{ else }}
+  {{ partial "ld+json/breadcrumb.html" . }}
+  {{ if .OutputFormats.Get "amp" -}}
+      {{ partial "ld+json/article.html" . }}
   {{ end }}
-  <title>{{ $title }}</title>
+{{ end }}
+<title>{{ $title }}</title>
 
-  <script>
-    var siteUrl = '{{ .Site.BaseURL }}';
-    var localTheme = localStorage.getItem('attila_theme');
-    switch (localTheme) {
-      case 'dark':
-        document.documentElement.classList.add('theme-dark');
-        break;
-      case 'light':
-        document.documentElement.classList.add('theme-light');
-        break;
-      default:
-        break;
-    }
-  </script>
-</head>
+<script>
+  var siteUrl = '{{ .Site.BaseURL }}';
+  var localTheme = localStorage.getItem('attila_theme');
+  switch (localTheme) {
+    case 'dark':
+      document.documentElement.classList.add('theme-dark');
+      break;
+    case 'light':
+      document.documentElement.classList.add('theme-light');
+      break;
+    default:
+      break;
+  }
+</script>

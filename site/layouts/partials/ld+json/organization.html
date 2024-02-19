@@ -1,0 +1,28 @@
+<!--
+    schema.org ld+json representation for an Organization
+    see https://developers.google.com/search/docs/data-types/logo
+    note: The logo should be rectangular unlike the general site and amp publisher logos
+-->
+
+{{ $orgName := .Site.Params.contact.organization }}
+{{ $streetAddress := .Site.Params.contact.street }}
+{{ $city := .Site.Params.contact.city }}
+{{ $postalCode := .Site.Params.contact.postal_code }}
+{{ $country := .Site.Params.contact.country }}
+
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": {{ $orgName }},
+        "url": {{ .Site.BaseURL }},
+        "address": {
+            "@type": "PostalAddress",
+            "addressCountry": {{ $country }},
+            "addressLocality": {{ $city }},
+            "postalCode": {{ $postalCode }},
+            "streetAddress": {{ $streetAddress }}
+        },
+        "sameAs": []
+    }
+</script>

@@ -37,7 +37,7 @@
                 <h4 class="post-meta-author"><a href="{{ $authorDetails.RelPermalink }}">{{ $authorDetails.Title }}</a></h4>
                 <time datetime="{{ .Date }}">{{ .Date.Format .Site.Params.dateFormat }}</time> &bull; {{ (printf "%d min read" .ReadingTime) }}
             </div>
-            {{ partial "cover-post.html" (dict "context" . "image"  .Params.cover ) }}
+            {{ partial "cover-post.html" (dict "context" . "image" .Params.cover ) }}
         </div>
     </header>
 

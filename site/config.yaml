@@ -31,6 +31,13 @@ params:
   description: Ramblings about all things Cloud. Views expressed are my own.
   cover: images/blog-header-5.png
 
+  contact:
+    organization: peterschen.de
+    street: Apostelweg 11
+    city: Hamburg
+    postal_code: 22143
+    country: Germany
+
   author: christoph
   DateFormat: "2 January 2006"
 
@@ -77,5 +84,9 @@ sitemap:
 outputs:
   home:
     - html
+    - amp
     - rss
     - json
+  page:
+    - html
+    - amp

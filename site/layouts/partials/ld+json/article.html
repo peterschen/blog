@@ -1,0 +1,48 @@
+<!--
+    schema.org ld+json representation of either a BlogPosting or NewsArticle
+    see https://developers.google.com/search/docs/data-types/article
+-->
+
+{{ $author := .Site.Params.author }}
+{{ $orgName := .Site.Params.contact.organization }}
+
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "name": {{ .Title }},
+        "mainEntityOfPage": {{ .Permalink }},
+        "headline": {{ .Title }},
+        "image": [
+            {{ $resource := .Resources.GetMatch .Params.cover }}
+            {{- with $resource -}}
+                {{ $coverS := . }}
+                {{ $coverM := . }}
+                {{ $coverL := . }}
+                {{ $coverXL := . }}
+        
+                {{ if ne .MediaType.SubType "svg" }}
+                    {{ $coverS = .Resize "320x" }}
+                    {{ $coverM = .Resize "640x" }}
+                    {{ $coverL = .Resize "960x" }}
+                    {{ $coverXL = .Resize "1920x" }}
+                {{ end }}
+                {{ $coverS.RelPermalink }},
+                {{ $coverM.RelPermalink }},
+                {{ $coverL.RelPermalink }},
+                {{ $coverXL.RelPermalink }}
+            {{- end -}}
+        ],
+        "description": {{ .Description }},
+        "author": {
+            "@type": "Person",
+            "name": {{ $author }}
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": {{ $orgName }}
+        },
+        "datePublished": {{ .PublishDate }},
+        "dateModified": {{ .Lastmod }}
+    }
+</script>
