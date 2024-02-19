@@ -3,7 +3,7 @@
     see https://developers.google.com/search/docs/data-types/article
 -->
 
-{{ $author := .Site.Params.author }}
+{{ $author := (.Params.author | default site.Params.author ) }}
 {{ $orgName := .Site.Params.contact.organization }}
 
 <script type="application/ld+json">
@@ -34,10 +34,13 @@
             {{- end -}}
         ],
         "description": {{ .Description }},
-        "author": {
-            "@type": "Person",
-            "name": {{ $author }}
-        },
+        {{- with site.GetPage ( printf "/authors/%s" $author ) -}}
+            "author": {
+                "@type": "Person",
+                "name": {{ .Title }},
+                "url": {{ .Permalink }}
+            },
+        {{- end -}}
         "publisher": {
             "@type": "Organization",
             "name": {{ $orgName }}
