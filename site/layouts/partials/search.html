@@ -10,9 +10,9 @@
             <h4 class="popular-title">Tags</h4>
             <span class="popular-tags post-tags">
                 {{- range .Site.Taxonomies.tags -}}
-                    {{- $tag := . -}}
+                    {{ $tag := . }}
                     {{- with site.GetPage ( printf "/tags/%s" .Page.Title ) -}}
-                        <a href="{{- .Page.Permalink -}}">{{- .Page.Title -}}: {{- $tag.Count -}}</a>
+                        <a href="{{ .Page.Permalink }}">{{ .Page.Title }}: {{ $tag.Count }}</a>
                     {{- end -}}
                 {{- end -}}
             </span>

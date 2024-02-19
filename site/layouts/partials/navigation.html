@@ -1,11 +1,11 @@
 <div class="nav-header">
     <nav class="nav-wrapper" aria-label="Main">
         <ul>
-            {{- $currentPage := . -}}
+            {{ $currentPage := . }}
             {{- range site.Menus.main -}}
-                <li class="nav-{{- .Identifier -}}{{- if eq $currentPage.RelPermalink .URL -}} active{{end}}">
-                    <a href="{{- .URL -}}" title="{{- .Title | default .Name -}}">
-                        <span>{{- .Name -}}</span>
+                <li class="nav-{{ .Identifier }}{{ if eq $currentPage.RelPermalink .URL }} active{{end}}">
+                    <a href="{{ .URL }}" title="{{ .Title | default .Name }}">
+                        <span>{{ .Name }}</span>
                     </a>
                 </li>
             {{- end -}}
