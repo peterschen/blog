@@ -1,0 +1,10 @@
+{{ if .IsHome }}
+    {{ partial "ld+json/organization.html" . }}
+    {{ partial "ld+json/website.html" . }}
+{{ else }}
+    {{ partial "ld+json/breadcrumb.html" . }}
+    
+    {{ if .OutputFormats.Get "amp" -}}
+        {{ partial "ld+json/article.html" . }}
+    {{ end }}
+{{ end }}

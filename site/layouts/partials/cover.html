@@ -1,28 +1,39 @@
+{{ $context := .context }}
 {{ $classes := "blog-cover cover" }}
 {{ $resource := resources.GetMatch .image }}
 {{ $title := .context.Title }}
+{{ $format := "html" }}
 
 {{ if eq .type "post" }}
     {{ $classes = "post-cover cover" }}
     {{ $resource = .context.Resources.GetMatch .image }}
+    {{ $format = .context.Scratch.Get "output-format" }}
 {{ end }}
 
 {{- with $resource -}}
-    <div class="{{ $classes }}">
-        {{ $coverS := . }}
-        {{ $coverM := . }}
-        {{ $coverL := . }}
-        {{ $coverXL := . }}
+    {{ $coverS := . }}
+    {{ $coverM := . }}
+    {{ $coverL := . }}
+    {{ $coverXL := . }}
 
-        {{ if ne .MediaType.SubType "svg" }}
-            {{ $coverS = .Resize "320x" }}
-            {{ $coverM = .Resize "640x" }}
-            {{ $coverL = .Resize "960x" }}
-            {{ $coverXL = .Resize "1920x" }}
-        {{ end }}
+    {{ if ne .MediaType.SubType "svg" }}
+        {{ $coverS = .Resize "320x" }}
+        {{ $coverM = .Resize "640x" }}
+        {{ $coverL = .Resize "960x" }}
+        {{ $coverXL = .Resize "1920x" }}
+    {{ end }}
 
-        <img srcset="{{ $coverS.Permalink }} 320w,{{ $coverM.Permalink }} 640w,{{ $coverL.Permalink }} 960w,{{ $coverXL.Permalink }} 1920w"
-                src="{{ $coverXL.Permalink }}"
-                alt="{{ $title }}" />
-    </div>
+    {{- if eq $format "amp" -}}
+        <amp-img srcset="{{ $coverS.Permalink }} 320w,{{ $coverM.Permalink }} 640w,{{ $coverL.Permalink }} 960w,{{ $coverXL.Permalink }} 1920w"
+            width="{{ $coverM.Width }}"
+            height="{{ $coverM.Height }}"
+            src="{{ $coverM.Permalink }}"
+            alt="{{ $title }}" />
+    {{- else -}}
+        <div class="{{ $classes }}">
+            <img srcset="{{ $coverS.Permalink }} 320w,{{ $coverM.Permalink }} 640w,{{ $coverL.Permalink }} 960w,{{ $coverXL.Permalink }} 1920w"
+                    src="{{ $coverXL.Permalink }}"
+                    alt="{{ $title }}" />
+        </div>
+    {{- end -}}
 {{- end -}}
