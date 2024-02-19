@@ -7,13 +7,18 @@
                     <div class="box post-box">
                         <h2 class="post-title"><a href="{{ .Permalink }}">{{ .Title }}</a></h2>
                         <span class="post-meta">
-                            By {{ partial "author.html" . }} in 
-                            {{- if or .Params.categoryTag .Params.tags -}}
+                            By 
+                            {{ $author := (.Params.author | default site.Params.author ) }}
+                            {{ with site.GetPage ( printf "/authors/%s" $author ) }}
+                                <a href="{{ .Permalink }}">{{ .Title }}</a>
+                            {{ end }}
+                            in 
+                            {{if or .Params.categoryTag .Params.tags }}
                                 {{ $category := .Params.catgegory | default ( index ( first 1 .Params.tags) 0 ) }}
                                 {{- with site.GetPage ( printf "/tags/%s" $category ) -}}
                                     <a class="post-meta-tag" href="{{ .Permalink }}">{{ .Title }}</a>
                                 {{- end -}}
-                            {{- end -}} on <time datetime="{{ .Date }}">{{ .Date.Format .Site.Params.dateFormat }}</time>
+                            {{ end }} on <time datetime="{{ .Date }}">{{ .Date.Format .Site.Params.dateFormat }}</time>
                         </span>
                         <p class="post-excerpt">{{ .Summary }}&hellip;</p>
                     </div>

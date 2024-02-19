@@ -8,13 +8,7 @@
 					<span class="archive-type">Author</span>
 					<span class="archive-count">{{ i18n "posts" (len $pages) }}</span>
 				</span>
-				<figure class="archive-avatar avatar">
-					{{ with resources.Get .Params.image }}
-						{{ with .Resize "100x" }}
-							<img src="{{ .Permalink }}" alt="{{ $title }}" />
-						{{ end }}
-					{{ end }}
-				</figure>
+				{{ partial "author-avatar.html" (dict "author" . "type" "authors") }}
 				<h2 class="archive-title">{{ $title }}</h2>
 				{{ if .Content }}
 					<span class="archive-description">{{ partial "headings.html" .Content }}</span>

@@ -1,0 +1,25 @@
+{{ $author := .author }}
+{{ $pageType := .type }}
+{{ $image := .author.Params.image }}
+
+{{ with resources.Get $image }}
+    {{ with .Process "webp" }}
+        {{ with .Resize "100x" }}
+            {{ $image = . }}
+        {{ end }}
+    {{ end }}
+{{ end }}
+
+{{- with $image -}}
+    {{ if eq $pageType "authors" }}
+        <figure class="archive-avatar avatar">
+            <img src="{{ .Permalink }}" alt="{{ $author.Title }}" />
+        </figure>
+    {{ else }}
+        <figure class="post-meta-avatar avatar">
+            <a href="{{ $author.Permalink }}" class="author-avatar">
+                <img class="author-profile-image" src="{{ .Permalink }}" alt="{{ $author.Title }}" />
+            </a>
+        </figure>
+    {{ end }}
+{{- end -}}

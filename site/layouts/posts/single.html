@@ -17,20 +17,13 @@
             <h1 class="post-title">{{ .Title }}</h1>
             <div class="post-meta">
                 <div class="post-meta-avatars">
+                    {{ $page := . }}
                     {{ $author := (.Params.author | default site.Params.author )}}
                     {{ $authorDetails := "" }}
 
                     {{ with site.GetPage ( printf "/authors/%s" $author ) }}
                         {{ $authorDetails = . }}
-                        <figure class="post-meta-avatar avatar">
-                            {{ with resources.Get $authorDetails.Params.image }}
-                                {{ with .Resize "100x" }}
-                                    <a href="{{ $authorDetails.Permalink }}" class="author-avatar">
-                                        <img class="author-profile-image" src="{{ .Permalink }}" alt="{{ $authorDetails.Title }}" />
-                                    </a>
-                                {{ end }}
-                            {{ end }}
-                        </figure>
+                        {{ partial "author-avatar.html" (dict "author" . "type" "post") }}
                     {{ end }}
                 </div>
 
