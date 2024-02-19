@@ -16,17 +16,23 @@
     {{ $coverL := . }}
     {{ $coverXL := . }}
 
+    {{ $width := 640 }}
+    {{ $height := 480 }}
+
     {{ if ne .MediaType.SubType "svg" }}
         {{ $coverS = .Resize "320x" }}
         {{ $coverM = .Resize "640x" }}
         {{ $coverL = .Resize "960x" }}
         {{ $coverXL = .Resize "1920x" }}
+
+        {{ $width = $coverM.Width }}
+        {{ $height = $coverM.Height }}
     {{ end }}
 
     {{- if eq $format "amp" -}}
-        <amp-img srcset="{{ $coverS.Permalink }} 320w,{{ $coverM.Permalink }} 640w,{{ $coverL.Permalink }} 960w,{{ $coverXL.Permalink }} 1920w"
-            width="640"
-            src="{{ $coverM.Permalink }}"
+        <amp-img src="{{ $coverM.Permalink }}"
+            width="{{ $width }}"
+            height="{{ $height }}"
             alt="{{ $title }}" />
     {{- else -}}
         <div class="{{ $classes }}">
