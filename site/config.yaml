@@ -2,7 +2,7 @@ baseURL: https://www.peterschen.de/
 languageCode: en-us
 title: Order to Management
 paginate: 10
-summaryLength: 12
+summaryLength: 40
 
 enableRobotsTXT: true
 buildDrafts: false
