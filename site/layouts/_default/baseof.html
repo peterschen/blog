@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-{{ $lang := .Site.Language.Lang | default "en" }}
-<html lang="{{ $lang }}">
-    {{ partial "head.html" . }}
+{{- $lang := .Site.Language.Lang | default "en" -}}
+<html lang="{{- $lang -}}">
+    {{- partial "head.html" . -}}
 
     <!-- <body class="body_class"> -->
     <body class="{{- if .IsHome -}}home{{- else -}}post{{- end -}}-template">
-        {{ partial "navigation.html" . }}
+        {{- partial "navigation.html" . -}}
 
         <section class="page-wrapper">
-            {{ block "main" . }}{{ end }}
-            {{ partial "search.html" . }}
-            {{ partial "footer.html" . }}
+            {{- block "main" . -}}{{- end -}}
+            {{- partial "search.html" . -}}
+            {{- partial "footer.html" . -}}
         </section>
 
-        {{ partial "scripts.html" . }}
+        {{- partial "scripts.html" . -}}
     </body>
 </html>

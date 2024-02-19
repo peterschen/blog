@@ -1,21 +1,21 @@
-{{ define "main" }}
-<header class="post-header {{ if .Params.cover }} has-cover {{ end }}">
+{{- define "main" -}}
+<header class="post-header {{- if .Params.cover -}} has-cover {{- end -}}">
 	<div class="inner">
-		<h1 class="post-title">{{ .Title }}</h1>
-		{{ partial "cover-post.html" ( dict "context" . "image" .Params.cover ) }}
+		<h1 class="post-title">{{- .Title -}}</h1>
+		{{- partial "cover-post.html" ( dict "context" . "image" .Params.cover ) -}}
 	</div>
 </header>
 
 <main class="content" role="main">
 	<article class="page">
 		<div class="inner">
-			<section class="post-content">{{ partial "headings.html" .Content }}</section>
+			<section class="post-content">{{- partial "headings.html" .Content -}}</section>
 		</div>
 	</article>
 </main>
-{{ end }}
+{{- end -}}
 
-{{ define "scripts"}}
+{{- define "scripts"}}
 <script>
 	$(document).ready(function () {
 		var post = $('.post-content');
@@ -23,4 +23,4 @@
         post.fitVids();
 	});
 </script>
-{{ end }}
+{{- end -}}

@@ -1,31 +1,31 @@
-{{ $classes := "blog-cover cover" }}
-{{ $resource := resources.GetMatch .image }}
-{{ $title := .context.Title }}
+{{- $classes := "blog-cover cover" -}}
+{{- $resource := resources.GetMatch .image -}}
+{{- $title := .context.Title -}}
 
-{{ if eq .type "post" }}
-    {{ $classes = "post-cover cover" }}
-    {{ $resource = .context.Resources.GetMatch .image }}
-{{ end }}
+{{- if eq .type "post" -}}
+    {{- $classes = "post-cover cover" -}}
+    {{- $resource = .context.Resources.GetMatch .image -}}
+{{- end -}}
 
-{{ with $resource }}
-    <div class="{{ $classes }}">
-        {{ $coverS := . }}
-        {{ $coverM := . }}
-        {{ $coverL := . }}
-        {{ $coverXL := . }}
+{{- with $resource -}}
+    <div class="{{- $classes -}}">
+        {{- $coverS := . -}}
+        {{- $coverM := . -}}
+        {{- $coverL := . -}}
+        {{- $coverXL := . -}}
 
-        {{ if ne .MediaType.SubType "svg" }}
-            {{ $coverS = .Resize "320x" }}
-            {{ $coverM = .Resize "640x" }}
-            {{ $coverL = .Resize "960x" }}
-            {{ $coverXL = .Resize "1920x" }}
-        {{ end }}
+        {{- if ne .MediaType.SubType "svg" -}}
+            {{- $coverS = .Resize "320x" -}}
+            {{- $coverM = .Resize "640x" -}}
+            {{- $coverL = .Resize "960x" -}}
+            {{- $coverXL = .Resize "1920x" -}}
+        {{- end -}}
 
         <img srcset="{{ $coverS.RelPermalink }} 320w,
                     {{ $coverM.RelPermalink }} 640w,
                     {{ $coverL.RelPermalink }} 960w,
                     {{ $coverXL.RelPermalink }} 1920w"
-                src="{{ $coverXL.RelPermalink }}"
-                alt="{{ $title }}" />
+                src="{{- $coverXL.RelPermalink -}}"
+                alt="{{- $title -}}" />
     </div>
-{{ end }}
+{{- end -}}

@@ -6,5 +6,5 @@
     {{- .Content | safeHTML -}}
   {{- end -}}
 {{- else -}}
-  {{ errorf "Unable to get remote resource." }}
+  {{- errorf "Unable to get remote resource." -}}
 {{- end -}}

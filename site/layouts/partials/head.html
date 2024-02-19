@@ -3,20 +3,20 @@
   <meta name="HandheldFriendly" content="True" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
   <meta name="referrer" content="no-referrer-when-downgrade" />
-  {{ hugo.Generator }}
+  {{- hugo.Generator -}}
 
-  <meta name="description" content="{{ .Site.Params.description }}">
-  <link rel="canonical" href="{{ .Permalink }}">
+  <meta name="description" content="{{- .Site.Params.description -}}">
+  <link rel="canonical" href="{{- .Permalink -}}">
   <meta name="referrer" content="no-referrer-when-downgrade">
 
-  {{ partial "head_twitter.html" . }}
-  {{ partial "head_opengraph.html" . }}
-  {{ template "_internal/google_analytics.html" . }}
+  {{- partial "head_twitter.html" . -}}
+  {{- partial "head_opengraph.html" . -}}
+  {{- template "_internal/google_analytics.html" . -}}
 
-  {{ $opts := dict "transpiler" "dartsass" "targetPath" "css/style.css" }}
-  {{ with resources.Get "sass/style.scss" | toCSS $opts | minify | fingerprint }}
-    <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" crossorigin="anonymous" />
-  {{ end }}
+  {{- $opts := dict "transpiler" "dartsass" "targetPath" "css/style.css" -}}
+  {{- with resources.Get "sass/style.scss" | toCSS $opts | minify | fingerprint -}}
+    <link rel="stylesheet" href="{{- .RelPermalink -}}" integrity="{{- .Data.Integrity -}}" crossorigin="anonymous" />
+  {{- end -}}
 
   <!-- tocbot.js -->
   <link rel="stylesheet" href="/js/libs/tocbot/tocbot.min.css"
@@ -38,16 +38,16 @@
     crossorigin="anonymous"
     referrerpolicy="no-referrer"></script>
 
-  {{ partial "favicons.html" }}
+  {{- partial "favicons.html" -}}
 
-  {{ $title := print .Title " | " .Site.Title }}
-  {{ if .IsHome }}
-    {{ $title = .Site.Title }}
-  {{ end }}
-  <title>{{ $title }}</title>
+  {{- $title := print .Title " | " .Site.Title -}}
+  {{- if .IsHome -}}
+    {{- $title = .Site.Title -}}
+  {{- end -}}
+  <title>{{- $title -}}</title>
 
   <script>
-    var siteUrl = '{{ .Site.BaseURL }}';
+    var siteUrl = '{{- .Site.BaseURL -}}';
     var localTheme = localStorage.getItem('attila_theme');
     switch (localTheme) {
       case 'dark':
