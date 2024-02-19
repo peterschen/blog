@@ -84,7 +84,6 @@ sitemap:
 outputs:
   home:
     - html
-    - amp
     - rss
     - json
   page:
