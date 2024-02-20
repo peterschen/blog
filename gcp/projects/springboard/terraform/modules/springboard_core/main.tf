@@ -59,15 +59,43 @@ locals {
     }
   ]
 
+  core_firewall_rules = [
+    {
+      name = "deny-smtp-egress",
+      priority = 50000
+      disabled = false
+      direction = "EGRESS"
+      allow = [],
+      deny = [
+        {
+          protocol = "tcp",
+          ports = [
+            "25"
+          ]
+        }
+      ],
+      source_tags = [],
+      target_tags = [],
+      source_ranges = [],
+      destination_ranges = [
+        "0.0.0.0/0"
+      ],
+      logging = true
+    }
+  ]
+
   # Merge core APIs with allowed APIs
   allowed_apis = concat(local.core_apis, var.allowed_apis)
   allowed_regions = var.allowed_regions
 
-  # Merge core constraints with constraints passed as variable
+  # Merge core constraints with constraints passed in
   constraints = concat(local.core_constraints, var.constraints)
 
   peer_networks = var.peer_networks
   shared_networks = var.shared_networks
+
+  # Merge core firewall rules with firewall rules passed in
+  firewall_rules = concat(local.core_firewall_rules, var.firewall_rules)
 }
 
 module "project" {
@@ -97,4 +125,11 @@ module "network" {
   project_name = module.project.name
   peer_networks = local.peer_networks
   shared_networks = local.shared_networks
+}
+
+module "firewall" {
+  source = "github.com/peterschen/blog//gcp/projects/springboard/terraform/modules/springboard_firewall"
+  project_name = module.project.name
+  network_name = module.network.name
+  rules = local.firewall_rules
 }
