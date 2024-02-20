@@ -11,6 +11,11 @@ variable "region" {
   default = "europe-west4"
 }
 
+variable "name" {
+  type = string
+  default = null
+}
+
 variable "prefix" {
   type = string
   default = null
