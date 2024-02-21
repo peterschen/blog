@@ -5,6 +5,7 @@ locals {
   billing_account = var.billing_account
   name = var.name
   prefix = var.prefix
+  suffix = var.suffix
 }
 
 resource "random_pet" "project" {
@@ -20,8 +21,8 @@ resource "random_integer" "project" {
 }
 
 resource "google_project" "project" {
-  project_id = local.name != null ? local.name : "${random_pet.project[0].id}-${random_integer.project[0].id}"
-  name = local.name != null ? local.name : "${random_pet.project[0].id}-${random_integer.project[0].id}"
+  project_id = "${local.name != null ? local.name : "${random_pet.project[0].id}-${random_integer.project[0].id}}"}${local.suffix != null ? "-${local.suffix}" : ""}"
+  name = "${local.name != null ? local.name : "${random_pet.project[0].id}-${random_integer.project[0].id}}"}${local.suffix != null ? "-${local.suffix}" : ""}"
   org_id = local.org_id
   folder_id = local.folder
   billing_account = local.billing_account
