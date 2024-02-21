@@ -12,6 +12,7 @@ resource "google_compute_firewall" "rule" {
   network = local.network_name
   priority = local.rules[count.index].priority
   disabled = local.rules[count.index].disabled
+  direction = local.rules[count.index].direction
 
   dynamic allow {
     for_each = toset(local.rules[count.index].allow)
