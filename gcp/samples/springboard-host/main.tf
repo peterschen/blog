@@ -2,11 +2,12 @@ provider "google" {
 }
 
 locals {
-  name = var.name
-  prefix = var.prefix
+  project_name = var.project_name
+  project_prefix = var.project_prefix
+  project_suffix = var.project_suffix
 
   peer_networks = var.peer_networks
-  shared_networks = var.shared_networks
+  enable_peering = var.enable_peering
 }
 
 module "project" {
@@ -15,8 +16,9 @@ module "project" {
   org_id = var.org_id
   billing_account = var.billing_account
 
-  name = local.name
-  prefix = local.prefix
+  name = local.project_name
+  prefix = local.project_prefix
+  suffix = local.project_suffix
 
   apis = [
     "compute.googleapis.com"
@@ -30,7 +32,7 @@ resource "google_compute_network" "network" {
 }
 
 resource "google_compute_network_peering" "peer_network" {
-  count = length(local.peer_networks)
+  count = local.enable_peering ? length(local.peer_networks) : 0
   name = basename(local.peer_networks[count.index])
   network = google_compute_network.network.self_link
   peer_network = local.peer_networks[count.index]
