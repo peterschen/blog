@@ -121,6 +121,10 @@ module "opsagent" {
   source = "github.com/peterschen/blog//gcp/projects/springboard/terraform/modules/springboard_opsagent"
   project_name = module.project.name
   regions = local.allowed_regions
+
+  depends_on = [ 
+    module.organization_policy
+  ]
 }
 
 module "network" {
@@ -128,6 +132,10 @@ module "network" {
   project_name = module.project.name
   peer_networks = local.peer_networks
   shared_networks = local.shared_networks
+  
+  depends_on = [ 
+    module.organization_policy
+  ]
 }
 
 module "firewall" {
@@ -136,4 +144,8 @@ module "firewall" {
   network_name = module.network.name
   network_id = module.network.id
   rules = local.firewall_rules
+
+  depends_on = [ 
+    module.organization_policy
+  ]
 }
