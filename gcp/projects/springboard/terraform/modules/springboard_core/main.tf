@@ -3,6 +3,7 @@ locals {
   folder_id = var.folder_id
   billing_account = var.billing_account
   project_name = var.project_name
+  project_suffix = var.project_suffix
 
   # APIs that are required
   core_apis = [
@@ -107,6 +108,7 @@ module "project" {
   folder_id = local.folder_id
   billing_account = local.billing_account
   name = local.project_name
+  suffix = local.project_suffix
 
   apis = local.allowed_apis
 }

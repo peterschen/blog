@@ -22,3 +22,8 @@ variable "name" {
     type = string
     default = null
 }
+
+variable "suffix" {
+    type = string
+    default = null
+}

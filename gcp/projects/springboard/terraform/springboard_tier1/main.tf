@@ -3,6 +3,7 @@ locals {
   folder_id = var.folder_id
   billing_account = var.billing_account
   project_name = var.project_name
+  project_suffix = var.project_suffix
 
   # APIs that are required
   core_apis = []
@@ -72,6 +73,7 @@ module "springboard" {
   folder_id = local.folder_id
   billing_account = local.billing_account
   project_name = local.project_name
+  project_suffix = local.project_suffix
 
   allowed_apis = local.allowed_apis
   allowed_regions = local.allowed_regions

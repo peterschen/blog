@@ -18,6 +18,11 @@ variable "project_name" {
   default = null
 }
 
+variable "project_suffix" {
+  type = string
+  default = null
+}
+
 variable "allowed_apis" {
     type = list(string)
     default = []
