@@ -50,3 +50,31 @@ variable "shared_networks" {
   type = list(string)
   default = []
 }
+
+variable "firewall_rules" {
+    type = list(
+        object({
+            name = string,
+            priority = number,
+            direction = string,
+            allow = list(
+                object({
+                    protocol = string,
+                    ports = list(string)
+                })
+            ),
+            deny = list(
+                object({
+                    protocol = string,
+                    ports = list(string)
+                })
+            ),
+            source_tags = list(string),
+            target_tags = list(string),
+            source_ranges = list(string),
+            destination_ranges = list(string),
+            logging = bool
+        })
+    )
+    default = []
+}
