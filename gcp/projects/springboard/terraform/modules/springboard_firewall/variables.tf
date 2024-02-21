@@ -8,6 +8,11 @@ variable "network_name" {
     default = null
 }
 
+variable "network_id" {
+    type = string
+    default = null
+}
+
 variable "rules" {
   type = list(
     object({

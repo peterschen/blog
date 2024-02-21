@@ -8,7 +8,9 @@ locals {
   core_apis = [
     "logging.googleapis.com",
     "osconfig.googleapis.com",
-    "compute.googleapis.com"
+    "compute.googleapis.com",
+    "cloudresourcemanager.googleapis.com",
+    "networksecurity.googleapis.com"
   ]
 
   # Constraints that are always enforced
@@ -61,54 +63,6 @@ locals {
   ]
 
   core_firewall_rules = [
-    {
-      name = "allow-ssh-ingress-iap",
-      priority = 50000
-      disabled = false
-      direction = "INGRESS"
-      allow = [
-        {
-          protocol = "tcp",
-          ports = [
-            "22"
-          ]
-        }
-      ],
-      deny = [],
-      source_tags = [],
-      target_tags = [
-        "ssh-iap"
-      ],
-      source_ranges = [
-        "35.235.240.0/20"
-      ],
-      destination_ranges = [],
-      logging = true
-    },
-    {
-      name = "allow-rdp-ingress-iap",
-      priority = 50000
-      disabled = false
-      direction = "INGRESS"
-      allow = [
-        {
-          protocol = "tcp",
-          ports = [
-            "3389"
-          ]
-        }
-      ],
-      deny = [],
-      source_tags = [],
-      target_tags = [
-        "rdp-iap"
-      ],
-      source_ranges = [
-        "35.235.240.0/20"
-      ],
-      destination_ranges = [],
-      logging = true
-    },
     {
       name = "deny-smtp-egress",
       priority = 50000
@@ -180,5 +134,6 @@ module "firewall" {
   source = "github.com/peterschen/blog//gcp/projects/springboard/terraform/modules/springboard_firewall"
   project_name = module.project.name
   network_name = module.network.name
+  network_id = module.network.id
   rules = local.firewall_rules
 }
