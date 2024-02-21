@@ -56,6 +56,7 @@ variable "firewall_rules" {
         object({
             name = string,
             priority = number,
+            direction = string,
             allow = list(
                 object({
                     protocol = string,

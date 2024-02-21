@@ -14,6 +14,7 @@ variable "rules" {
       name = string,
       priority = number,
       disabled = bool
+      direction = string,
       allow = list(
         object({
           protocol = string,
