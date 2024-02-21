@@ -9,7 +9,7 @@ resource "google_compute_firewall" "rule" {
   project = var.project_name
   name = local.rules[count.index].name
 
-  network = local.network.name
+  network = local.network_name
   priority = local.rules[count.index].priority
   disabled = local.rules[count.index].disabled
 
