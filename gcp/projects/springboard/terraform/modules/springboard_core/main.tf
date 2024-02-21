@@ -7,7 +7,8 @@ locals {
   # APIs that are required
   core_apis = [
     "logging.googleapis.com",
-    "osconfig.googleapis.com"
+    "osconfig.googleapis.com",
+    "compute.googleapis.com"
   ]
 
   # Constraints that are always enforced
