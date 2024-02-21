@@ -4,17 +4,12 @@ locals {
   rules = var.rules
 }
 
-data "google_compute_network" "network" {
-  project = local.project_name
-  name = local.network_name
-}
-
 resource "google_compute_firewall" "rule" {
   count = length(local.rules)
   project = var.project_name
   name = local.rules[count.index].name
 
-  network = data.google_compute_network.network.name
+  network = local.network.name
   priority = local.rules[count.index].priority
   disabled = local.rules[count.index].disabled
 
