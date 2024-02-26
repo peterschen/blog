@@ -11,6 +11,7 @@ variable "name" {
 variable "subnets" {
     type = list(
         object({
+            region = string,
             name = string,
             range = string,
             private_ipv4_google_access = bool,

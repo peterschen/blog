@@ -15,6 +15,7 @@ resource "google_compute_network" "network" {
 resource "google_compute_subnetwork" "subnet" {
   count = length(local.subnets)
   project = local.project_name
+  region = local.subnets[count.index].region
   name = local.subnets[count.index].name
   ip_cidr_range = local.subnets[count.index].range
   network = google_compute_network.network.name
