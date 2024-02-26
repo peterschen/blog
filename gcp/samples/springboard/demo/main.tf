@@ -25,7 +25,7 @@ module "springboard" {
 
 resource "google_compute_instance_template" "vm_with_external_ip" {
   count = length(local.allowed_regions)
-  project = module.springboard.project_id
+  project = module.springboard.project_name
   name = "vm-with-external-ip"
   region = local.allowed_regions[count.index]
   machine_type = "c3-standard-4"
