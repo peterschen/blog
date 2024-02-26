@@ -1,25 +1,23 @@
-# Delete deployment
+# Create VM with public IP
+
+1. [Instance Templates](https://console.cloud.google.com/compute/instanceTemplates/list?project=ts24-springboard-20240228)
+
+2. Deploy `vm-with-external-ip`
+
+3. Try gcloud
 
 ```sh
 export PROJECT_SUFFIX=`date +"%Y%m%d"`
+project="ts24-springboard-$PROJECT_SUFFIX"
+region="europe-west4"
+template="vm-with-external-ip"
 
-tfdir=../../samples/springboard-host
-input_file="/tmp/ts24-host-$PROJECT_SUFFIX.tfvars"
-
-terraform -chdir=$tfdir destroy \
-    -var enable_peering=false \
-    -var-file=$input_file \
-    -auto-approve -refresh=false
+gcloud compute instances create $template \
+    --source-instance-template=projects/$project/regions/$region/instanceTemplates/$template
 ```
 
-```sh
-tfdir=../../samples/infra-manager
-project_id=`terraform -chdir=$tfdir output -raw project_id`
-location="europe-west1"
-tier="tier1"
+# Create VM without public IP
 
-gcloud infra-manager deployments delete springboard-$tier \
-    --project=$project_id \
-    --location=$location \
-    --quiet
-```
+1. [Instance Templates](https://console.cloud.google.com/compute/instanceTemplates/list?project=ts24-springboard-20240228)
+
+2. Deploy `vm-without-external-ip`

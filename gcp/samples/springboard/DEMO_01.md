@@ -29,7 +29,7 @@ input_file="/tmp/ts24-springboard-$PROJECT_SUFFIX.tfvars"
 
 envsubst < ./demo/ts24.template.tfvars > $input_file
 
-gcloud infra-manager deployments apply springboard-tier1 \
+gcloud infra-manager deployments apply springboard \
     --project=$project_id \
     --location=$location \
     --service-account=$sa_id \
