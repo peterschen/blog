@@ -12,7 +12,7 @@ locals {
 }
 
 module "project" {
-  source = "../../modules/project"
+  source = "../../../modules/project"
 
   org_id = var.org_id
   billing_account = var.billing_account
@@ -54,7 +54,7 @@ resource "google_compute_network_peering" "peer_network" {
 }
 
 module "nat" {
-  source = "../../modules/nat"
+  source = "../../../modules/nat"
   project = module.project.id
 
   region = "europe-west4"
