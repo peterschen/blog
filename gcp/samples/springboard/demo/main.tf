@@ -27,7 +27,6 @@ resource "google_compute_instance_template" "vm_with_external_ip" {
   count = length(local.allowed_regions)
   project = module.springboard.project_name
   name = "vm-with-external-ip"
-  region = local.allowed_regions[count.index]
   machine_type = "c3-standard-4"
 
   disk {
@@ -66,7 +65,41 @@ resource "google_compute_instance_template" "vm_without_external_ip" {
   count = length(local.allowed_regions)
   project = module.springboard.project_name
   name = "vm-without-external-ip"
-  region = local.allowed_regions[count.index]
+  machine_type = "c3-standard-4"
+
+  disk {
+    source_image = "windows-cloud/windows-2022"
+    auto_delete = true
+    boot = true
+    disk_type = "pd-ssd"
+    disk_size_gb = 100
+  }
+
+  network_interface {
+    network = module.springboard.network_id
+    subnetwork = module.springboard.subnet_ids[0]
+  }
+
+  shielded_instance_config {
+    enable_secure_boot = true
+    enable_vtpm = true
+    enable_integrity_monitoring = true
+  }
+
+  service_account {
+    email = "default"
+    scopes = []
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "google_compute_instance_template" "vm_in_belgium" {
+  count = length(local.allowed_regions)
+  project = module.springboard.project_name
+  name = "vm-in-belgium"
   machine_type = "c3-standard-4"
 
   disk {
