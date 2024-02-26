@@ -27,7 +27,7 @@ sa_id=`terraform -chdir=$tfdir output -raw sa_id`
 location="europe-west1"
 input_file="/tmp/ts24-springboard-$PROJECT_SUFFIX.tfvars"
 
-envsubst < ts24.template.tfvars > $input_file
+envsubst < ./demo/ts24.template.tfvars > $input_file
 
 gcloud infra-manager deployments apply springboard-tier1 \
     --project=$project_id \
@@ -73,8 +73,6 @@ export PROJECT_SUFFIX=`date +"%Y%m%d"`
 
 tfdir=./host
 input_file="/tmp/ts24-host-$PROJECT_SUFFIX.tfvars"
-
-envsubst < ../../samples/springboard-host/ts24.template.tfvars > $input_file
 
 terraform -chdir=$tfdir apply \
     -var enable_peering=true \
