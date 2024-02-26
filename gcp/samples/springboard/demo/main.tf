@@ -17,6 +17,8 @@ module "springboard" {
   project_name = local.project_name
   project_suffix = local.project_suffix
 
+  allowed_regions = local.allowed_regions
+
   subnets = local.subnets
   peer_networks = local.peer_networks
 }
