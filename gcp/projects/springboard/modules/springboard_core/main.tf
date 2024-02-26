@@ -131,7 +131,7 @@ module "opsagent" {
 }
 
 module "network" {
-  source = "github.com/peterschen/blog//gcp/projects/springboard/springboard_network"
+  source = "github.com/peterschen/blog//gcp/projects/springboard/modules/springboard_network"
   project_name = module.project.name
   subnets = local.subnets
   peer_networks = local.peer_networks
