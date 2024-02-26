@@ -3,10 +3,10 @@
 ```sh
 export PROJECT_SUFFIX=`date +"%Y%m%d"`
 
-tfdir=../../samples/springboard-host
+tfdir=./host
 input_file="/tmp/ts24-host-$PROJECT_SUFFIX.tfvars"
 
-envsubst < ../../samples/springboard-host/ts24.template.tfvars > $input_file
+envsubst < ./host/ts24.template.tfvars > $input_file
 
 terraform -chdir=$tfdir apply \
     -var enable_peering=false \
@@ -21,21 +21,20 @@ terraform -chdir=$tfdir apply \
 ```sh
 export PROJECT_SUFFIX=`date +"%Y%m%d"`
 
-tfdir=../../samples/infra-manager
+tfdir=../infra-manager
 project_id=`terraform -chdir=$tfdir output -raw project_id`
 sa_id=`terraform -chdir=$tfdir output -raw sa_id`
 location="europe-west1"
-tier="tier1"
 input_file="/tmp/ts24-springboard-$PROJECT_SUFFIX.tfvars"
 
 envsubst < ts24.template.tfvars > $input_file
 
-gcloud infra-manager deployments apply springboard-$tier \
+gcloud infra-manager deployments apply springboard-tier1 \
     --project=$project_id \
     --location=$location \
     --service-account=$sa_id \
     --git-source-repo=https://github.com/peterschen/blog \
-    --git-source-directory=gcp/projects/springboard/terraform/springboard_$tier \
+    --git-source-directory=gcp/samples/springboard/demo \
     --git-source-ref=master \
     --inputs-file=$input_file
 ```
@@ -72,7 +71,7 @@ gcloud infra-manager deployments apply springboard-$tier \
 ```sh
 export PROJECT_SUFFIX=`date +"%Y%m%d"`
 
-tfdir=../../samples/springboard-host
+tfdir=./host
 input_file="/tmp/ts24-host-$PROJECT_SUFFIX.tfvars"
 
 envsubst < ../../samples/springboard-host/ts24.template.tfvars > $input_file
