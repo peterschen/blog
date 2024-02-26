@@ -29,7 +29,7 @@ resource "google_compute_instance_template" "vm_with_external_ip" {
   machine_type = "c3-standard-4"
 
   disk {
-    source_image = "family/windows-2022"
+    source_image = "windows-cloud/windows-2022"
     auto_delete = true
     boot = true
     disk_type = "pd-ssd"
@@ -68,7 +68,7 @@ resource "google_compute_instance_template" "vm_without_external_ip" {
   machine_type = "c3-standard-4"
 
   disk {
-    source_image = "family/windows-2022"
+    source_image = "windows-cloud/windows-2022"
     auto_delete = true
     boot = true
     disk_type = "pd-ssd"
