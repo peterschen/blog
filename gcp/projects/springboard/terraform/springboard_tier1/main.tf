@@ -63,6 +63,7 @@ locals {
   # Merge core constraints with constraints passed as variable
   constraints = concat(local.core_constraints, var.constraints)
 
+  subnets = var.subnets
   peer_networks = var.peer_networks
   shared_networks = var.shared_networks
 }
@@ -80,6 +81,7 @@ module "springboard" {
 
   constraints = local.constraints
 
+  subnets = local.subnets
   peer_networks = local.peer_networks
   shared_networks = local.shared_networks
 }

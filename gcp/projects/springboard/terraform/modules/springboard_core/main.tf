@@ -95,6 +95,7 @@ locals {
   # Merge core constraints with constraints passed in
   constraints = concat(local.core_constraints, var.constraints)
 
+  subnets = var.subnets
   peer_networks = var.peer_networks
   shared_networks = var.shared_networks
 
@@ -132,6 +133,7 @@ module "opsagent" {
 module "network" {
   source = "github.com/peterschen/blog//gcp/projects/springboard/terraform/modules/springboard_network"
   project_name = module.project.name
+  subnets = local.subnets
   peer_networks = local.peer_networks
   shared_networks = local.shared_networks
   
