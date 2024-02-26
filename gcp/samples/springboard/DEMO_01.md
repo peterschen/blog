@@ -50,7 +50,8 @@ gcloud infra-manager deployments apply springboard \
         * Required APIs (Infra Manager, Cloud Build, Resource Manager, Billing)
         * Nothing else
     * Any project correctly prepped can be used with Infra Manager
-3. Review [Cloud Build execution](https://console.cloud.google.com/cloud-build/builds;region=europe-west1?project=cbpetersen-inframanager)
+3. Review the Terraform
+4. Review [Cloud Build execution](https://console.cloud.google.com/cloud-build/builds;region=europe-west1?project=cbpetersen-inframanager)
 
 # Get to know Springboard
 
