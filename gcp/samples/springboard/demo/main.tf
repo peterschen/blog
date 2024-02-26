@@ -38,7 +38,7 @@ resource "google_compute_instance_template" "vm_with_external_ip" {
 
   network_interface {
     network = module.springboard.network_id
-    subnetwork = module.springbard.subnet_ids[0]
+    subnetwork = module.springboard.subnet_ids[0]
 
     # Empty block to ensure public IP is assigned
     access_config {}
