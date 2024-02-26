@@ -104,7 +104,7 @@ locals {
 }
 
 module "project" {
-  source  = "github.com/peterschen/blog//gcp/projects/springboard/terraform/modules/springboard_project"
+  source  = "github.com/peterschen/blog//gcp/projects/springboard/modules/springboard_project"
   org_id = local.org_id
   folder_id = local.folder_id
   billing_account = local.billing_account
@@ -115,13 +115,13 @@ module "project" {
 }
 
 module "organization_policy" {
-  source = "github.com/peterschen/blog//gcp/projects/springboard/terraform/modules/springboard_policy"
+  source = "github.com/peterschen/blog//gcp/projects/springboard/modules/springboard_policy"
   project_name = module.project.name
   constraints = local.constraints
 }
 
 module "opsagent" {
-  source = "github.com/peterschen/blog//gcp/projects/springboard/terraform/modules/springboard_opsagent"
+  source = "github.com/peterschen/blog//gcp/projects/springboard/modules/springboard_opsagent"
   project_name = module.project.name
   regions = local.allowed_regions
 
@@ -131,7 +131,7 @@ module "opsagent" {
 }
 
 module "network" {
-  source = "github.com/peterschen/blog//gcp/projects/springboard/terraform/modules/springboard_network"
+  source = "github.com/peterschen/blog//gcp/projects/springboard/springboard_network"
   project_name = module.project.name
   subnets = local.subnets
   peer_networks = local.peer_networks
@@ -143,7 +143,7 @@ module "network" {
 }
 
 module "firewall" {
-  source = "github.com/peterschen/blog//gcp/projects/springboard/terraform/modules/springboard_firewall"
+  source = "github.com/peterschen/blog//gcp/projects/springboard/modules/springboard_firewall"
   project_name = module.project.name
   network_name = module.network.name
   network_id = module.network.id

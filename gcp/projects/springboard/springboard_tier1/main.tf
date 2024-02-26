@@ -69,7 +69,7 @@ locals {
 }
 
 module "springboard" {
-  source = "github.com/peterschen/blog//gcp/projects/springboard/terraform/modules/springboard_core"
+  source = "github.com/peterschen/blog//gcp/projects/springboard/modules/springboard_core"
   org_id = local.org_id
   folder_id = local.folder_id
   billing_account = local.billing_account
