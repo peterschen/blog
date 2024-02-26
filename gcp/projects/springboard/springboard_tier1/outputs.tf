@@ -17,3 +17,11 @@ output "network_id" {
 output "network_name" {
   value = module.springboard.network_name
 }
+
+output "subnet_ids" {
+  value = module.springboard.subnet_ids
+}
+
+output "subnet_names" {
+  value = module.springboard.subnet_names
+}

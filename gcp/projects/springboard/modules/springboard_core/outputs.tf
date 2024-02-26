@@ -17,3 +17,11 @@ output "network_id" {
 output "network_name" {
   value = module.network.name
 }
+
+output "subnet_ids" {
+  value = module.network.subnet_ids
+}
+
+output "subnet_names" {
+  value = module.network.subnet_names
+}
