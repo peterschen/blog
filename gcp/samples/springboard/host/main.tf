@@ -6,6 +6,7 @@ locals {
   project_prefix = var.project_prefix
   project_suffix = var.project_suffix
 
+  subnets = var.subnets
   peer_networks = var.peer_networks
   enable_peering = var.enable_peering
 }
@@ -31,6 +32,17 @@ resource "google_compute_network" "network" {
   auto_create_subnetworks = false
 }
 
+resource "google_compute_subnetwork" "subnet" {
+  count = length(local.subnets)
+  project = module.project.id
+  region = local.subnets[count.index].region
+  name = local.subnets[count.index].name
+  ip_cidr_range = local.subnets[count.index].range
+  network = google_compute_network.network.name
+  private_ip_google_access = local.subnets[count.index].private_ipv4_google_access
+  private_ipv6_google_access = local.subnets[count.index].private_ipv6_google_access
+}
+
 resource "google_compute_network_peering" "peer_network" {
   count = local.enable_peering ? length(local.peer_networks) : 0
   name = basename(local.peer_networks[count.index])
@@ -39,4 +51,16 @@ resource "google_compute_network_peering" "peer_network" {
 
   import_custom_routes = true
   stack_type = "IPV4_IPV6"
+}
+
+module "nat" {
+  source = "../../modules/nat"
+  project = module.project.id
+
+  region = "europe-west4"
+  network = google_compute_network.network.name
+
+  depends_on = [
+    google_compute_network.network
+  ]
 }

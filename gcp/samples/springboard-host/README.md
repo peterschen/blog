@@ -1,1 +1,0 @@
-# springboard-host sample
