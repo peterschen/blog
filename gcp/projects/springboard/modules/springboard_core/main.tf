@@ -154,20 +154,20 @@ module "firewall" {
   ]
 }
 
-resource "google_project_service_identity" "compute_sa" {
-  provider = google-beta
-  project = module.project.id
-  service = "compute.googleapis.com"
+resource "google_compute_default_service_account" "compute_sa" {
+  depends_on = [ 
+    modules.project
+  ]
 }
 
 resource "google_project_iam_member" "compute_logwriter" {
   project = module.project.id
   role  = "roles/logging.logWriter"
-  member = "serviceAccount:${google_project_service_identity.compute_sa.email}"
+  member = "serviceAccount:${google_compute_default_service_account.compute_sa.email}"
 }
 
 resource "google_project_iam_member" "compute_metricwriter" {
   project = module.project.id
   role  = "roles/monitoring.metricWriter"
-  member = "serviceAccount:${google_project_service_identity.compute_sa.email}"
+  member = "serviceAccount:${google_compute_default_service_account.compute_sa.email}"
 }
