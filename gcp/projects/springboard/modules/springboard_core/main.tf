@@ -154,7 +154,7 @@ module "firewall" {
   ]
 }
 
-resource "google_compute_default_service_account" "compute_sa" {
+data "google_compute_default_service_account" "compute_sa" {
   depends_on = [ 
     module.project
   ]
