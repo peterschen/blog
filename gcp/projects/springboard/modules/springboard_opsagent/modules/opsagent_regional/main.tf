@@ -277,7 +277,7 @@ resource "google_os_config_os_policy_assignment" "ensure_opsagent_windows" {
                 Start-Service -Name google-cloud-ops-agent
                 exit 100
               }
-              except
+              catch
               {
                 exit 101
               }
