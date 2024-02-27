@@ -153,3 +153,21 @@ module "firewall" {
     module.organization_policy
   ]
 }
+
+resource "google_project_service_identity" "compute_sa" {
+  provider = google-beta
+  project = module.project.id
+  service = "compute.googleapis.com"
+}
+
+resource "google_project_iam_member" "compute_logwriter" {
+  project = module.project.id
+  role  = "roles/logging.logWriter"
+  member = "serviceAccount:${google_project_service_identity.compute_sa.email}"
+}
+
+resource "google_project_iam_member" "compute_metricwriter" {
+  project = module.project.id
+  role  = "roles/monitoring.metricWriter"
+  member = "serviceAccount:${google_project_service_identity.compute_sa.email}"
+}
