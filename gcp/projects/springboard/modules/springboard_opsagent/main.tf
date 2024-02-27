@@ -10,3 +10,9 @@ module "opsagent-regional" {
   project_name = local.project_name
   region = local.regions[count.index]
 }
+
+resource "google_compute_project_metadata_item" "osconfig" {
+  project = local.project_name
+  key = "enable-osconfig"
+  value = "true"
+}
