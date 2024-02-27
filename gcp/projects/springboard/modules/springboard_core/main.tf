@@ -155,9 +155,7 @@ module "firewall" {
 }
 
 data "google_compute_default_service_account" "compute_sa" {
-  depends_on = [ 
-    module.project
-  ]
+  project = module.project.name
 }
 
 resource "google_project_iam_member" "compute_logwriter" {
