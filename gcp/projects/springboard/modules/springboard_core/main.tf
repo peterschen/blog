@@ -169,3 +169,9 @@ resource "google_project_iam_member" "compute_metricwriter" {
   role  = "roles/monitoring.metricWriter"
   member = "serviceAccount:${data.google_compute_default_service_account.compute_sa.email}"
 }
+
+resource "google_project_iam_member" "compute_resourcemetadatawriter" {
+  project = module.project.id
+  role  = "roles/opsconfigmonitoring.resourceMetadata.write"
+  member = "serviceAccount:${data.google_compute_default_service_account.compute_sa.email}"
+}
