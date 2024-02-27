@@ -1,4 +1,4 @@
-# Delete deployment
+# Delete host project
 
 ```sh
 export PROJECT_SUFFIX=`date +"%Y%m%d"`
@@ -11,6 +11,8 @@ terraform -chdir=$tfdir destroy \
     -var-file=$input_file \
     -auto-approve -refresh=false
 ```
+
+# Delete deployment
 
 ```sh
 tfdir=../infra-manager
