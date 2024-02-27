@@ -74,14 +74,10 @@ locals {
     "gce-uefi-images/windows-1903-core-for-containers",
     "gce-uefi-images/windows-1909-core",
     "gce-uefi-images/windows-1909-core-for-containers",
-    "windows-cloud/windows-2012-r2",
-    "windows-cloud/windows-2012-r2-core",
     "windows-cloud/windows-2016",
     "windows-cloud/windows-2016-core",
-    "windows-cloud/windows-2019-core-for-containers",
     "windows-cloud/windows-2019",
     "windows-cloud/windows-2019-core",
-    "windows-cloud/windows-2019-for-containers",
     "windows-cloud/windows-2022",
     "windows-cloud/windows-2022-core"
   ]
