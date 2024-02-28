@@ -154,18 +154,24 @@ module "firewall" {
   ]
 }
 
-# data "google_compute_default_service_account" "compute_sa" {
-#   project = module.project.name
-# }
+data "google_compute_default_service_account" "compute_sa" {
+  project = module.project.name
 
-# resource "google_project_iam_member" "compute_logwriter" {
-#   project = module.project.id
-#   role  = "roles/logging.logWriter"
-#   member = "serviceAccount:${data.google_compute_default_service_account.compute_sa.email}"
-# }
+  # Explicit dependency to prevent deployment errors when
+  # the Compute API has not been enabled yet
+  depends_on = [
+    module.project
+  ]
+}
 
-# resource "google_project_iam_member" "compute_metricwriter" {
-#   project = module.project.id
-#   role  = "roles/monitoring.metricWriter"
-#   member = "serviceAccount:${data.google_compute_default_service_account.compute_sa.email}"
-# }
+resource "google_project_iam_member" "compute_logwriter" {
+  project = module.project.id
+  role  = "roles/logging.logWriter"
+  member = "serviceAccount:${data.google_compute_default_service_account.compute_sa.email}"
+}
+
+resource "google_project_iam_member" "compute_metricwriter" {
+  project = module.project.id
+  role  = "roles/monitoring.metricWriter"
+  member = "serviceAccount:${data.google_compute_default_service_account.compute_sa.email}"
+}
