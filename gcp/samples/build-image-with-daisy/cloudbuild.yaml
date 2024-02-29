@@ -1,0 +1,23 @@
+timeout: 25200s
+steps:
+- name: gcr.io/cloud-builders/git
+  args:
+    - clone
+    - https://github.com/GoogleCloudPlatform/compute-image-tools.git
+
+- name: 'gcr.io/compute-image-tools/daisy'
+  timeout: 25200s
+  dir: compute-image-tools/daisy_workflows/image_build/windows/
+  args:
+    - -project=$PROJECT_ID
+    - -zone=${_ZONE}
+    - -var:updates=gs://$PROJECT_ID/media/updates/
+    - -var:pwsh=gs://$PROJECT_ID/media/PowerShell.msi
+    - -var:dotnet48=gs://$PROJECT_ID/media/dotnet-sdk.exe
+    - -var:cloudsdk=gs://$PROJECT_ID/media/GoogleCloudSDKInstaller.exe
+    - -var:media=gs://$PROJECT_ID/media/windows_server.iso
+    - windows-server-2025-uefi-payg.wf.json
+
+substitutions:
+  _ZONE: europe-west4-a
+  
