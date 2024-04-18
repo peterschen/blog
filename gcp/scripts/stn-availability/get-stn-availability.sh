@@ -3,8 +3,8 @@
 set -eu
 
 regions=`gcloud compute regions list --format="value(name)" | sort -u`
-types=`gcloud compute sole-tenancy node-types list --sort-by="name" --format="value(name)" | uniq`
-types_regions=`gcloud compute sole-tenancy node-types list --sort-by="zone,name" --format="value(name,zone)" | uniq`
+types=`gcloud compute sole-tenancy node-types list --sort-by="name" --format="value(name)" --filter="deprecated=''" | uniq`
+types_regions=`gcloud compute sole-tenancy node-types list --sort-by="zone,name" --format="value(name,zone)" --filter="deprecated=''" | uniq`
 
 echo -en "Region"
 for type in $types; do
