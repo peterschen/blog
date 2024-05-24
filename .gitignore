@@ -26,6 +26,7 @@ local.ps1
 # Visual Studio Code
 .vscode
 blog.sln
+.mono
 
 # Apple
 .DS_Store
