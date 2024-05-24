@@ -5,8 +5,7 @@ url: /labeling_at_scale_in_google_cloud_migration_center
 date: 2024-05-24 11:30:00+02:00
 tags: 
 - migration-center
-- labels
-- groups
+- gcp
 cover: images/cover.png
 ---
 
