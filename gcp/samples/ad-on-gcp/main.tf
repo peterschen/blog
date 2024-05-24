@@ -93,7 +93,8 @@ module "project" {
     "vpcaccess.googleapis.com",
     "dataconnectors.googleapis.com",
     "migrationcenter.googleapis.com",
-    "rapidmigrationassessment.googleapis.com"
+    "rapidmigrationassessment.googleapis.com",
+    "dns.googleapis.com"
   ]
 }
 
