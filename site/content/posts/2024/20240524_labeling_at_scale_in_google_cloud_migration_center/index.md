@@ -2,13 +2,12 @@
 author: christoph
 title: Labeling at scale in Google Cloud Migration Center
 url: /labeling_at_scale_in_google_cloud_migration_center
-date: 2024-05-24 18:00:00+02:00
+date: 2024-05-24 11:30:00+02:00
 tags: 
 - migration-center
 - labels
 - groups
 cover: images/cover.png
-draft: true
 ---
 
 Google Cloud Migration Center is a great way to understand the total cost of ownership (TCO) for a migration to Google Cloud by running automatic assessments or uploading information about an estate using the output of tools such as [RVTools](https://www.robware.net/).
