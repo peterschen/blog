@@ -68,12 +68,6 @@ locals {
   adjoin_container_uri = var.adjoin_container_uri
 
   image_families = [
-    "gce-uefi-images/windows-1809-core",
-    "gce-uefi-images/windows-1809-core-for-containers",
-    "gce-uefi-images/windows-1903-core",
-    "gce-uefi-images/windows-1903-core-for-containers",
-    "gce-uefi-images/windows-1909-core",
-    "gce-uefi-images/windows-1909-core-for-containers",
     "windows-cloud/windows-2016",
     "windows-cloud/windows-2016-core",
     "windows-cloud/windows-2019",
