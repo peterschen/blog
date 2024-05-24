@@ -29,7 +29,7 @@ Luckily there is a neat way to add labels at scale by using the [data import fun
 
 ### Create asset sheet
 
-Start by populating an asset sheet (template can be [found in the documentation](https://storage.googleapis.com/mc-collector-download-prod-us/download/vmInfo.csv)). While the assets you want to add labels to are already imported, Migration Center requires a list of assets to be provided for the data import. Essentially, this file will just hold the identifiers of the machines, that we want to add labels for but no further metadata.
+Start by populating an asset sheet (template can be [found in the documentation](https://cloud.google.com/migration-center/docs/import-data-tables#available_data_templates)). While the assets you want to add labels to are already imported, Migration Center requires a list of assets to be provided for the data import. Essentially, this file will just hold the identifiers of the machines, that we want to add labels for but no further metadata.
 
 **Important:** When associating labels with existing assets that were imported with automatic discoveries or RVTools, the identifier needs to represent the original data source to allow Migration Center to correlate these resources:
 
