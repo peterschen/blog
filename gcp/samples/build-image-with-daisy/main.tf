@@ -61,3 +61,12 @@ resource "google_storage_bucket_iam_member" "bucket_objectuser" {
   role = "roles/storage.objectUser"
   member = "serviceAccount:${google_project_service_identity.cloudbuild_sa.email}"
 }
+
+resource "google_project_organization_policy" "disable_require_shielded_vm" {
+  project = module.project.id
+  constraint = "compute.requireShieldedVm"
+
+  restore_policy {
+    default = true
+  }
+}
