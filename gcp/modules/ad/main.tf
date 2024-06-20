@@ -31,7 +31,7 @@ data "google_compute_network" "network" {
 }
 
 data "google_compute_subnetwork" "subnetworks" {
-  count = length(local.subnetworks)
+  count = length(local.regions)
   project = data.google_project.network.project_id
   region = local.regions[count.index]
   name = local.subnetworks[count.index]
@@ -108,8 +108,18 @@ resource "google_compute_firewall" "allow_dns_internal" {
 resource "google_compute_address" "dc" {
   count = length(local.zones)
   project = data.google_project.network.project_id
-  region = local.regions[count.index]
-  subnetwork = data.google_compute_subnetwork.subnetworks[count.index].id
+  region = one(
+    [
+      for region in local.regions:
+      region if strcontains(local.zones[count.index], region)
+    ]
+  )
+  subnetwork = one(
+    [
+      for subnet in data.google_compute_subnetwork.subnetworks:
+      subnet.id if strcontains(local.zones[count.index], subnet.region)
+    ]
+  )
   name = "dc-${local.zones[count.index]}"
   address_type = "INTERNAL"
 }
@@ -134,13 +144,18 @@ resource "google_compute_instance" "dc" {
   boot_disk {
     initialize_params {
       image = local.windows_image
-      type = "pd-ssd"
+      type = strcontains(local.machine_type, "n4") ? "hyperdisk-balanced" : "pd-ssd"
     }
   }
 
   network_interface {
     network = data.google_compute_network.network.id
-    subnetwork = data.google_compute_subnetwork.subnetworks[count.index].id
+    subnetwork = one(
+      [
+        for subnet in data.google_compute_subnetwork.subnetworks:
+        subnet.id if strcontains(local.zones[count.index], subnet.region)
+      ]
+    )
     network_ip = google_compute_address.dc[count.index].address
   }
 
@@ -157,9 +172,19 @@ resource "google_compute_instance" "dc" {
         parametersConfiguration = jsonencode({
           projectName = data.google_project.default.name,
           domainName = local.domain_name,
-          region = local.regions[count.index],
+          region = one(
+            [
+              for region in local.regions:
+              region if strcontains(local.zones[count.index], region)
+            ]
+          ),
           regions = local.regions,
-          networkRange = data.google_compute_subnetwork.subnetworks[count.index].ip_cidr_range,
+          networkRange = one(
+            [
+              for subnet in data.google_compute_subnetwork.subnetworks:
+              subnet.ip_cidr_range if strcontains(local.zones[count.index], subnet.region)
+            ]
+          )
           isFirst = (count.index == 0),
           inlineMeta = filebase64(module.sysprep.path_meta),
           inlineConfiguration = filebase64("${path.module}/dc.ps1"),
