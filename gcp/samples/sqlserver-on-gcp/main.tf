@@ -7,93 +7,157 @@ terraform {
 }
 
 provider "google" {
-  project = var.project
 }
 
 locals {
-  regions = var.regions
+  prefix = var.prefix
+  region = var.region
   zones = var.zones
-  name-sample = "sqlserver-on-gcp"
-  name-domain = var.domain-name
+  sample_name = "sqlserver-on-gcp"
+  
+  domain_name = var.domain_name
   password = var.password
-  network-prefixes = ["10.0.0", "10.1.0"]
-  network-mask = 16
-  network-ranges = [
-    for prefix in local.network-prefixes:
-    "${prefix}.0/${local.network-mask}"
+
+  windows_image = var.windows_image
+  windows_core_image = var.windows_core_image
+  sql_image = var.sql_image
+
+  network_range = "10.0.0.0/16"
+
+  machine_type_dc = "n2-highcpu-2"
+  machine_type_bastion = "n2-standard-4"
+  machine_type_sql = "n2-standard-4"
+
+  enable_cluster = var.enable_cluster
+  enable_alwayson = var.enable_alwayson
+}
+
+module "project" {
+  source = "../../modules/project"
+
+  org_id = var.org_id
+  billing_account = var.billing_account
+
+  prefix = local.prefix
+
+  apis = [
+    "dns.googleapis.com"
   ]
-  enable-cluster = var.enable-cluster
-  count-nodes = var.count-nodes
+}
+
+data "google_compute_default_service_account" "default" {
+  project = module.project.id
+}
+
+resource "google_compute_network" "network" {
+  project = module.project.id
+  name = local.sample_name
+  auto_create_subnetworks = false
+}
+
+resource "google_compute_subnetwork" "subnetwork" {
+  project = module.project.id
+  region = local.region
+  name = local.region
+  ip_cidr_range = local.network_range
+  network = google_compute_network.network.id
+  private_ip_google_access = true
 }
 
 module "nat" {
-  count = length(local.regions)
   source = "../../modules/nat"
-  region = local.regions[count.index]
+  project = module.project.id
+
+  region = local.region
   network = google_compute_network.network.name
-  depends_on = [google_compute_network.network]
+
+  depends_on = [
+    google_compute_network.network
+  ]
 }
 
 module "ad" {
   source = "../../modules/ad"
-  regions = local.regions
+  project = module.project.id
+
+  regions = [local.region]
   zones = local.zones
+
   network = google_compute_network.network.name
   subnetworks = [
-    for subnet in google_compute_subnetwork.subnetworks:
-    subnet.name
+    google_compute_subnetwork.subnetwork.name
   ]
-  domain_name = local.name-domain
-  password = local.password
-  depends_on = [module.nat]
-}
 
-module "sqlserver" {
-  source = "../../modules/sqlserver"
-  region = local.regions[0]
-  zone = local.zones[0]
-  network = google_compute_network.network.name
-  subnetwork = google_compute_subnetwork.subnetworks[0].name
-  domain_name = local.name-domain
+  domain_name = local.domain_name
+  machine_type = local.machine_type_dc
+
+  windows_image = local.windows_core_image
+
   password = local.password
-  depends_on = [module.ad]
+  enable_ssl = false
+
+  depends_on = [
+    module.nat
+  ]
 }
 
 module "bastion" {
   source = "../../modules/bastion_windows"
-  region = local.regions[0]
+  project = module.project.id
+
+  region = local.region
   zone = local.zones[0]
+
   network = google_compute_network.network.name
-  subnetwork = google_compute_subnetwork.subnetworks[0].name
+  subnetwork = google_compute_subnetwork.subnetwork.name
+
+  machine_type = local.machine_type_bastion
   machine_name = "bastion"
+
+  windows_image = local.windows_image
+
+  domain_name = local.domain_name
   password = local.password
-  domain_name = local.name-domain
+
   enable_domain = true
-  depends_on = [module.cloud-nat]
+  enable_discoveryclient = false
+
+  depends_on = [
+    module.ad
+  ]
+}
+
+module "sqlserver" {
+  source = "../../modules/sqlserver"
+  project = module.project.id
+  region = local.region
+  zones = local.zones
+  
+  network = google_compute_network.network.name
+  subnetwork = google_compute_subnetwork.subnetwork.name
+  
+  domain_name = local.domain_name
+  password = local.password
+  
+  windows_image = local.sql_image
+  machine_type = local.machine_type_sql
+
+  enable_cluster = local.enable_cluster
+  enable_alwayson = local.enable_alwayson
+  depends_on = [module.ad]
 }
 
 module "firewall_iap" {
   source = "../../modules/firewall_iap"
+  project = module.project.id
   network = google_compute_network.network.name
   enable_ssh = false
 }
 
-resource "google_compute_network" "network" {
-  name = local.name-sample
-  auto_create_subnetworks = false
-}
-
-resource "google_compute_subnetwork" "subnetworks" {
-  count = length(local.regions)
-  region = local.regions[count.index]
-  name = local.regions[count.index]
-  ip_cidr_range = local.network-ranges[count.index]
-  network = google_compute_network.network.self_link
-  private_ip_google_access = true
-}
-
 resource "google_compute_firewall" "allow-all-internal" {
   name    = "allow-all-internal"
+  project = module.project.id
+
   network = google_compute_network.network.name
   priority = 1000
 
@@ -104,7 +168,6 @@ resource "google_compute_firewall" "allow-all-internal" {
   direction = "INGRESS"
 
   source_ranges = [
-    for range in local.network-ranges:
-    range
+    local.network_range
   ]
 }

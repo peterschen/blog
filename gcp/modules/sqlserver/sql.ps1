@@ -162,7 +162,7 @@ configuration ConfigurationWorkload
             DependsOn = "[SqlSetup]SqlServerSetup"
         }
 
-        if($Parameters.provisionCluster -ne $false)
+        if($Parameters.enableCluster -ne $false)
         {
             Firewall "F-GceClusterHelper"
             {
@@ -245,27 +245,44 @@ configuration ConfigurationWorkload
                     DependsOn = "[xCluster]CreateCluster"
                 }
 
-                SqlAlwaysOnService "EnableAlwaysOn"
+                $nodes = @();
+                for($i = 1; $i -lt $Parameters.nodeCount; $i++) {
+                    $nodes += "$($Parameters.nodePrefix)-$i";
+                };
+
+                WaitForAll "ClusterJoin"
                 {
-                    Ensure = "Present"
-                    ServerName = "localhost"
-                    InstanceName = "MSSQLSERVER"
-                    RestartTimeout = 120
-                    DependsOn = "[Script]IncreaseClusterTimeouts"
+                    ResourceName = "[xCluster]JoinNodeToCluster"
+                    NodeName = $nodes
+                    RetryIntervalSec = 5
+                    RetryCount = 120
+                    DependsOn = "[xCluster]CreateCluster"
                 }
 
-                <#
-                    SqlAGListener "AvailabilityGroup"
+                if($Parameters.enableAlwaysOn -ne $false)
+                {
+                    SqlAlwaysOnService "EnableAlwaysOn"
                     {
                         Ensure = "Present"
                         ServerName = "localhost"
                         InstanceName = "MSSQLSERVER"
-                        AvailabilityGroup = $Parameters.nodePrefix
-                        Name = "$($Parameters.nodePrefix)-ag"
-                        DHCP = $true
-                        DependsOn = "[SqlAlwaysOnService]EnableAlwaysOn"
+                        RestartTimeout = 120
+                        DependsOn = "[WaitForAll]ClusterJoin"
                     }
-                #>
+
+                    <#
+                        SqlAGListener "AvailabilityGroup"
+                        {
+                            Ensure = "Present"
+                            ServerName = "localhost"
+                            InstanceName = "MSSQLSERVER"
+                            AvailabilityGroup = $Parameters.nodePrefix
+                            Name = "$($Parameters.nodePrefix)-ag"
+                            DHCP = $true
+                            DependsOn = "[SqlAlwaysOnService]EnableAlwaysOn"
+                        }
+                    #>
+                }
             }
             else
             {
@@ -285,13 +302,16 @@ configuration ConfigurationWorkload
                     DependsOn = "[WaitForAll]WaitForCluster"
                 }
 
-                SqlAlwaysOnService "EnableAlwaysOn"
+                if($Parameters.enableAlwaysOn -ne $false)
                 {
-                    Ensure = "Present"
-                    ServerName = "localhost"
-                    InstanceName = "MSSQLSERVER"
-                    RestartTimeout = 120
-                    DependsOn = "[xCluster]JoinNodeToCluster"
+                    SqlAlwaysOnService "EnableAlwaysOn"
+                    {
+                        Ensure = "Present"
+                        ServerName = "localhost"
+                        InstanceName = "MSSQLSERVER"
+                        RestartTimeout = 120
+                        DependsOn = "[xCluster]JoinNodeToCluster"
+                    }
                 }
             }
         }

@@ -1,36 +1,57 @@
-variable "project" {
+variable "org_id" {
+  type = number
 }
 
-variable "regions" {
-  type = list(string)
-  default = ["europe-west4", "europe-west1"]
+variable "billing_account" {
+  type = string
+}
+
+variable "prefix" {
+  type = string
+  default = null
+}
+
+variable "region" {
+  type = string
+  default = "europe-west4"
 }
 
 variable "zones" {
   type = list(string)
-  default = ["europe-west4-a", "europe-west1-b"]
+  default = [
+    "europe-west4-a",
+    "europe-west4-b"
+  ]
 }
 
-variable "domain-name" {
-  type = string
+variable "domain_name" {
 }
 
 variable "password" {
-  type = string
   sensitive = true
 }
 
-variable "count-nodes" {
-  type = number
-  default = 3
+variable "windows_image" {
+  type = string
+  default = "windows-cloud/windows-2022"
 }
 
-variable "enable-cluster" {
+variable "windows_core_image" {
+  type = string
+  default = "windows-cloud/windows-2022-core"
+}
+
+variable "sql_image" {
+  type = string
+  default = "windows-sql-cloud/sql-ent-2022-win-2022"
+}
+
+variable "enable_cluster" {
   type = bool
-  default = true
+  default = false
 }
 
-variable "enable-hdd" {
+variable "enable_alwayson" {
   type = bool
   default = false
 }

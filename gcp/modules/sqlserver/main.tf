@@ -1,43 +1,50 @@
 locals {
   project = var.project
-  projectNetwork = var.projectNetwork
+  project_network = var.project_network == null ? var.project : var.project_network
+
   region = var.region
-  zone = var.zone
+  zones = var.zones
+
   domain_name = var.domain_name
   password = var.password
+  
   network = var.network
   subnetwork = var.subnetwork
-  machine_type = var.machine_type
 
+  machine_type = var.machine_type
   windows_image = var.windows_image
 
-  enable_aag = var.enable_aag
-  node_count = 2
+  enable_cluster = var.enable_alwayson ? true : var.enable_cluster
+  enable_alwayson = var.enable_alwayson
+}
+
+data "google_project" "default" {
+  project_id = local.project
+}
+
+data "google_project" "network" {
+  project_id = local.project_network
 }
 
 data "google_compute_network" "network" {
-  project = local.project_network
+  project = data.google_project.network.project_id
   name = local.network
 }
 
 data "google_compute_subnetwork" "subnetwork" {
-  project = local.project_network
+  project = data.google_project.network.project_id
   region = local.region
   name = local.subnetwork
 }
 
 module "apis" {
   source = "../apis"
-  project = local.project
-  apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com"]
-}
-
-module "gce_scopes" {
-  source = "../gce_scopes"
-}
-
-module "sysprep" {
-  source = "../sysprep"
+  project = data.google_project.default.project_id
+  apis = [
+    "cloudresourcemanager.googleapis.com",
+    "compute.googleapis.com",
+    "dns.googleapis.com"
+  ]
 }
 
 module "firewall_mssql" {
@@ -49,11 +56,11 @@ module "firewall_mssql" {
 }
 
 resource "google_compute_address" "sql" {
-  count = local.node-count
-  project = local.project
+  count = length(local.zones)
+  project = data.google_project.network.project_id
   region = local.region
-  subnetwork = data.google_compute_subnetwork.subnetwork.self_link
-  name = "sql-${count.index}"
+  subnetwork = data.google_compute_subnetwork.subnetwork.id
+  name = "sql-${local.zones[count.index]}"
   address_type = "INTERNAL"
 }
 
@@ -65,8 +72,8 @@ resource "google_compute_address" "sql_cl" {
   subnetwork = data.google_compute_subnetwork.subnetwork.self_link
 }
 
-resource "google_compute_firewall" "allow_mssqlhealthcheck_gcp" {
-  name = "allow-mssqlhealthcheck-gcp"
+resource "google_compute_firewall" "allow_healthcheck_mssql_gcp" {
+  name = "allow-healthcheck-mssql-gcp"
   project = local.project
   network = data.google_compute_network.network.self_link
   priority = 5000
@@ -82,11 +89,20 @@ resource "google_compute_firewall" "allow_mssqlhealthcheck_gcp" {
   target_tags = ["mssql"]
 }
 
+module "gce_scopes" {
+  source = "../gce_scopes"
+}
+
+module "sysprep" {
+  source = "../sysprep"
+}
+
 resource "google_compute_instance" "sql" {
-  count = local.node_count
+  count = length(local.zones)
   project = local.project
-  zone = local.zone
+  zone = local.zones[count.index]
   name = "sql-${count.index}"
+
   machine_type = local.machine_type
 
   tags = ["mssql", "rdp"]
@@ -94,7 +110,7 @@ resource "google_compute_instance" "sql" {
   boot_disk {
     initialize_params {
       image = local.windows_image
-      type = "pd-ssd"
+      type = strcontains(local.machine_type, "n4") ? "hyperdisk-balanced" : "pd-ssd"
     }
   }
 
@@ -118,15 +134,16 @@ resource "google_compute_instance" "sql" {
         password = local.password,
         parametersConfiguration = jsonencode({
           domainName = local.domain_name,
-          zone = local.zone
+          zone = local.zones[count.index]
           networkRange = data.google_compute_subnetwork.subnetwork.ip_cidr_range,
           isFirst = (count.index == 0),
           nodePrefix = "sql",
-          nodeCount = local.node_count,
+          nodeCount = length(local.zones),
           ipCluster = google_compute_address.sql_cl.address,
           inlineMeta = filebase64(module.sysprep.path_meta),
           inlineConfiguration = filebase64("${path.module}/sql.ps1"),
-          enableAag = local.enable_aag,
+          enableCluster = local.enable_cluster,
+          enableAlwaysOn = local.enable_alwayson,
           modulesDsc = [
             {
               Name = "xFailOverCluster",
@@ -155,9 +172,9 @@ resource "google_compute_instance" "sql" {
 }
 
 resource "google_compute_instance_group" "sql" {
-  count = local.node_count
+  count = length(local.zones)
   project = local.project
-  zone = local.zone
+  zone = local.zones[count.index]
   name = "sql-${count.index}"
   instances = [google_compute_instance.sql[count.index].self_link]
   network = data.google_compute_network.network.self_link

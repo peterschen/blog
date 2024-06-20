@@ -12,8 +12,8 @@ variable "region" {
   type = string
 }
 
-variable "zone" {
-  type = string
+variable "zones" {
+  type = list(string)
 }
 
 variable "network" {
@@ -24,14 +24,14 @@ variable "subnetwork" {
   type = string
 }
 
-variable "machine_type" {
-  type = string
-  default = "n2-standard-4"
-}
-
 variable "windows_image" {
   type = string
-  default = "windows-sql-cloud/sql-ent-2019-win-2022"
+  default = "windows-sql-cloud/sql-ent-2022-win-2022"
+}
+
+variable "machine_type" {
+  type = string
+  default = "n4-standard-4"
 }
 
 variable "domain_name" {
@@ -43,7 +43,12 @@ variable "password" {
   sensitive = true
 }
 
-variable "enable_aag" {
+variable "enable_cluster" {
+  type = bool
+  default = false
+}
+
+variable "enable_alwayson" {
   type = bool
   default = false
 }
