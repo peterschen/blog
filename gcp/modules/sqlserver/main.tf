@@ -194,12 +194,12 @@ resource "google_compute_health_check" "sql" {
   }
 }
 
-resource "google_compute_region_backend_service" "sql_tcp" {
+resource "google_compute_region_backend_service" "sql" {
   region = local.region
   project = local.project
-  name = "sql-tcp"
+  name = "sql"
   health_checks = [google_compute_health_check.sql.self_link]
-  protocol = "TCP"
+  protocol = "UNSPECIFIED"
 
   dynamic "backend" {
     for_each = google_compute_instance_group.sql
@@ -209,45 +209,16 @@ resource "google_compute_region_backend_service" "sql_tcp" {
   }
 }
 
-resource "google_compute_region_backend_service" "sql_udp" {
+resource "google_compute_forwarding_rule" "sql" {
   region = local.region
   project = local.project
-  name = "sql-udp"
-  health_checks = [google_compute_health_check.sql.self_link]
-  protocol = "UDP"
-
-  dynamic "backend" {
-    for_each = google_compute_instance_group.sql
-    content {
-      group = backend.value.self_link
-    }
-  }
-}
-
-resource "google_compute_forwarding_rule" "sql_tcp" {
-  region = local.region
-  project = local.project
-  name = "sql-tcp"
+  name = "sql"
   ip_address = google_compute_address.sql_cl.address
   load_balancing_scheme = "INTERNAL"
-  ip_protocol = "TCP"
+  ip_protocol = "L3_DEFAULT"
   all_ports = true
   allow_global_access = true
   network = data.google_compute_network.network.self_link
   subnetwork = data.google_compute_subnetwork.subnetwork.self_link
-  backend_service = google_compute_region_backend_service.sql_tcp.self_link
-}
-
-resource "google_compute_forwarding_rule" "sql_udp" {
-  region = local.region
-  project = local.project
-  name = "sql-udp"
-  ip_address = google_compute_address.sql_cl.address
-  load_balancing_scheme = "INTERNAL"
-  ip_protocol = "UDP"
-  all_ports = true
-  allow_global_access = true
-  network = data.google_compute_network.network.self_link
-  subnetwork = data.google_compute_subnetwork.subnetwork.self_link
-  backend_service = google_compute_region_backend_service.sql_udp.self_link
+  backend_service = google_compute_region_backend_service.sql.self_link
 }
