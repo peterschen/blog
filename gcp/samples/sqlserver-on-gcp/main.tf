@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     google = {
-      version = "~> 3.1"
+      version = "~> 5.0"
     }
   }
 }
@@ -24,9 +24,9 @@ locals {
 
   network_range = "10.0.0.0/16"
 
-  machine_type_dc = "n2-highcpu-2"
-  machine_type_bastion = "n2-standard-4"
-  machine_type_sql = "n2-standard-4"
+  machine_type_dc = "n4-highcpu-2"
+  machine_type_bastion = "n4-standard-4"
+  machine_type_sql = "n4-standard-4"
 
   enable_cluster = var.enable_cluster
   enable_alwayson = var.enable_alwayson

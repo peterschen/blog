@@ -79,7 +79,7 @@ resource "google_compute_instance" "bastion" {
   boot_disk {
     initialize_params {
       image = local.windows_image
-      type = "pd-balanced"
+      type = strcontains(local.machine_type, "n4") ? "hyperdisk-balanced" : "pd-balanced"
     }
   }
 

@@ -26,7 +26,7 @@ variable "subnetwork" {
 
 variable "machine_type" {
   type = string
-  default = "n2-standard-2"
+  default = "n4-standard-2"
 }
 
 variable "windows_image" {

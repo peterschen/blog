@@ -56,10 +56,10 @@ locals {
     "${prefix}.2"
   ]
 
-  machine_type_dc = "n2-highcpu-2"
-  machine_type_ca = "n2-highcpu-2"
-  machine_type_bastion = "n2-standard-4"
-  machine_type_adjoin = "n2-highcpu-2"
+  machine_type_dc = "n4-highcpu-2"
+  machine_type_ca = "n4-highcpu-2"
+  machine_type_bastion = "n4-standard-4"
+  machine_type_adjoin = "n4-highcpu-2"
   machine_type_joinvm = "e2-medium"
 
   # Number of vCPU in VM * 7 workers + 1
@@ -581,7 +581,7 @@ resource "google_compute_instance_template" "joinvm" {
     source_image = data.google_compute_image.windows[count.index].id
     auto_delete = true
     boot = true
-    disk_type = "pd-ssd"
+    disk_type = strcontains(local.machine_type_joinvm, "n4") ? "hyperdisk-balanced" : "pd-ssd"
     disk_size_gb = 100
   }
 
@@ -666,7 +666,7 @@ resource "google_compute_instance_template" "adjoin" {
     source_image = "cos-cloud/cos-stable"
     auto_delete = true
     boot = true
-    disk_type = "pd-balanced"
+    disk_type = strcontains(local.machine_type_adjoin, "n4") ? "hyperdisk-balanced" : "pd-ssd"
     disk_size_gb = 10
   }
 
@@ -686,7 +686,7 @@ resource "google_compute_instance_template" "adjoin" {
     gce-container-declaration = <<-EOM
       spec:
         containers:
-        - name: adjoin-n2-highcpu-8-57procs-v1
+        - name: adjoin-${local.machine_type_adjoin}-${local.server_workers}procs-v1
           image: ${local.adjoin_container_uri}
           env:
           - name: AD_DOMAIN

@@ -73,7 +73,7 @@ resource "google_compute_instance" "fs" {
   boot_disk {
     initialize_params {
       image = local.windows_image
-      type = "pd-ssd"
+      type = strcontains(local.machine_type, "n4") ? "hyperdisk-balanced" : "pd-ssd"
     }
   }
 
