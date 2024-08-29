@@ -1,17 +1,3 @@
-terraform {
-  required_providers {
-    google = {
-      version = "~> 3.1"
-    }
-  }
-}
-
-provider "google" {
-}
-
-provider "google-beta" {
-}
-
 locals {
   prefix = var.prefix
   regions = var.regions
@@ -425,7 +411,7 @@ resource "google_secret_manager_secret" "adjoin_adpassword" {
   secret_id = "adjoin-adpassword"
 
   replication {
-    automatic = true
+    auto {}
   }
 
   provisioner "local-exec" {
@@ -444,7 +430,7 @@ resource "google_secret_manager_secret" "adjoin_cacert" {
   secret_id = "adjoin-cacert"
 
   replication {
-    automatic = true
+    auto {}
   }
 
   depends_on = [

@@ -1,14 +1,3 @@
-terraform {
-  required_providers {
-    google = {
-      version = "~> 5.0"
-    }
-  }
-}
-
-provider "google" {
-}
-
 locals {
   prefix = var.prefix
   region = var.region
