@@ -34,6 +34,7 @@ resource "google_project" "project" {
   lifecycle {
     ignore_changes = [billing_account]
   }
+  deletion_policy = "DELETE"
 
   labels = {
     "migration-center-store-region" = "europe-west1"
