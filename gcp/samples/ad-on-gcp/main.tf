@@ -435,7 +435,8 @@ resource "google_secret_manager_secret" "adjoin_cacert" {
 }
 
 resource "google_secret_manager_secret_version" "adjoin_adpassword" {
-  secret = google_secret_manager_secret.adjoin_adpassword.secret_id
+  count = local.enable_adjoin ? 1 : 0
+  secret = google_secret_manager_secret.adjoin_adpassword[count.index].secret_id
   secret_data = local.password
 }
 
@@ -443,10 +444,10 @@ resource "google_secret_manager_secret_iam_binding" "adjoin_adpassword" {
   count = local.enable_adjoin ? 1 : 0
   project = module.project.id
 
-  secret_id = google_secret_manager_secret.adjoin_adpassword[0].secret_id
+  secret_id = google_secret_manager_secret.adjoin_adpassword[count.index].secret_id
   role = "roles/secretmanager.secretAccessor"
   members = [
-    "serviceAccount:${google_service_account.adjoin[0].email}",
+    "serviceAccount:${google_service_account.adjoin[count.index].email}",
   ]
 }
 
@@ -454,10 +455,10 @@ resource "google_secret_manager_secret_iam_binding" "adjoin_cacert" {
   count = local.enable_adjoin ? 1 : 0
   project = module.project.id
 
-  secret_id = google_secret_manager_secret.adjoin_cacert[0].secret_id
+  secret_id = google_secret_manager_secret.adjoin_cacert[count.index].secret_id
   role = "roles/secretmanager.secretAccessor"
   members = [
-    "serviceAccount:${google_service_account.adjoin[0].email}",
+    "serviceAccount:${google_service_account.adjoin[count.index].email}",
   ]
 }
 
