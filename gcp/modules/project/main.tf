@@ -28,12 +28,10 @@ resource "google_project" "project" {
 
   billing_account = local.billing_account
 
-  # Skip VPC creation when a billing account is not set
-  auto_create_network = local.billing_account != null ? false : true
-
   lifecycle {
     ignore_changes = [billing_account]
   }
+
   deletion_policy = "DELETE"
 
   labels = {
@@ -57,8 +55,6 @@ resource "google_project_organization_policy" "vm_external_ip_access" {
   restore_policy {
     default = true
   }
-
-  depends_on = [google_project_service.apis]
 }
 
 resource "google_project_organization_policy" "vm_can_ip_forward" {
@@ -68,8 +64,6 @@ resource "google_project_organization_policy" "vm_can_ip_forward" {
   restore_policy {
     default = true
   }
-
-  depends_on = [google_project_service.apis]
 }
 
 resource "google_project_organization_policy" "restrict_vpn_peer_ips" {
@@ -79,8 +73,6 @@ resource "google_project_organization_policy" "restrict_vpn_peer_ips" {
   restore_policy {
     default = true
   }
-
-  depends_on = [google_project_service.apis]
 }
 
 resource "google_project_organization_policy" "trusted_image_project" {
@@ -90,8 +82,6 @@ resource "google_project_organization_policy" "trusted_image_project" {
   restore_policy {
     default = true
   }
-
-  depends_on = [google_project_service.apis]
 }
 
 resource "google_project_organization_policy" "allowed_policy_member_domains" {
@@ -101,8 +91,6 @@ resource "google_project_organization_policy" "allowed_policy_member_domains" {
   restore_policy {
     default = true
   }
-
-  depends_on = [google_project_service.apis]
 }
 
 resource "google_project_organization_policy" "disable_service_account_key_creation" {
@@ -112,6 +100,13 @@ resource "google_project_organization_policy" "disable_service_account_key_creat
   restore_policy {
     default = true
   }
+}
 
-  depends_on = [google_project_service.apis]
+resource "google_project_organization_policy" "skip_default_network_creation" {
+  project = google_project.project.project_id
+  constraint = "compute.skipDefaultNetworkCreation"
+
+  restore_policy {
+    default = true
+  }
 }
