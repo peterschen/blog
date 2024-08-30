@@ -26,8 +26,6 @@ resource "google_project" "project" {
   org_id = local.org_id
   folder_id = local.folder
 
-  billing_account = local.billing_account
-
   lifecycle {
     ignore_changes = [billing_account]
   }
@@ -39,6 +37,11 @@ resource "google_project" "project" {
   }
 }
 
+resource "google_billing_project_info" "billing_account" {
+  project = google_project.project.project_id
+  billing_account = local.billing_account
+}
+
 resource "google_project_service" "apis" {
   count = length(var.apis)
   project = google_project.project.project_id
@@ -48,7 +51,10 @@ resource "google_project_service" "apis" {
   disable_on_destroy = false
 
   # In case compute.googleapis.com is requests, make sure the policy is in place first
-  depends_on = [ google_project_organization_policy.google_project_organization_policy.skip_default_network_creation ]
+  depends_on = [ 
+    google_billing_project_info.billing_account,
+    google_project_organization_policy.google_project_organization_policy.skip_default_network_creation
+  ]
 }
 
 resource "google_project_organization_policy" "vm_external_ip_access" {
