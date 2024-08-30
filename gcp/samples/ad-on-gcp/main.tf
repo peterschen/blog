@@ -414,10 +414,6 @@ resource "google_secret_manager_secret" "adjoin_adpassword" {
     auto {}
   }
 
-  provisioner "local-exec" {
-    command = "printf '${local.password}' | gcloud secrets versions add --project ${module.project.id} ${google_secret_manager_secret.adjoin_adpassword[0].secret_id} --data-file=-"
-  }
-
   depends_on = [
     module.project
   ]
@@ -436,6 +432,11 @@ resource "google_secret_manager_secret" "adjoin_cacert" {
   depends_on = [
     module.project
   ]
+}
+
+resource "google_secret_manager_secret_version" "adjoin_adpassword" {
+  secret = google_secret_manager_secret.adjoin_adpassword.secret_id
+  secret_data = local.password
 }
 
 resource "google_secret_manager_secret_iam_binding" "adjoin_adpassword" {
