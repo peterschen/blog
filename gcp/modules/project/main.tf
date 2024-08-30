@@ -26,7 +26,10 @@ resource "google_project" "project" {
   org_id = local.org_id
   folder_id = local.folder
 
-  auto_create_network = false
+  # When SA does not have billing account permissions
+  # removing the network (which requires Compute API which depends on billing)
+  # will fail the deployment
+  # auto_create_network = false
 
   lifecycle {
     ignore_changes = [billing_account]
