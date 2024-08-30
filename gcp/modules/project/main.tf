@@ -53,7 +53,7 @@ resource "google_project_service" "apis" {
   # In case compute.googleapis.com is requests, make sure the policy is in place first
   depends_on = [ 
     google_billing_project_info.billing_account,
-    google_project_organization_policy.google_project_organization_policy.skip_default_network_creation
+    google_project_organization_policy.skip_default_network_creation
   ]
 }
 
