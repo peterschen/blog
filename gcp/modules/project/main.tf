@@ -25,13 +25,21 @@ resource "google_project" "project" {
   name = "${local.name != null ? local.name : "${random_pet.project[0].id}-${random_integer.project[0].id}"}${local.suffix != null ? "-${local.suffix}" : ""}"
   org_id = local.org_id
   folder_id = local.folder
-  billing_account = local.billing_account
 
   auto_create_network = false
+
+  lifecycle {
+    ignore_changes = [billing_account]
+  }
 
   labels = {
     "migration-center-store-region" = "europe-west1"
   }
+}
+
+resource "google_billing_project_info" "billing_account" {
+  project = google_project.project.project_id
+  billing_account = local.billing_account
 }
 
 resource "google_project_service" "apis" {
@@ -41,6 +49,8 @@ resource "google_project_service" "apis" {
 
   disable_dependent_services = true
   disable_on_destroy = false
+
+  depends_on = [google_billing_project_info.billing_account]
 }
 
 resource "google_project_organization_policy" "vm_external_ip_access" {
@@ -50,6 +60,8 @@ resource "google_project_organization_policy" "vm_external_ip_access" {
   restore_policy {
     default = true
   }
+
+  depends_on = [google_project_service.apis]
 }
 
 resource "google_project_organization_policy" "vm_can_ip_forward" {
@@ -59,6 +71,8 @@ resource "google_project_organization_policy" "vm_can_ip_forward" {
   restore_policy {
     default = true
   }
+
+  depends_on = [google_project_service.apis]
 }
 
 resource "google_project_organization_policy" "restrict_vpn_peer_ips" {
@@ -68,6 +82,8 @@ resource "google_project_organization_policy" "restrict_vpn_peer_ips" {
   restore_policy {
     default = true
   }
+
+  depends_on = [google_project_service.apis]
 }
 
 resource "google_project_organization_policy" "trusted_image_project" {
@@ -77,6 +93,8 @@ resource "google_project_organization_policy" "trusted_image_project" {
   restore_policy {
     default = true
   }
+
+  depends_on = [google_project_service.apis]
 }
 
 resource "google_project_organization_policy" "allowed_policy_member_domains" {
@@ -86,6 +104,8 @@ resource "google_project_organization_policy" "allowed_policy_member_domains" {
   restore_policy {
     default = true
   }
+
+  depends_on = [google_project_service.apis]
 }
 
 resource "google_project_organization_policy" "disable_service_account_key_creation" {
@@ -95,4 +115,6 @@ resource "google_project_organization_policy" "disable_service_account_key_creat
   restore_policy {
     default = true
   }
+
+  depends_on = [google_project_service.apis]
 }
