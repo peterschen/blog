@@ -46,6 +46,9 @@ resource "google_project_service" "apis" {
 
   disable_dependent_services = true
   disable_on_destroy = false
+
+  # In case compute.googleapis.com is requests, make sure the policy is in place first
+  depends_on = [ google_project_organization_policy.google_project_organization_policy.skip_default_network_creation ]
 }
 
 resource "google_project_organization_policy" "vm_external_ip_access" {
