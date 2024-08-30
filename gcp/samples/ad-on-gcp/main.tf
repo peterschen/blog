@@ -72,6 +72,7 @@ module "project" {
   prefix = local.prefix
 
   apis = [
+    "compute.googleapis.com",
     "cloudbuild.googleapis.com",
     "cloudscheduler.googleapis.com",
     "run.googleapis.com",
