@@ -26,10 +26,10 @@ resource "google_project" "project" {
   org_id = local.org_id
   folder_id = local.folder
 
-  # When SA does not have billing account permissions
-  # removing the network (which requires Compute API which depends on billing)
-  # will fail the deployment
-  # auto_create_network = false
+  billing_account = local.billing_account
+
+  # Skip VPC creation when a billing account is not set
+  auto_create_network = local.billing_account != null ? false : true
 
   lifecycle {
     ignore_changes = [billing_account]
@@ -40,11 +40,6 @@ resource "google_project" "project" {
   }
 }
 
-resource "google_billing_project_info" "billing_account" {
-  project = google_project.project.project_id
-  billing_account = local.billing_account
-}
-
 resource "google_project_service" "apis" {
   count = length(var.apis)
   project = google_project.project.project_id
@@ -52,8 +47,6 @@ resource "google_project_service" "apis" {
 
   disable_dependent_services = true
   disable_on_destroy = false
-
-  depends_on = [google_billing_project_info.billing_account]
 }
 
 resource "google_project_organization_policy" "vm_external_ip_access" {
