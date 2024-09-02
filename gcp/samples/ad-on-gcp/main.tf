@@ -443,7 +443,7 @@ resource "google_secret_manager_secret" "adjoin_cacert" {
 
 resource "google_secret_manager_secret_version" "adjoin_adpassword" {
   count = local.enable_adjoin ? 1 : 0
-  secret = google_secret_manager_secret.adjoin_adpassword[count.index].secret_id
+  secret = google_secret_manager_secret.adjoin_adpassword[count.index].id
   secret_data = local.password
   enabled = true
   deletion_policy = "DELETE"
