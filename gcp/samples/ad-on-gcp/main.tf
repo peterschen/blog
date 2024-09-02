@@ -326,6 +326,9 @@ resource "google_vpc_access_connector" "adjoin" {
   ip_cidr_range = local.network_range_adjoin
   network = google_compute_network.network.name
 
+  min_instances = 2
+  max_instances = 4
+
   # Explicit dependeny as API enablement takes a little longer
   depends_on = [
     module.project
@@ -341,6 +344,9 @@ resource "google_vpc_access_connector" "directorysync" {
   
   ip_cidr_range = local.network_range_directorysync
   network = google_compute_network.network.name
+
+  min_instances = 2
+  max_instances = 4
 
   # Explicit dependeny as API enablement takes a little longer
   depends_on = [
