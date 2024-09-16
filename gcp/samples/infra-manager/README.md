@@ -19,17 +19,27 @@ curl --silent --location "https://config.googleapis.com/v1/projects/$project_id/
 
 ```sh
 project_id=`terraform output -raw project_id`
-location="europe-west1"
+location="europe-west4"
 sa_id=`terraform output -raw sa_id`
+deployment="ad-on-gcp"
 
-gcloud infra-manager deployments apply simple-vm \
+gcloud infra-manager previews create $deployment \
     --project=$project_id \
     --location=$location \
     --service-account=$sa_id \
     --git-source-repo=https://github.com/peterschen/blog \
-    --git-source-directory=gcp/samples/infra-manager/samples/simple-vm \
+    --git-source-directory=gcp/samples/ad-on-gcp \
     --git-source-ref=master \
-    --input-values=project_id=$project_id
+    --input-values=org_id=${TF_VAR_org_id},billing_account=${TF_VAR_billing_account},domain_name=inframanager.lab,password=Admin123Admin123
+
+gcloud infra-manager deployments apply $deployment \
+    --project=$project_id \
+    --location=$location \
+    --service-account=$sa_id \
+    --git-source-repo=https://github.com/peterschen/blog \
+    --git-source-directory=gcp/samples/ad-on-gcp \
+    --git-source-ref=master \
+    --input-values=org_id=${TF_VAR_org_id},billing_account=${TF_VAR_billing_account},domain_name=inframanager.lab,password=Admin123Admin123
 ```
 
 3. Check what's happening in Cloud Build
@@ -39,7 +49,7 @@ gcloud infra-manager deployments apply simple-vm \
 
 ```sh
 project_id=`terraform output -raw project_id`
-location="europe-west1"
+location="europe-west4"
 
 gcloud infra-manager deployments list \
     --project=$project_id \
@@ -52,7 +62,11 @@ gcloud infra-manager deployments list \
 6. Delete deployment
 
 ```sh
-gcloud infra-manager deployments delete simple-vm \
+project_id=`terraform output -raw project_id`
+deployment="ad-on-gcp"
+location="europe-west4"
+
+gcloud infra-manager deployments delete $deployment \
     --project=$project_id \
     --location=$location \
     --quiet
@@ -61,5 +75,5 @@ gcloud infra-manager deployments delete simple-vm \
 7. Check what's happening in Cloud Build
     * [Builds][builds]
 
-[builds]: https://console.cloud.google.com/cloud-build/builds;region=europe-west1
+[builds]: https://console.cloud.google.com/cloud-build/builds;region=europe-west4
 [instances]: https://console.cloud.google.com/compute/instances
