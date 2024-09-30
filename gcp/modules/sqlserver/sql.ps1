@@ -362,7 +362,6 @@ configuration ConfigurationWorkload
                     NodeName = "$($Parameters.nodePrefix)-0"
                     RetryIntervalSec = 5
                     RetryCount = 120
-                    # PsDscRunAsCredential = $domainCredential
                 }
 
                 Cluster "JoinNodeToCluster"
@@ -374,7 +373,17 @@ configuration ConfigurationWorkload
                     PsDscRunAsCredential = $domainCredential
                 }
 
-                $setupDependency += @("[Cluster]JoinNodeToCluster");
+                WaitForAll "SqlServerSetup"
+                {
+                    ResourceName = "[SqlSetup]SqlServerSetup"
+                    NodeName = "$($Parameters.nodePrefix)-0"
+                    RetryIntervalSec = 5
+                    RetryCount = 120
+                    DependsOn = "[Cluster]JoinNodeToCluster"
+                }
+
+                # Wait for installation of SQL Server on first node to complete
+                $setupDependency += @("[WaitForAll]SqlServerSetup");
 
                 SqlSetup "SqlServerSetup"
                 {
