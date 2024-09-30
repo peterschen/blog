@@ -14,6 +14,7 @@ locals {
   machine_type = var.machine_type
   windows_image = var.windows_image
 
+  use_developer_edition = var.use_developer_edition
   enable_cluster = var.enable_alwayson ? true : var.enable_cluster
   enable_alwayson = var.enable_alwayson
 }
@@ -143,16 +144,21 @@ resource "google_compute_instance" "sql" {
           ipCluster = google_compute_address.sql_cl.address,
           inlineMeta = filebase64(module.sysprep.path_meta),
           inlineConfiguration = filebase64("${path.module}/sql.ps1"),
+          useDeveloperEdition = local.use_developer_edition,
           enableCluster = local.enable_cluster,
           enableAlwaysOn = local.enable_alwayson,
           modulesDsc = [
             {
-              Name = "xFailOverCluster",
-              Version = "1.16.0"
+              Name = "FailOverClusterDsc",
+              Version = "2.1.0"
             },
             { 
               Name = "SqlServerDsc",
-              Version = "15.1.1"
+              Version = "16.0.0"
+            },
+            { 
+              Name = "StorageDsc",
+              Version = "6.0.1"
             }
           ]
         })

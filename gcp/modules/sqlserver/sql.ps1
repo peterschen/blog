@@ -13,8 +13,8 @@ configuration ConfigurationWorkload
     );
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration, 
-        ComputerManagementDsc, ActiveDirectoryDsc, xFailoverCluster, 
-        NetworkingDsc, SqlServerDsc;
+        ComputerManagementDsc, ActiveDirectoryDsc, FailoverClusterDsc, 
+        NetworkingDsc, SqlServerDsc, StorageDsc;
 
     $components = $Parameters.domainName.Split(".");
     $dc = "";
@@ -46,8 +46,8 @@ configuration ConfigurationWorkload
     );
 
     $domainCredential = New-Object System.Management.Automation.PSCredential ("$($Parameters.domainName)\Administrator", $Password);
-    $agentCredential = New-Object System.Management.Automation.PSCredential ("$($Parameters.domainName)\s-sql-agent)", $Password);
-    $engineCredential = New-Object System.Management.Automation.PSCredential ("$($Parameters.domainName)\s-sql-engine)", $Password);
+    $agentCredential = New-Object System.Management.Automation.PSCredential ("$($Parameters.domainName)\s-SqlAgent", $Password);
+    $engineCredential = New-Object System.Management.Automation.PSCredential ("$($Parameters.domainName)\s-SqlEngine", $Password);
 
     Node $ComputerName
     {
@@ -112,9 +112,9 @@ configuration ConfigurationWorkload
         ADUser "ServiceSqlEngine"
         {
             DomainName = $Parameters.domainName
-            UserPrincipalName = "s-sql-engine@$($Parameters.domainName)"
+            UserPrincipalName = "s-SqlEngine@$($Parameters.domainName)"
             Credential = $domainCredential
-            UserName = "s-sql-engine"
+            UserName = "s-SqlEngine"
             Password = $domainCredential
             PasswordNeverExpires = $true
             Ensure = "Present"
@@ -124,9 +124,9 @@ configuration ConfigurationWorkload
         ADUser "ServiceSqlAgent"
         {
             DomainName = $Parameters.domainName
-            UserPrincipalName = "s-sql-agent@$($Parameters.domainName)"
+            UserPrincipalName = "s-SqlAgent@$($Parameters.domainName)"
             Credential = $domainCredential
-            UserName = "s-sql-agent"
+            UserName = "s-SqlAgent"
             Password = $domainCredential
             PasswordNeverExpires = $true
             Ensure = "Present"
@@ -143,23 +143,98 @@ configuration ConfigurationWorkload
             Credential = $domainCredential
         }
 
-        SqlSetup "SqlServerSetup"
-        {
-            SourcePath = "C:\sql_server_install"
-            Features = "SQLENGINE,FULLTEXT"
-            InstanceName = "MSSQLSERVER"
-            SQLSysAdminAccounts = "$($Parameters.domainName)\g-SqlAdministrators"
-            SQLSvcAccount = $engineCredential
-            AgtSvcAccount = $agentCredential
-            DependsOn = "[ADUser]ServiceSqlEngine","[ADUser]ServiceSqlAgent","[ADGroup]SqlAdministrators"
-        }
+        # Set basic dependencies for setup
+        $setupDependency = @("[ADUser]ServiceSqlEngine", "[ADUser]ServiceSqlAgent", "[ADGroup]SqlAdministrators");
 
-        SqlWindowsFirewall "SqlServerFirewall"
+        if($Parameters.useDeveloperEdition)
         {
-            SourcePath = "C:\sql_server_install"
-            InstanceName = "MSSQLSERVER"
-            Features = "SQLENGINE,FULLTEXT"
-            DependsOn = "[SqlSetup]SqlServerSetup"
+            Script "DownloadSqlServerBinary"
+            {
+                GetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "sqlserver.exe";
+                    if((Test-Path -Path $path))
+                    {
+                        $result = "Present";
+                    }
+                    else
+                    {
+                        $result = "Absent";
+                    }
+
+                    return @{Ensure = $result};
+                }
+
+                TestScript = {
+                    $state = [scriptblock]::Create($GetScript).Invoke();
+                    return $state.Ensure -eq "Present";
+                }
+
+                SetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "sqlserver.exe";
+                    Start-BitsTransfer -Source "https://go.microsoft.com/fwlink/p/?linkid=2215158" -Destination $path;
+                }
+            }
+
+            Script "DownloadSqlServerMedia"
+            {
+                GetScript = {
+                    $path  = Join-Path -Path "C:\sql_server_install\" -ChildPath "*.iso";
+                    if((Test-Path -Path $path))
+                    {
+                        $result = "Present";
+                    }
+                    else
+                    {
+                        $result = "Absent";
+                    }
+
+                    return @{Ensure = $result};
+                }
+
+                TestScript = {
+                    $state = [scriptblock]::Create($GetScript).Invoke();
+                    return $state.Ensure -eq "Present";
+                }
+
+                SetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "sqlserver.exe";
+                    Start-Process -FilePath $path -ArgumentList @("/ENU", "/Quiet", "/Action=Download", "/MEDIAPATH=C:\sql_server_install", "/MEDIATYPE=iso") -Wait;
+
+                    $pathIso = Join-Path -Path "C:\sql_server_install\" -ChildPath "*.iso";
+                    $item = Get-Item -Path $pathIso;
+
+                    $pathIso = Join-Path -Path "C:\sql_server_install\" -ChildPath "sqlserver.iso";
+                    Move-Item -Path $item.FullName -Destination $pathIso;
+                }
+
+                DependsOn = "[Script]DownloadSqlServerBinary"
+            }
+
+            MountImage "MountSqlMedia"
+            {
+                ImagePath = "c:\sql_server_install\sqlserver.iso"
+                DriveLetter = "s"
+                DependsOn = "[Script]DownloadSqlServerMedia"
+            }
+
+            WaitForVolume "WaitForSqlMedia"
+            {
+                DriveLetter = "s"
+                RetryIntervalSec = 5
+                RetryCount = 10
+                DependsOn = "[MountImage]MountSqlMedia"
+            }
+
+            File "CopySqlMedia"
+            {
+                SourcePath = "s:\"
+                DestinationPath = "c:\sql_server_install\"
+                Recurse = $true
+                DependsOn = "[WaitForVolume]WaitForSqlMedia"
+            }
+
+            # Add dependency for media download
+            $setupDependency += @("[File]CopySqlMedia");
         }
 
         if($Parameters.enableCluster -ne $false)
@@ -197,19 +272,20 @@ configuration ConfigurationWorkload
                     DependsOn = "[ADComputer]PrestageClusterResource"
                 }
 
-                xCluster "CreateCluster"
+                Cluster "CreateCluster"
                 {
                     Name = "$($Parameters.nodePrefix)-cl"
-                    DomainAdministratorCredential = $domainCredential
                     StaticIPAddress = $Parameters.ipCluster
+                    DomainAdministratorCredential = $domainCredential
                     DependsOn = "[WindowsFeature]WF-Failover-clustering","[ADGroup]AddClusterResourceToGroup"
+                    PsDscRunAsCredential = $domainCredential
                 }
 
-                xClusterQuorum "Quorum"
+                ClusterQuorum "Quorum"
                 {
                     Type = "NodeMajority"
                     IsSingleInstance = "Yes"
-                    DependsOn = "[xCluster]CreateCluster"
+                    DependsOn = "[Cluster]CreateCluster"
                 }
 
                 Script IncreaseClusterTimeouts
@@ -242,7 +318,7 @@ configuration ConfigurationWorkload
                         $cluster.CrossSubnetThreshold = 15;
                     }
                     
-                    DependsOn = "[xCluster]CreateCluster"
+                    DependsOn = "[Cluster]CreateCluster"
                 }
 
                 $nodes = @();
@@ -252,68 +328,114 @@ configuration ConfigurationWorkload
 
                 WaitForAll "ClusterJoin"
                 {
-                    ResourceName = "[xCluster]JoinNodeToCluster"
+                    ResourceName = "[Cluster]JoinNodeToCluster"
                     NodeName = $nodes
                     RetryIntervalSec = 5
                     RetryCount = 120
-                    DependsOn = "[xCluster]CreateCluster"
+                    DependsOn = "[Cluster]CreateCluster"
                 }
 
-                if($Parameters.enableAlwaysOn -ne $false)
-                {
-                    SqlAlwaysOnService "EnableAlwaysOn"
-                    {
-                        Ensure = "Present"
-                        ServerName = "localhost"
-                        InstanceName = "MSSQLSERVER"
-                        RestartTimeout = 120
-                        DependsOn = "[WaitForAll]ClusterJoin"
-                    }
+                # Add dependency for cluster creation
+                $setupDependency += @("[WaitForAll]ClusterJoin");
 
-                    <#
-                        SqlAGListener "AvailabilityGroup"
-                        {
-                            Ensure = "Present"
-                            ServerName = "localhost"
-                            InstanceName = "MSSQLSERVER"
-                            AvailabilityGroup = $Parameters.nodePrefix
-                            Name = "$($Parameters.nodePrefix)-ag"
-                            DHCP = $true
-                            DependsOn = "[SqlAlwaysOnService]EnableAlwaysOn"
-                        }
-                    #>
+                SqlSetup "SqlServerSetup"
+                {
+                    SourcePath = "C:\sql_server_install"
+                    Features = "SQLENGINE,FULLTEXT"
+                    InstanceName = "MSSQLSERVER"
+                    SQLSysAdminAccounts = "$($Parameters.domainName)\g-SqlAdministrators"
+                    SQLSvcAccount = $engineCredential
+                    AgtSvcAccount = $agentCredential
+                        
+                    FailoverClusterNetworkName = "$($Parameters.nodePrefix)-cl"
+                    FailoverClusterIPAddress = $Parameters.ipCluster
+                    FailoverClusterGroupName = "$($Parameters.nodePrefix)-cl"
+
+                    DependsOn = $setupDependency;
                 }
             }
             else
             {
                 WaitForAll "WaitForCluster"
                 {
-                    ResourceName = "[xCluster]CreateCluster"
+                    ResourceName = "[Cluster]CreateCluster"
                     NodeName = "$($Parameters.nodePrefix)-0"
                     RetryIntervalSec = 5
                     RetryCount = 120
+                    # PsDscRunAsCredential = $domainCredential
+                }
+
+                Cluster "JoinNodeToCluster"
+                {
+                    Name = "$($Parameters.nodePrefix)-cl"
+                    StaticIPAddress = $Parameters.ipCluster
+                    DomainAdministratorCredential = $domainCredential
+                    DependsOn = "[WaitForAll]WaitForCluster"
                     PsDscRunAsCredential = $domainCredential
                 }
 
-                xCluster "JoinNodeToCluster"
-                {
-                    Name = "$($Parameters.nodePrefix)-cl"
-                    DomainAdministratorCredential = $domainCredential
-                    DependsOn = "[WaitForAll]WaitForCluster"
-                }
+                $setupDependency += @("[Cluster]JoinNodeToCluster");
 
-                if($Parameters.enableAlwaysOn -ne $false)
+                SqlSetup "SqlServerSetup"
                 {
-                    SqlAlwaysOnService "EnableAlwaysOn"
-                    {
-                        Ensure = "Present"
-                        ServerName = "localhost"
-                        InstanceName = "MSSQLSERVER"
-                        RestartTimeout = 120
-                        DependsOn = "[xCluster]JoinNodeToCluster"
-                    }
+                    SourcePath = "C:\sql_server_install"
+                    Features = "SQLENGINE,FULLTEXT"
+                    InstanceName = "MSSQLSERVER"
+                    SQLSysAdminAccounts = "$($Parameters.domainName)\g-SqlAdministrators"
+                    SQLSvcAccount = $engineCredential
+                    AgtSvcAccount = $agentCredential
+
+                    FailoverClusterNetworkName = "$($Parameters.nodePrefix)-cl"
+
+                    DependsOn = $setupDependency
                 }
             }
+        }
+        else
+        {
+            SqlSetup "SqlServerSetup"
+            {
+                SourcePath = "C:\sql_server_install"
+                Features = "SQLENGINE,FULLTEXT"
+                InstanceName = "MSSQLSERVER"
+                SQLSysAdminAccounts = "$($Parameters.domainName)\g-SqlAdministrators"
+                SQLSvcAccount = $engineCredential
+                AgtSvcAccount = $agentCredential
+                DependsOn = $setupDependency
+            }
+        }
+
+        SqlWindowsFirewall "SqlServerFirewall"
+        {
+            SourcePath = "C:\sql_server_install"
+            InstanceName = "MSSQLSERVER"
+            Features = "SQLENGINE,FULLTEXT"
+            DependsOn = "[SqlSetup]SqlServerSetup"
+        }
+
+        if($Parameters.enableCluster -and $Parameters.enableAlwaysOn)
+        {
+            SqlAlwaysOnService "EnableAlwaysOn"
+            {
+                Ensure = "Present"
+                ServerName = "localhost"
+                InstanceName = "MSSQLSERVER"
+                RestartTimeout = 120
+                DependsOn = "[SqlWindowsFirewall]SqlServerFirewall"
+            }
+
+            <#
+                SqlAGListener "AvailabilityGroup"
+                {
+                    Ensure = "Present"
+                    ServerName = "localhost"
+                    InstanceName = "MSSQLSERVER"
+                    AvailabilityGroup = $Parameters.nodePrefix
+                    Name = "$($Parameters.nodePrefix)-ag"
+                    DHCP = $true
+                    DependsOn = "[SqlAlwaysOnService]EnableAlwaysOn"
+                }
+            #>
         }
     }
 }
