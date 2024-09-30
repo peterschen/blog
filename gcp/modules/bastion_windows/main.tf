@@ -55,7 +55,9 @@ module "sysprep" {
 module "apis" {
   source = "../apis"
   project = data.google_project.default.project_id
-  apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com"]
+  apis = [
+    "compute.googleapis.com"
+  ]
 }
 
 resource "google_compute_address" "bastion" {

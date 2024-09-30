@@ -40,7 +40,10 @@ data "google_compute_subnetwork" "subnetworks" {
 module "apis" {
   source = "../apis"
   project = data.google_project.default.project_id
-  apis = ["cloudresourcemanager.googleapis.com", "compute.googleapis.com", "dns.googleapis.com"]
+  apis = [
+    "compute.googleapis.com",
+    "dns.googleapis.com"
+  ]
 }
 
 module "firewall_ad" {
