@@ -26,7 +26,7 @@ variable "subnetwork" {
 
 variable "windows_image" {
   type = string
-  default = "windows-sql-cloud/sql-ent-2022-win-2022"
+  default = "windows-cloud/windows-2022"
 }
 
 variable "machine_type" {
@@ -41,6 +41,11 @@ variable "domain_name" {
 variable "password" {
   type = string
   sensitive = true
+}
+
+variable "use_developer_edition" {
+  type = bool
+  default = true
 }
 
 variable "enable_cluster" {
