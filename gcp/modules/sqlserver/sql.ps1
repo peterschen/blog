@@ -237,6 +237,14 @@ configuration ConfigurationWorkload
             $setupDependency += @("[File]CopySqlMedia");
         }
 
+        SqlWindowsFirewall "SqlServerFirewall"
+        {
+            SourcePath = "C:\sql_server_install"
+            InstanceName = "MSSQLSERVER"
+            Features = "SQLENGINE,FULLTEXT"
+            DependsOn = $setupDependency
+        }
+
         if($Parameters.enableCluster -ne $false)
         {
             Firewall "F-GceClusterHelper"
@@ -334,25 +342,6 @@ configuration ConfigurationWorkload
                     RetryCount = 120
                     DependsOn = "[Cluster]CreateCluster"
                 }
-
-                # Add dependency for cluster creation
-                $setupDependency += @("[WaitForAll]ClusterJoin");
-
-                SqlSetup "SqlServerSetup"
-                {
-                    SourcePath = "C:\sql_server_install"
-                    Features = "SQLENGINE,FULLTEXT"
-                    InstanceName = "MSSQLSERVER"
-                    SQLSysAdminAccounts = "$($Parameters.domainName)\g-SqlAdministrators"
-                    SQLSvcAccount = $engineCredential
-                    AgtSvcAccount = $agentCredential
-                        
-                    FailoverClusterNetworkName = "$($Parameters.nodePrefix)-cl"
-                    FailoverClusterIPAddress = $Parameters.ipCluster
-                    FailoverClusterGroupName = "$($Parameters.nodePrefix)-cl"
-
-                    DependsOn = $setupDependency;
-                }
             }
             else
             {
@@ -372,32 +361,6 @@ configuration ConfigurationWorkload
                     DependsOn = "[WaitForAll]WaitForCluster"
                     PsDscRunAsCredential = $domainCredential
                 }
-
-                WaitForAll "SqlServerSetup"
-                {
-                    ResourceName = "[SqlSetup]SqlServerSetup"
-                    NodeName = "$($Parameters.nodePrefix)-0"
-                    RetryIntervalSec = 5
-                    RetryCount = 120
-                    DependsOn = "[Cluster]JoinNodeToCluster"
-                }
-
-                # Wait for installation of SQL Server on first node to complete
-                $setupDependency += @("[WaitForAll]SqlServerSetup");
-
-                SqlSetup "SqlServerSetup"
-                {
-                    SourcePath = "C:\sql_server_install"
-                    Features = "SQLENGINE,FULLTEXT"
-                    InstanceName = "MSSQLSERVER"
-                    SQLSysAdminAccounts = "$($Parameters.domainName)\g-SqlAdministrators"
-                    SQLSvcAccount = $engineCredential
-                    AgtSvcAccount = $agentCredential
-
-                    FailoverClusterNetworkName = "$($Parameters.nodePrefix)-cl"
-
-                    DependsOn = $setupDependency
-                }
             }
         }
         else
@@ -412,14 +375,6 @@ configuration ConfigurationWorkload
                 AgtSvcAccount = $agentCredential
                 DependsOn = $setupDependency
             }
-        }
-
-        SqlWindowsFirewall "SqlServerFirewall"
-        {
-            SourcePath = "C:\sql_server_install"
-            InstanceName = "MSSQLSERVER"
-            Features = "SQLENGINE,FULLTEXT"
-            DependsOn = "[SqlSetup]SqlServerSetup"
         }
 
         if($Parameters.enableCluster -and $Parameters.enableAlwaysOn)
