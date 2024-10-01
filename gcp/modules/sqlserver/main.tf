@@ -65,6 +65,7 @@ resource "google_compute_address" "sql" {
 }
 
 resource "google_compute_address" "sql_cl" {
+  count = local.enable_cluster ? 1 : 0
   region = local.region
   project = local.project
   name = "sql-cl"
@@ -74,6 +75,7 @@ resource "google_compute_address" "sql_cl" {
 }
 
 resource "google_compute_firewall" "allow_healthcheck_mssql_gcp" {
+  count = local.enable_cluster ? 1 : 0
   name = "allow-healthcheck-mssql-gcp"
   project = local.project
   network = data.google_compute_network.network.self_link
@@ -140,7 +142,7 @@ resource "google_compute_instance" "sql" {
           isFirst = (count.index == 0),
           nodePrefix = "sql",
           nodeCount = length(local.zones),
-          ipCluster = google_compute_address.sql_cl.address,
+          ipCluster = google_compute_address.sql_cl[0].address,
           inlineMeta = filebase64(module.sysprep.path_meta),
           inlineConfiguration = filebase64("${path.module}/sql.ps1"),
           useDeveloperEdition = local.use_developer_edition,
@@ -187,6 +189,7 @@ resource "google_compute_instance_group" "sql" {
 }
 
 resource "google_compute_health_check" "sql" {
+  count = local.enable_cluster ? 1 : 0
   name = "sql"
   project = local.project
   timeout_sec = 1
@@ -194,36 +197,40 @@ resource "google_compute_health_check" "sql" {
 
   tcp_health_check {
     port = 59998
-    request = google_compute_address.sql_cl.address
+    request = google_compute_address.sql_cl[count.index].address
     response = "1"
   }
 }
 
 resource "google_compute_region_backend_service" "sql" {
+  count = local.enable_cluster ? 1 : 0
   region = local.region
   project = local.project
   name = "sql"
-  health_checks = [google_compute_health_check.sql.self_link]
+  health_checks = [
+    google_compute_health_check.sql[count.index].id
+  ]
   protocol = "UNSPECIFIED"
 
   dynamic "backend" {
     for_each = google_compute_instance_group.sql
     content {
-      group = backend.value.self_link
+      group = backend.value.id
     }
   }
 }
 
 resource "google_compute_forwarding_rule" "sql" {
+  count = local.enable_cluster ? 1 : 0
   region = local.region
   project = local.project
   name = "sql"
-  ip_address = google_compute_address.sql_cl.address
+  ip_address = google_compute_address.sql_cl[count.index].address
   load_balancing_scheme = "INTERNAL"
   ip_protocol = "L3_DEFAULT"
   all_ports = true
   allow_global_access = true
-  network = data.google_compute_network.network.self_link
-  subnetwork = data.google_compute_subnetwork.subnetwork.self_link
-  backend_service = google_compute_region_backend_service.sql.self_link
+  network = data.google_compute_network.network.id
+  subnetwork = data.google_compute_subnetwork.subnetwork.id
+  backend_service = google_compute_region_backend_service.sql[count.index].id
 }
