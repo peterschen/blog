@@ -60,7 +60,7 @@ resource "google_compute_address" "sql" {
   project = data.google_project.network.project_id
   region = local.region
   subnetwork = data.google_compute_subnetwork.subnetwork.id
-  name = "sql-${local.zones[count.index]}"
+  name = "sql-${count.index}"
   address_type = "INTERNAL"
 }
 

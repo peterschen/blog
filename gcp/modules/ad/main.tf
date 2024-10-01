@@ -123,7 +123,7 @@ resource "google_compute_address" "dc" {
       subnet.id if strcontains(local.zones[count.index], subnet.region)
     ]
   )
-  name = "dc-${local.zones[count.index]}"
+  name = "dc-${count.index}"
   address_type = "INTERNAL"
 }
 
