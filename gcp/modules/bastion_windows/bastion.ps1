@@ -347,7 +347,7 @@ configuration ConfigurationWorkload
 
                 SetScript = {
                     $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "hammerdb.zip";
-                    Start-BitsTransfer -Source "https://github.com/TPC-Council/HammerDB/releases/download/v3.3/HammerDB-3.3-Win.zip" -Destination $path;
+                    Start-BitsTransfer -Source "https://github.com/TPC-Council/HammerDB/releases/download/v4.12/HammerDB-4.12-Win.zip" -Destination $path;
                 }
             }
 
