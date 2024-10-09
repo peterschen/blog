@@ -310,18 +310,55 @@ configuration ConfigurationWorkload
 
                 SetScript = {
                     $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "msoledbsql.msi";
-                    Start-BitsTransfer -Source "https://go.microsoft.com/fwlink/?linkid=2183083" -Destination $path;
+                    Start-BitsTransfer -Source "https://go.microsoft.com/fwlink/?linkid=2278038" -Destination $path;
+                }
+            }
+
+            Script "DownloadMsodbcsql"
+            {
+                GetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "msodbcsql.msi";
+                    if((Test-Path -Path $path))
+                    {
+                        $result = "Present";
+                    }
+                    else
+                    {
+                        $result = "Absent";
+                    }
+
+                    return @{Ensure = $result};
+                }
+
+                TestScript = {
+                    $state = [scriptblock]::Create($GetScript).Invoke();
+                    return $state.Ensure -eq "Present";
+                }
+
+                SetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "msodbcsql.msi";
+                    Start-BitsTransfer -Source "https://go.microsoft.com/fwlink/?linkid=2280794" -Destination $path;
                 }
             }
 
             Package "InstallMsoledb"
             {
                 Ensure = "Present"
-                Name = "Microsoft OLE DB Driver for SQL Server"
+                Name = "Microsoft OLE DB Driver 19 for SQL Server"
                 ProductID = ""
                 Path = "C:\Windows\temp\msoledbsql.msi"
                 Arguments = "/quiet /log c:\windows\temp\oledb.log IACCEPTMSOLEDBSQLLICENSETERMS=YES"
                 DependsOn = "[Script]DownloadMsoledbsql"
+            }
+
+            Package "InstallMsodbc"
+            {
+                Ensure = "Present"
+                Name = "Microsoft ODBC Driver 18 for SQL Server"
+                ProductID = ""
+                Path = "C:\Windows\temp\msodbcsql.msi"
+                Arguments = "/quiet /log c:\windows\temp\odbc.log"
+                DependsOn = "[Script]DownloadMsodbcsql"
             }
 
             Script "DownloadHammerdb"
