@@ -241,3 +241,9 @@ resource "google_compute_attached_disk" "data" {
   instance = each.value.instance.id
   device_name = each.value.disk.name
 }
+
+resource "google_project_iam_member" "secret_accessor" {
+  project = "cbpetersen-shared"
+  role = "roles/secretmanager.secretAccessor"
+  member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
+}
