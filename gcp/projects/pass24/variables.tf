@@ -36,6 +36,16 @@ variable "password" {
   sensitive = true
 }
 
+variable "machine_type_bastion" {
+  type = string
+  default = "n4-highcpu-4"
+}
+
+variable "machine_type_sql" {
+  type = string
+  default = "n4-standard-4"
+}
+
 variable "windows_image" {
   type = string
   default = "windows-cloud/windows-2022"

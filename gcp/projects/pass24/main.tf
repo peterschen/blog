@@ -35,8 +35,8 @@ locals {
   network_range = "10.0.0.0/16"
 
   machine_type_dc = "n4-highcpu-2"
-  machine_type_bastion = "n4-standard-4"
-  machine_type_sql = "n4-standard-4"
+  machine_type_bastion = var.machine_type_bastion
+  machine_type_sql = var.machine_type_sql
 
   enable_cluster = var.enable_cluster
   enable_alwayson = var.enable_alwayson
@@ -205,7 +205,13 @@ resource "google_compute_disk" "data" {
   zone = local.zones[0]
   name = "data-${count.index}"
   type = "hyperdisk-balanced"
-  access_mode = "READ_WRITE_MANY"
+  size = 160
+  provisioned_iops = 80000
+  provisioned_throughput = 1200
+  
+  ## Uncomment for HdB-MW
+  # access_mode = "READ_WRITE_MANY"
+  access_mode = "READ_WRITE_SINGLE"
 }
 
 # resource "google_compute_disk" "data" {
