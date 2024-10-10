@@ -142,7 +142,7 @@ resource "google_compute_instance" "sql" {
           isFirst = (count.index == 0),
           nodePrefix = "sql",
           nodeCount = length(local.zones),
-          ipCluster = google_compute_address.sql_cl[0].address,
+          ipCluster = local.enable_cluster ? google_compute_address.sql_cl[0].address : null,
           inlineMeta = filebase64(module.sysprep.path_meta),
           inlineConfiguration = filebase64("${path.module}/sql.ps1"),
           useDeveloperEdition = local.use_developer_edition,
