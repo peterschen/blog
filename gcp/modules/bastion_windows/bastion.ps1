@@ -357,7 +357,7 @@ configuration ConfigurationWorkload
                 Name = "Microsoft ODBC Driver 18 for SQL Server"
                 ProductID = ""
                 Path = "C:\Windows\temp\msodbcsql.msi"
-                Arguments = "/quiet /log c:\windows\temp\odbc.log"
+                Arguments = "/quiet /log c:\windows\temp\odbc.log IACCEPTMSODBCSQLLICENSETERMS=YES"
                 DependsOn = "[Script]DownloadMsodbcsql"
             }
 
