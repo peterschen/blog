@@ -180,7 +180,7 @@ resource "google_compute_instance" "sql" {
 }
 
 resource "google_compute_instance_group" "sql" {
-  count = length(local.zones)
+  count = local.enable_cluster ? length(local.zones) : 0
   project = local.project
   zone = local.zones[count.index]
   name = "sql-${count.index}"
