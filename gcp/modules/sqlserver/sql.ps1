@@ -139,7 +139,7 @@ configuration ConfigurationWorkload
             GroupScope = "Global"
             Ensure = "Present"
             Path = "ou=Groups,$ou"
-            MembersToInclude = @("johndoe")
+            MembersToInclude = @("johndoe", "Administrator")
             Credential = $domainCredential
         }
 
