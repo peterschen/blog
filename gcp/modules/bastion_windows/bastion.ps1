@@ -341,6 +341,33 @@ configuration ConfigurationWorkload
                 }
             }
 
+            Script "DownloadMssqlcmd"
+            {
+                GetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "mssqlcmd.msi";
+                    if((Test-Path -Path $path))
+                    {
+                        $result = "Present";
+                    }
+                    else
+                    {
+                        $result = "Absent";
+                    }
+
+                    return @{Ensure = $result};
+                }
+
+                TestScript = {
+                    $state = [scriptblock]::Create($GetScript).Invoke();
+                    return $state.Ensure -eq "Present";
+                }
+
+                SetScript = {
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "mssqlcmd.msi";
+                    Start-BitsTransfer -Source "https://go.microsoft.com/fwlink/?linkid=2230791" -Destination $path;
+                }
+            }
+
             Package "InstallMsoledb"
             {
                 Ensure = "Present"
@@ -359,6 +386,16 @@ configuration ConfigurationWorkload
                 Path = "C:\Windows\temp\msodbcsql.msi"
                 Arguments = "/quiet /log c:\windows\temp\odbc.log IACCEPTMSODBCSQLLICENSETERMS=YES"
                 DependsOn = "[Script]DownloadMsodbcsql"
+            }
+
+            Package "InstallMssqlcmd"
+            {
+                Ensure = "Present"
+                Name = "Microsoft Command Line Utilities 15 for SQL Server"
+                ProductID = ""
+                Path = "C:\Windows\temp\mssqlcmd.msi"
+                Arguments = "/quiet /log c:\windows\temp\sqlcmd.log IACCEPTMSSQLCMDLNUTILSLICENSETERMS=YES"
+                DependsOn = "[Script]DownloadMssqlcmd"
             }
 
             Script "DownloadHammerdb"
