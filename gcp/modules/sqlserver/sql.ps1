@@ -375,6 +375,15 @@ configuration ConfigurationWorkload
                 AgtSvcAccount = $agentCredential
                 DependsOn = $setupDependency
             }
+
+            SqlProtocol "SqlEnableTcp"
+            {
+                InstanceName = "MSSQLSERVER"
+                ProtocolName = "TcpIp"
+                Enabled = $true
+                ListenOnAllIpAddresses = $true
+                PsDscRunAsCredential  = $domainCredential
+            }
         }
 
         if($Parameters.enableCluster -and $Parameters.enableAlwaysOn)
