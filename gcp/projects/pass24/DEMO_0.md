@@ -31,17 +31,6 @@ Invoke-Command -ComputerName "sql-0" -ScriptBlock {
 ## Configure SQL Server and restore database
 
 ```powershell
-# Add 
-Invoke-Command -ComputerName "sql-0" -ScriptBlock {
-    $path = "HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\MSSQL16.MSSQLSERVER\MSSQLServer\Parameters";
-    if(-not (Get-ItemProperty -Path $path -Name "SQLArg3" -ErrorAction SilentlyContinue))
-    {
-        Set-ItemProperty -Path $path -Name "SQLArg3" -Value "-k";
-    }
-
-    Restart-Service -Name "MSSQLSERVER";
-}
-
 $secret = gcloud secrets versions access 1 --secret pass24-gcs-access --project cbpetersen-shared;
 $command = @"
     -- Server configuration
