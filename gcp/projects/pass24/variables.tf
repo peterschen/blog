@@ -70,3 +70,23 @@ variable "enable_alwayson" {
   type = bool
   default = false
 }
+
+variable "disk_type_data" {
+  type = string
+  default = "hyperdisk-balanced"
+}
+
+variable "disk_size_data" {
+  type = number
+  default = 300
+}
+
+variable "disk_iops_data" {
+  type = number
+  default = 80000
+}
+
+variable "disk_throughput_data" {
+  type = number
+  default = 1200
+}

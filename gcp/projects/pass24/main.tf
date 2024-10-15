@@ -40,6 +40,11 @@ locals {
 
   enable_cluster = var.enable_cluster
   enable_alwayson = var.enable_alwayson
+
+  disk_type_data = var.disk_type_data
+  disk_size_data = var.disk_size_data
+  disk_iops_data = var.disk_iops_data
+  disk_throughput_data = var.disk_throughput_data
 }
 
 module "project" {
@@ -204,14 +209,15 @@ resource "google_compute_disk" "data" {
   project = data.google_project.project.project_id
   zone = local.zones[0]
   name = "data-${count.index}"
-  type = "hyperdisk-balanced"
-  size = 160
-  provisioned_iops = 80000
-  provisioned_throughput = 1200
+  type = local.disk_type_data
+  size = local.disk_size_data
+
+  provisioned_iops = local.disk_iops_data
+  provisioned_throughput = local.disk_type_data == "hyperdisk-balanced" ? local.disk_throughput_data : null
   
-  ## Uncomment for HdB-MW
-  # access_mode = "READ_WRITE_MANY"
-  access_mode = "READ_WRITE_SINGLE"
+  ## Uncomment for using MW-HA when using Hyperdisk Balanced
+  # access_mode = local.disk_type_data == "hyperdisk-balanced" ? "READ_WRITE_MANY" : null
+  access_mode = local.disk_type_data == "hyperdisk-balanced" ? "READ_WRITE_SINGLE" : null
 }
 
 # resource "google_compute_disk" "data" {
@@ -240,6 +246,13 @@ resource "google_compute_attached_disk" "data" {
   disk = each.value.disk.id
   instance = each.value.instance.id
   device_name = each.value.disk.name
+}
+
+resource "google_monitoring_dashboard" "dashboard" {
+  project = data.google_project.project.project_id
+  dashboard_json = templatefile("${path.module}/dashboard.json",  {
+    project_id = data.google_project.project.project_id
+  })
 }
 
 resource "google_project_iam_member" "secret_accessor" {
