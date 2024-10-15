@@ -19,6 +19,9 @@ $disk = New-VirtualDisk -FriendlyName $friendlyName -StoragePoolUniqueId $pool.U
 Initialize-Disk -UniqueId $disk.UniqueId -PassThru | 
     New-Partition -DriveLetter "T" -UseMaximumSize | 
     Format-Volume;
+
+# Add access for s-SqlEngine
+icacls t:\ /grant "PASS24\s-SqlEngine:(OI)(CI)(F)"
 ```
 
 ## Run `fio`
@@ -604,10 +607,10 @@ WITH
 	STATS = 10, 
 	RECOVERY,
 	REPLACE;
-ALTER DATABASE [pass_5000] MODIFY FILE ( NAME = N'pass_log', FILEGROWTH = 0)
+ALTER DATABASE [pass_5000] MODIFY FILE ( NAME = N'pass_log', SIZE=131072, FILEGROWTH = 0)
 ALTER DATABASE [pass_5000] SET RECOVERY SIMPLE;
 ALTER DATABASE [pass_5000] SET TORN_PAGE_DETECTION OFF;
 ALTER DATABASE [pass_5000] SET PAGE_VERIFY NONE;
-ALTER DATABASE [pass_5000] SET TARGET_RECOVERY_TIME = 0 MINUTES;
+ALTER DATABASE [pass_5000] SET TARGET_RECOVERY_TIME = 15 MINUTES;
 GO
 ```
