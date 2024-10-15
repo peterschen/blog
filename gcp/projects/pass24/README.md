@@ -92,7 +92,6 @@ DBCC TRACEON (3605, -1);
 
 ## GCS backup
 
-pass24-gcs-access
 ```powershell
 $secret = gcloud secrets versions access 1 --secret pass24-gcs-access --project cbpetersen-shared;
 $command = @"
