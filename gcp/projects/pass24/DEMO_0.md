@@ -32,7 +32,7 @@ Invoke-Command -ComputerName "sql-0" -ScriptBlock {
 
 ```powershell
 $secret = gcloud secrets versions access 1 --secret pass24-gcs-access --project cbpetersen-shared;
-$command = @"
+sqlcmd -S "tcp:sql-0" -Q @"
     -- Server configuration
     EXEC sp_configure 'show advanced options', 1;
     RECONFIGURE;
@@ -49,6 +49,7 @@ $command = @"
     DBCC TRACEON (3502, -1);
     DBCC TRACEON (3504, -1);
     DBCC TRACEON (3605, -1);
+    GO
 
     -- Configure credential for GCS
 	IF NOT EXISTS (SELECT * FROM sys.credentials WHERE credential_identity = 'S3 Access Key')
@@ -130,11 +131,13 @@ $command = @"
         STATS = 10, 
         RECOVERY,
         REPLACE;
+    GO
+
     ALTER DATABASE [pass_5000] MODIFY FILE ( NAME = N'pass_log', SIZE = 128GB)
     ALTER DATABASE [pass_5000] SET RECOVERY SIMPLE;
     ALTER DATABASE [pass_5000] SET TORN_PAGE_DETECTION OFF;
     ALTER DATABASE [pass_5000] SET PAGE_VERIFY NONE;
     ALTER DATABASE [pass_5000] SET TARGET_RECOVERY_TIME = 15 MINUTES;
+    GO
 "@;
-sqlcmd -S "tcp:sql-0" -Q "$command"
 ```
