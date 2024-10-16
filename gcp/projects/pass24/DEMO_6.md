@@ -18,4 +18,16 @@ High performance storage subsystem with up to 500,000 IOPS and 10 GiB/s throughp
 1. Show performance dashboard in Cloud Console
     * [PASS - Disk Performance](https://console.cloud.google.com/monitoring/dashboards)
 
-## 
+## Run
+
+```powershell
+$pathTools = "C:\tools";
+$pathHammerdb = Join-Path -Path $pathTools -ChildPath "hammerdb\HammerDB-4.12";
+Set-Location -Path $pathHammerdb;
+
+# Start first run
+.\hammerdbcli auto $pathTools/pass_run_1.tcl
+
+# Start second run
+.\hammerdbcli auto $pathTools/pass_run_2.tcl
+```
