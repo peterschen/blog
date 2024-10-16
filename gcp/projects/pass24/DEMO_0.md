@@ -310,6 +310,7 @@ puts $of $jobid
 close $of
 '@;
 
+$fileRun1 = Join-Path -Path $pathTools -ChildPath "pass_run_1.tcl";
 $fileRun2 = Join-Path -Path $pathTools -ChildPath "pass_run_2.tcl";
 Set-Content -Path $fileRun1 -Value $scriptRun1;
 Set-Content -Path $fileRun2 -Value $scriptRun2;
