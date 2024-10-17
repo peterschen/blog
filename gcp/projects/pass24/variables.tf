@@ -1,32 +1,9 @@
-variable "project_id" {
-  type = string
-  default = null
-}
-
 variable "org_id" {
   type = number
 }
 
 variable "billing_account" {
   type = string
-}
-
-variable "prefix" {
-  type = string
-  default = null
-}
-
-variable "region" {
-  type = string
-  default = "europe-west4"
-}
-
-variable "zones" {
-  type = list(string)
-  default = [
-    "europe-west4-a",
-    "europe-west4-b"
-  ]
 }
 
 variable "domain_name" {
@@ -36,57 +13,52 @@ variable "password" {
   sensitive = true
 }
 
-variable "machine_type_bastion" {
+variable "project_id_demo5" {
   type = string
-  default = "n4-highcpu-4"
+  default = null
 }
 
-variable "machine_type_sql" {
+variable "project_id_demo6" {
   type = string
-  default = "n4-standard-4"
+  default = null
 }
 
-variable "windows_image" {
+variable "region_demo5" {
   type = string
-  default = "windows-cloud/windows-2022"
+  default = "europe-west4"
 }
 
-variable "windows_core_image" {
+variable "region_demo6" {
   type = string
-  default = "windows-cloud/windows-2022-core"
+  default = "europe-west4"
 }
 
-variable "sql_image" {
+variable "region_secondary_demo5" {
   type = string
-  default = "windows-cloud/windows-2022"
+  default = "europe-west3"
 }
 
-variable "enable_cluster" {
+variable "zone_demo5" {
+  type = string
+  default = "europe-west4-a"
+}
+
+variable "zone_secondary_demo5" {
+  type = string
+  default = "europe-west3-c"
+}
+
+variable "zone_demo6" {
+  type = string
+  default = "europe-west4-a"
+}
+
+variable "enable_demo5" {
   type = bool
-  default = false
+  default = true
 }
 
-variable "enable_alwayson" {
+variable "enable_demo6" {
   type = bool
-  default = false
-}
-
-variable "disk_type_data" {
-  type = string
-  default = "hyperdisk-balanced"
-}
-
-variable "disk_size_data" {
-  type = number
-  default = 300
-}
-
-variable "disk_iops_data" {
-  type = number
-  default = 80000
-}
-
-variable "disk_throughput_data" {
-  type = number
-  default = 1200
+  default = true
 }
