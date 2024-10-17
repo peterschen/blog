@@ -8,7 +8,7 @@ Using Async PD to replicate data and log volumes consistently across regions.
 
 ```powershell
 Invoke-Command -ComputerName "sql-0" -ScriptBlock {
-    $disks = Get-PhysicalDisk -CanPool $true;
+    $disks = Get-PhysicalDisk -CanPool $true | Sort-Object -Descending -Property Size;
     $driveletters = ("T", "L")
 
     $index = 0;
@@ -138,13 +138,14 @@ gcloud compute disks bulk create \
     --zone $zone_secondary
 
 # Attach disks
-disks=`gcloud compute disks list --project $project --filter "name~data- OR name~log-" --format "value(name)"`
+disks=`gcloud compute disks list --project $project --filter "name~data- OR name~log-" --format "value(name)" | sort`
 for disk in $disks; do
     gcloud compute instances attach-disk sql-clone-0 \
         --disk $disk \
         --device-name $disk \
         --project $project \
         --zone $zone_secondary
+    sleep 5
 done
 ```
 

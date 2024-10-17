@@ -127,7 +127,7 @@ resource "google_compute_disk" "demo5_log" {
   zone = local.zone_demo5
   name = "log"
   type = "pd-balanced"
-  size = 50
+  size = 25
 }
 
 resource "google_compute_disk" "demo5_secondary_data" {
@@ -149,7 +149,7 @@ resource "google_compute_disk" "demo5_secondary_log" {
   zone = local.zone_secondary_demo5
   name = "log"
   type = "pd-balanced"
-  size = 50
+  size = 25
 
   async_primary_disk {
     disk = google_compute_disk.demo5_log[count.index].id
