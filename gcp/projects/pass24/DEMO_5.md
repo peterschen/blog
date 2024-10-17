@@ -69,6 +69,9 @@ sqlcmd -S "tcp:sql-0" -Q @"
 1. Show storage configuration on sql-0
     * Disk configuration
     * Explain two separate drives for data and log and impact on consistency
+
+## Show primary database
+
 1. Show database and create sample record
 
 ```sql
@@ -119,7 +122,9 @@ AND LastName = 'Petersen'
 GO
 ```
 
-4. Create clone from secondary disk and attach it to a VM in that region
+## Clone replicated disks
+
+1. Create clone from secondary disk and attach it to a VM in that region
 
 ```sh
 project=`terraform output -raw project_id_demo5`
@@ -143,7 +148,11 @@ for disk in $disks; do
 done
 ```
 
-5. Attach database
+2. Show disks in Cloud Console
+
+## Attach database
+
+1. Attach database and run query
 ```sql
 CREATE DATABASE AdventureWorks2022
 ON 
