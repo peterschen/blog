@@ -53,6 +53,11 @@ variable "use_developer_edition" {
   default = true
 }
 
+variable "enable_firewall" {
+  type = bool
+  default = true
+}
+
 variable "enable_cluster" {
   type = bool
   default = false

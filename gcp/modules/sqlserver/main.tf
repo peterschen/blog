@@ -16,6 +16,7 @@ locals {
   windows_image = var.windows_image
 
   use_developer_edition = var.use_developer_edition
+  enable_firewall = var.enable_firewall
   enable_cluster = var.enable_alwayson ? true : var.enable_cluster
   enable_alwayson = var.enable_alwayson
 }
@@ -49,6 +50,7 @@ module "apis" {
 }
 
 module "firewall_mssql" {
+  count = local.enable_firewall ? 1 : 0
   source = "../firewall_mssql"
   project = local.project
   name = "allow-mssql"
