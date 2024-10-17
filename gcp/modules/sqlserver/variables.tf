@@ -34,6 +34,11 @@ variable "machine_type" {
   default = "n4-standard-4"
 }
 
+variable "machine_prefix" {
+  type = string
+  default = "sql"
+}
+
 variable "domain_name" {
   type = string
 }

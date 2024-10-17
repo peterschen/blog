@@ -12,6 +12,7 @@ locals {
   subnetwork = var.subnetwork
 
   machine_type = var.machine_type
+  machine_prefix = var.machine_prefix
   windows_image = var.windows_image
 
   use_developer_edition = var.use_developer_edition
@@ -60,7 +61,7 @@ resource "google_compute_address" "sql" {
   project = data.google_project.network.project_id
   region = local.region
   subnetwork = data.google_compute_subnetwork.subnetwork.id
-  name = "sql-${count.index}"
+  name = "${local.machine_prefix}-${count.index}"
   address_type = "INTERNAL"
 }
 
@@ -68,7 +69,7 @@ resource "google_compute_address" "sql_cl" {
   count = local.enable_cluster ? 1 : 0
   region = local.region
   project = local.project
-  name = "sql-cl"
+  name = "${local.machine_prefix}-cl"
   address_type = "INTERNAL"
   purpose = "SHARED_LOADBALANCER_VIP"
   subnetwork = data.google_compute_subnetwork.subnetwork.self_link
@@ -104,7 +105,7 @@ resource "google_compute_instance" "sql" {
   count = length(local.zones)
   project = local.project
   zone = local.zones[count.index]
-  name = "sql-${count.index}"
+  name = "${local.machine_prefix}-${count.index}"
 
   machine_type = local.machine_type
 
@@ -133,14 +134,14 @@ resource "google_compute_instance" "sql" {
     type = "sql"
     enable-wsfc = "true"
     sysprep-specialize-script-ps1 = templatefile(module.sysprep.path_specialize, { 
-        nameHost = "sql-${count.index}", 
+        nameHost = "${local.machine_prefix}-${count.index}", 
         password = local.password,
         parametersConfiguration = jsonencode({
           domainName = local.domain_name,
           zone = local.zones[count.index]
           networkRange = data.google_compute_subnetwork.subnetwork.ip_cidr_range,
           isFirst = (count.index == 0),
-          nodePrefix = "sql",
+          nodePrefix = local.machine_prefix,
           nodeCount = length(local.zones),
           ipCluster = local.enable_cluster ? google_compute_address.sql_cl[0].address : null,
           inlineMeta = filebase64(module.sysprep.path_meta),
@@ -183,7 +184,7 @@ resource "google_compute_instance_group" "sql" {
   count = local.enable_cluster ? length(local.zones) : 0
   project = local.project
   zone = local.zones[count.index]
-  name = "sql-${count.index}"
+  name = "${local.machine_prefix}-${count.index}"
   instances = [google_compute_instance.sql[count.index].self_link]
   network = data.google_compute_network.network.self_link
 }
