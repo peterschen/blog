@@ -73,3 +73,7 @@ variable "enable_alwayson" {
   default = false
 }
 
+variable "enable_iam" {
+  type = bool
+  default = true
+}

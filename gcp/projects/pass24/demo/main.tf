@@ -28,6 +28,8 @@ locals {
 
   enable_cluster = var.enable_cluster
   enable_alwayson = var.enable_alwayson
+
+  enable_iam = var.enable_iam
 }
 
 module "project" {
@@ -194,18 +196,21 @@ resource "google_project_iam_member" "secret_accessor" {
 }
 
 resource "google_project_iam_member" "log_writer" {
+  count = local.enable_iam ? 1 : 0
   project = data.google_project.project.project_id
   role = "roles/logging.logWriter"
   member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
 }
 
 resource "google_project_iam_member" "sql_alert_writer" {
+  count = local.enable_iam ? 1 : 0
   project = data.google_project.project.project_id
   role = "roles/logging.sqlAlertWriter"
   member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
 }
 
 resource "google_project_iam_member" "metric_writer" {
+  count = local.enable_iam ? 1 : 0
   project = data.google_project.project.project_id
   role = "roles/monitoring.metricWriter"
   member = "serviceAccount:${data.google_compute_default_service_account.default.email}"

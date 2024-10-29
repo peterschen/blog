@@ -16,6 +16,7 @@ module "demo2" {
   domain_name = local.domain_name
   password = var.password
   enable_cluster = true
+  enable_iam = false
 
   machine_type_bastion = "n4-highcpu-4"
   machine_type_sql = "n2-highcpu-4"
