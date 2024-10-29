@@ -48,7 +48,7 @@ resource "google_compute_attached_disk" "demo2_data" {
 }
 
 resource "google_compute_firewall" "allow_rdp_bastion_demo2" {
-  count = local.enable_demo1 ? 1 : 0
+  count = local.enable_demo2 ? 1 : 0
   name = "allow-rdp-bastion"
   project = module.demo2[0].project_id
 
