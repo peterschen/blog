@@ -4,6 +4,18 @@ Using Async PD to replicate data and log volumes consistently across regions.
 
 ## Prep
 
+## Fix deployment
+
+In some cases the disk status is not properly set when starting the replication. These commands will import the resource so the project can be deleted successfully.
+
+```sh
+project="terraform output -raw project_id_module5"
+zone=="terraform output -raw zone_demo5"
+
+terraform import google_compute_disk_async_replication.demo5_data[0] projects/$project/zones/$zone/disks/data
+terraform import google_compute_disk_async_replication.demo5_log[0] projects/$project/zones/$zone/disks/log
+```
+
 ### Initialize disk on sql-0
 
 ```powershell

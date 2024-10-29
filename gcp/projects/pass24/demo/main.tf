@@ -7,7 +7,10 @@ locals {
 
   apis = [
     "compute.googleapis.com",
-    "dns.googleapis.com"
+    "dns.googleapis.com",
+    "monitoring.googleapis.com",
+    "logging.googleapis.com",
+    "osconfig.googleapis.com"
   ]
   
   domain_name = var.domain_name
@@ -187,5 +190,23 @@ module "sqlserver" {
 resource "google_project_iam_member" "secret_accessor" {
   project = "cbpetersen-shared"
   role = "roles/secretmanager.secretAccessor"
+  member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
+}
+
+resource "google_project_iam_member" "log_writer" {
+  project = data.google_project.project.project_id
+  role = "roles/logging.logWriter"
+  member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
+}
+
+resource "google_project_iam_member" "sql_alert_writer" {
+  project = data.google_project.project.project_id
+  role = "roles/logging.sqlAlertWriter"
+  member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
+}
+
+resource "google_project_iam_member" "metric_writer" {
+  project = data.google_project.project.project_id
+  role = "roles/monitoring.metricWriter"
   member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
 }

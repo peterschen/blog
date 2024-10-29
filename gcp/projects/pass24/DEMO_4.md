@@ -1,4 +1,4 @@
-# Demo 6
+# Demo 4
 
 High performance storage subsystem with up to 500,000 IOPS and 10 GiB/s throughput using Hyperdisk Extreme.
 
@@ -329,7 +329,7 @@ Set-Content -Path $fileRun2 -Value $scriptRun2;
     * Tuned to drive IOPS
 1. Show HammerDB
 1. Show performance dashboard in Cloud Console
-    * [PASS - Disk Performance](https://console.cloud.google.com/monitoring/dashboards)
+    * [PASS - Demo 4 - Disk Performance](https://console.cloud.google.com/monitoring/dashboards)
 
 ## Run
 

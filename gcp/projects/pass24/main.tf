@@ -13,23 +13,27 @@ provider "google-beta" {
 }
 
 locals {
-  project_id_demo5 = var.project_id_demo5
-  project_id_demo6 = var.project_id_demo6
+  project_id_demo1 = var.project_id_demo1
+  project_id_demo3 = var.project_id_demo3
+  project_id_demo4 = var.project_id_demo4
 
-  region_demo5 = var.region_demo5
-  region_demo6 = var.region_demo6
+  region_demo1 = var.region_demo1
+  region_demo3 = var.region_demo3
+  region_demo4 = var.region_demo4
 
-  region_secondary_demo5 = var.region_secondary_demo5
+  region_secondary_demo3 = var.region_secondary_demo3
 
-  zone_demo5 = var.zone_demo5
-  zone_demo6 = var.zone_demo6
+  zone_demo1 = var.zone_demo1
+  zone_demo3 = var.zone_demo3
+  zone_demo4 = var.zone_demo4
 
-  zone_secondary_demo5 = var.zone_secondary_demo5
+  zone_secondary_demo3 = var.zone_secondary_demo3
 
   domain_name = "pass24.lab"
 
-  enable_demo5 = var.enable_demo5
-  enable_demo6 = var.enable_demo6
+  enable_demo1 = var.enable_demo1
+  enable_demo3 = var.enable_demo3
+  enable_demo4 = var.enable_demo4
 }
 
 # resource "google_compute_disk" "data" {
