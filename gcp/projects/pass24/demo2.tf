@@ -46,3 +46,25 @@ resource "google_compute_attached_disk" "demo2_data" {
   instance = each.value.id
   device_name = google_compute_disk.demo2_data[0].name
 }
+
+resource "google_compute_firewall" "allow_rdp_bastion_demo2" {
+  count = local.enable_demo1 ? 1 : 0
+  name = "allow-rdp-bastion"
+  project = module.demo2[0].project_id
+
+  network = module.demo2[0].network_id
+  priority = 1000
+
+  allow {
+    protocol = "tcp"
+    ports = [ 3389 ]
+  }
+
+  direction = "INGRESS"
+
+  source_ranges = [
+    "0.0.0.0"
+  ]
+
+  target_tags = [ "bastion-windows" ]
+}
