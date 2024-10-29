@@ -29,6 +29,11 @@ output "links_demo1" {
   ] : null
 }
 
+output "links_demo2" {
+  value = local.enable_demo2 ? [
+  ] : null
+}
+
 output "links_demo3" {
   value = local.enable_demo3 ? [
     "https://console.cloud.google.com/compute/disks?project=${module.demo3[0].project_id}",
@@ -48,6 +53,14 @@ output "rdp_demo1" {
   value = local.enable_demo1 ? [
     "rdp bastion --project ${module.demo1[0].project_id} --zone ${local.zone_demo1} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
     "rdp sql-0 --project ${module.demo1[0].project_id} --zone ${local.zone_demo1} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
+  ] : null
+}
+
+output "rdp_demo2" {
+  value = local.enable_demo2 ? [
+    "rdp bastion --project ${module.demo2[0].project_id} --zone ${local.zone_demo2} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
+    "rdp sql-0 --project ${module.demo2[0].project_id} --zone ${local.zone_demo2} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
+    "rdp sql-1 --project ${module.demo2[0].project_id} --zone ${local.zone_secondary_demo2} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
   ] : null
 }
 

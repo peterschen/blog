@@ -14,24 +14,29 @@ provider "google-beta" {
 
 locals {
   project_id_demo1 = var.project_id_demo1
+  project_id_demo2 = var.project_id_demo2
   project_id_demo3 = var.project_id_demo3
   project_id_demo4 = var.project_id_demo4
 
   region_demo1 = var.region_demo1
+  region_demo2 = var.region_demo2
   region_demo3 = var.region_demo3
   region_demo4 = var.region_demo4
 
   region_secondary_demo3 = var.region_secondary_demo3
 
   zone_demo1 = var.zone_demo1
+  zone_demo2 = var.zone_demo2
   zone_demo3 = var.zone_demo3
   zone_demo4 = var.zone_demo4
 
+  zone_secondary_demo2 = var.zone_secondary_demo2
   zone_secondary_demo3 = var.zone_secondary_demo3
 
   domain_name = "pass24.lab"
 
   enable_demo1 = var.enable_demo1
+  enable_demo2 = var.enable_demo2
   enable_demo3 = var.enable_demo3
   enable_demo4 = var.enable_demo4
 }
