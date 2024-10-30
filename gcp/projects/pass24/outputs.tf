@@ -31,6 +31,7 @@ output "links_demo1" {
 
 output "links_demo2" {
   value = local.enable_demo2 ? [
+    "https://console.cloud.google.com/compute/disks?project=${module.demo2[0].project_id}",
   ] : null
 }
 
