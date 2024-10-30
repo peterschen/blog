@@ -124,7 +124,6 @@ VALUES (
 );
 GO
 
-USE AdventureWorks2022
 SELECT
 	*
 FROM 
