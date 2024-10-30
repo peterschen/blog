@@ -67,19 +67,29 @@ resource "google_compute_address" "sql" {
   address_type = "INTERNAL"
 }
 
-resource "google_compute_address" "sql_cl" {
+resource "google_compute_address" "wsfc" {
   count = local.enable_cluster ? 1 : 0
   region = local.region
   project = local.project
-  name = "${local.machine_prefix}-cl"
+  name = "wsfc"
   address_type = "INTERNAL"
   purpose = "SHARED_LOADBALANCER_VIP"
   subnetwork = data.google_compute_subnetwork.subnetwork.self_link
 }
 
-resource "google_compute_firewall" "allow_healthcheck_mssql_gcp" {
+resource "google_compute_address" "wsfc_sql" {
   count = local.enable_cluster ? 1 : 0
-  name = "allow-healthcheck-mssql-gcp"
+  region = local.region
+  project = local.project
+  name = "wsfc-${local.machine_prefix}"
+  address_type = "INTERNAL"
+  purpose = "SHARED_LOADBALANCER_VIP"
+  subnetwork = data.google_compute_subnetwork.subnetwork.self_link
+}
+
+resource "google_compute_firewall" "allow_healthcheck_wsfc_gcp" {
+  count = local.enable_cluster ? 1 : 0
+  name = "allow-healthcheck-wsfc-gcp"
   project = local.project
   network = data.google_compute_network.network.self_link
   priority = 5000
@@ -92,7 +102,7 @@ resource "google_compute_firewall" "allow_healthcheck_mssql_gcp" {
   direction = "INGRESS"
 
   source_ranges = ["35.191.0.0/16", "130.211.0.0/22"]
-  target_tags = ["mssql"]
+  target_tags = ["wsfc"]
 }
 
 module "gce_scopes" {
@@ -111,7 +121,7 @@ resource "google_compute_instance" "sql" {
 
   machine_type = local.machine_type
 
-  tags = ["mssql", "rdp"]
+  tags = ["mssql", "wsfc", "rdp"]
 
   boot_disk {
     initialize_params {
@@ -145,7 +155,7 @@ resource "google_compute_instance" "sql" {
           isFirst = (count.index == 0),
           nodePrefix = local.machine_prefix,
           nodeCount = length(local.zones),
-          ipCluster = local.enable_cluster ? google_compute_address.sql_cl[0].address : null,
+          ipCluster = local.enable_cluster ? google_compute_address.wsfc[0].address : null,
           inlineMeta = filebase64(module.sysprep.path_meta),
           inlineConfiguration = filebase64("${path.module}/sql.ps1"),
           useDeveloperEdition = local.use_developer_edition,
@@ -182,58 +192,105 @@ resource "google_compute_instance" "sql" {
   depends_on = [module.apis]
 }
 
-resource "google_compute_instance_group" "sql" {
+resource "google_compute_instance_group" "wsfc_sql" {
   count = local.enable_cluster ? length(local.zones) : 0
   project = local.project
   zone = local.zones[count.index]
-  name = "${local.machine_prefix}-${count.index}"
+  name = "wsfc-${local.machine_prefix}-${count.index}"
   instances = [google_compute_instance.sql[count.index].self_link]
   network = data.google_compute_network.network.self_link
 }
 
-resource "google_compute_health_check" "sql" {
+resource "google_compute_health_check" "wsfc" {
   count = local.enable_cluster ? 1 : 0
-  name = "sql"
+  name = "wsfc"
   project = local.project
   timeout_sec = 1
   check_interval_sec = 2
 
   tcp_health_check {
     port = 59998
-    request = google_compute_address.sql_cl[count.index].address
+    request = google_compute_address.wsfc[count.index].address
     response = "1"
   }
 }
 
-resource "google_compute_region_backend_service" "sql" {
+resource "google_compute_health_check" "wsfc_sql" {
+  count = local.enable_cluster ? 1 : 0
+  name = "wsfc-sql"
+  project = local.project
+  timeout_sec = 1
+  check_interval_sec = 2
+
+  tcp_health_check {
+    port = 59998
+    request = google_compute_address.wsfc_sql[count.index].address
+    response = "1"
+  }
+}
+
+resource "google_compute_region_backend_service" "wsfc" {
   count = local.enable_cluster ? 1 : 0
   region = local.region
   project = local.project
-  name = "sql"
+  name = "wsfc"
   health_checks = [
-    google_compute_health_check.sql[count.index].id
+    google_compute_health_check.wsfc[count.index].id
   ]
   protocol = "UNSPECIFIED"
 
   dynamic "backend" {
-    for_each = google_compute_instance_group.sql
+    for_each = google_compute_instance_group.wsfc_sql
     content {
       group = backend.value.id
     }
   }
 }
 
-resource "google_compute_forwarding_rule" "sql" {
+resource "google_compute_region_backend_service" "wsfc_sql" {
   count = local.enable_cluster ? 1 : 0
   region = local.region
   project = local.project
-  name = "sql"
-  ip_address = google_compute_address.sql_cl[count.index].address
+  name = "wsfc-sql"
+  health_checks = [
+    google_compute_health_check.wsfc_sql[count.index].id
+  ]
+  protocol = "UNSPECIFIED"
+
+  dynamic "backend" {
+    for_each = google_compute_instance_group.wsfc_sql
+    content {
+      group = backend.value.id
+    }
+  }
+}
+
+resource "google_compute_forwarding_rule" "wsfc" {
+  count = local.enable_cluster ? 1 : 0
+  region = local.region
+  project = local.project
+  name = "wsfc"
+  ip_address = google_compute_address.wsfc[count.index].address
   load_balancing_scheme = "INTERNAL"
   ip_protocol = "L3_DEFAULT"
   all_ports = true
   allow_global_access = true
   network = data.google_compute_network.network.id
   subnetwork = data.google_compute_subnetwork.subnetwork.id
-  backend_service = google_compute_region_backend_service.sql[count.index].id
+  backend_service = google_compute_region_backend_service.wsfc[count.index].id
+}
+
+resource "google_compute_forwarding_rule" "wsfc_sql" {
+  count = local.enable_cluster ? 1 : 0
+  region = local.region
+  project = local.project
+  name = "wsfc-sql"
+  ip_address = google_compute_address.wsfc_sql[count.index].address
+  load_balancing_scheme = "INTERNAL"
+  ip_protocol = "L3_DEFAULT"
+  all_ports = true
+  allow_global_access = true
+  network = data.google_compute_network.network.id
+  subnetwork = data.google_compute_subnetwork.subnetwork.id
+  backend_service = google_compute_region_backend_service.wsfc_sql[count.index].id
 }
