@@ -41,7 +41,7 @@ Invoke-Command -ComputerName "sql-0" -ScriptBlock {
 }
 ```
 
-### Configure SQL Server and restore database
+### Restore database
 
 ```powershell
 $secret = gcloud secrets versions access 1 --secret pass24-gcs-access --project cbpetersen-shared;
