@@ -237,14 +237,6 @@ configuration ConfigurationWorkload
             $setupDependency += @("[File]CopySqlMedia");
         }
 
-        SqlWindowsFirewall "SqlServerFirewall"
-        {
-            SourcePath = "C:\sql_server_install"
-            InstanceName = "MSSQLSERVER"
-            Features = "SQLENGINE,FULLTEXT"
-            DependsOn = $setupDependency
-        }
-
         if($Parameters.enableCluster -ne $false)
         {
             Firewall "F-GceClusterHelper"
@@ -257,6 +249,17 @@ configuration ConfigurationWorkload
                 LocalPort = ("59998")
                 Protocol = "TCP"
                 Description = "Enables GCP Internal Load Balancer to check which node in the cluster is active to route traffic to the cluster IP."
+            }
+
+            Firewall SqlServerIngress
+            {
+                Name = "SqlServerIngress"
+                DisplayName = "SQL Server TCP Ingress"
+                Ensure = "Present"
+                Enabled = "True"
+                Direction = "InBound"
+                LocalPort = ("1433")
+                Protocol = "TCP"
             }
 
             if($Parameters.isFirst)
@@ -383,6 +386,14 @@ configuration ConfigurationWorkload
                 Enabled = $true
                 ListenOnAllIpAddresses = $true
                 PsDscRunAsCredential  = $domainCredential
+            }
+
+            SqlWindowsFirewall "SqlServerFirewall"
+            {
+                SourcePath = "C:\sql_server_install"
+                InstanceName = "MSSQLSERVER"
+                Features = "SQLENGINE,FULLTEXT"
+                DependsOn = "[SqlSetup]SqlServerSetup"
             }
         }
 
