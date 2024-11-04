@@ -2,6 +2,18 @@
 
 Fundamentals of running SQL Server on Google Cloud.
 
+## Prep
+
+### Restart Ops Agent on sql-0
+
+In some cases SQL Server metrics are missing leading to errors on the dashboard. Restarting the agent will trigger creation of the metrics.
+
+```powershell
+Invoke-Command -ComputerName "sql-0" -ScriptBlock {
+     Restart-Service -Name google-cloud-ops-agent -Force;
+}
+```
+
 ## Show deployment of VM with image
 
 1. Open **Create an Instance** wizard
@@ -32,18 +44,17 @@ Fundamentals of running SQL Server on Google Cloud.
 3. Open snapshot
 4. Create disk from snapshot
     * Name: `clone-1`
-5. Attach disk
+5. Attach disk to bastion
 
 ```sh
 project=`terraform output -raw project_id_demo1`
 zone=`terraform output -raw zone_demo1`
 
-gcloud compute instances attach-disk sql-0 \
+gcloud compute instances attach-disk bastion \
         --disk clone-1 \
         --device-name clone-1 \
         --project $project \
         --zone $zone
 ```
 
-6. Open **Disk Management**
-7. Online disk
+6. Open **File Explorer**

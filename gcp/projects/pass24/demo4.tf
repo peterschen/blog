@@ -27,7 +27,7 @@ resource "google_compute_disk" "demo4_data" {
   name = "data-${count.index}"
   type = "hyperdisk-extreme"
   size = 500
-  provisioned_iops = 500000
+  provisioned_iops = 250000
 }
 
 resource "google_compute_attached_disk" "demo4_data" {

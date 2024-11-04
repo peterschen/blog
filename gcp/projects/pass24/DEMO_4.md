@@ -251,7 +251,7 @@ diset tpcc mssqls_dbase pass_1
 diset tpcc mssqls_driver timed
 diset tpcc mssqls_total_iterations 10000000
 diset tpcc mssqls_rampup 2
-diset tpcc mssqls_duration 5
+diset tpcc mssqls_duration 60
 diset tpcc mssqls_checkpoint true
 diset tpcc mssqls_timeprofile true
 diset tpcc mssqls_allwarehouse true
@@ -292,7 +292,7 @@ diset tpcc mssqls_dbase pass_2
 diset tpcc mssqls_driver timed
 diset tpcc mssqls_total_iterations 10000000
 diset tpcc mssqls_rampup 2
-diset tpcc mssqls_duration 5
+diset tpcc mssqls_duration 60
 diset tpcc mssqls_checkpoint true
 diset tpcc mssqls_timeprofile true
 diset tpcc mssqls_allwarehouse true

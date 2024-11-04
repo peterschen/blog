@@ -4,29 +4,23 @@ SQL Server FCI with shared storage provided by Hyperdisk
 
 ## Prep
 
-### Initialize disk on sql-0
-
-```powershell
-Invoke-Command -ComputerName "sql-0" -ScriptBlock {
-    $disk = Get-PhysicalDisk -CanPool $true;
-
-    # Initialize disk
-    Initialize-Disk -UniqueId $disk.UniqueId -PassThru |
-        New-Partition -DriveLetter "T" -UseMaximumSize | 
-        Format-Volume;
-
-    # Add disk to cluster
-    $clusterDisk = Get-ClusterAvailableDisk | Add-ClusterDisk;
-    $resource = Add-ClusterSharedVolume -Name $clusterDisk.Name;
-
-    # Bring disk online if necessary
-    Resume-ClusterResource -InputObject $resource;
-}
-```
-
 ### Install SQL Server on sql-0
 
 ```powershell
+$disk = Get-PhysicalDisk -CanPool $true;
+
+# Initialize disk
+Initialize-Disk -UniqueId $disk.UniqueId -PassThru |
+    New-Partition -DriveLetter "T" -UseMaximumSize | 
+    Format-Volume;
+
+# Add disk to cluster
+$clusterDisk = Get-ClusterAvailableDisk | Add-ClusterDisk;
+$resource = Add-ClusterSharedVolume -Name $clusterDisk.Name;
+
+# Bring disk online if necessary
+Resume-ClusterResource -InputObject $resource;
+
 $zone = (Invoke-RestMethod `
           -Headers @{'Metadata-Flavor' = 'Google'} `
           -Uri "http://metadata.google.internal/computeMetadata/v1/instance/zone")

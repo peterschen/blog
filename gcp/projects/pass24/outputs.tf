@@ -46,7 +46,7 @@ output "links_demo3" {
 output "links_demo4" {
   value = local.enable_demo4 ? [
     "https://console.cloud.google.com/compute/disks?project=${module.demo4[0].project_id}",
-    "https://console.cloud.google.com/monitoring/dashboards/builder/${google_monitoring_dashboard.demo4_dashboard[0].id};duration=PT30M?project=${module.demo4[0].project_id}"
+    "https://console.cloud.google.com/monitoring/dashboards/builder/${google_monitoring_dashboard.demo4_dashboard[0].id}?project=${module.demo4[0].project_id}"
   ] : null
 }
 

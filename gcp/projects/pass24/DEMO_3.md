@@ -9,11 +9,11 @@ Using Async PD to replicate data and log volumes consistently across regions.
 In some cases the disk status is not properly set when starting the replication. These commands will import the resource so the project can be deleted successfully.
 
 ```sh
-project="terraform output -raw project_id_module5"
-zone=="terraform output -raw zone_demo5"
+project="terraform output -raw project_id_module3"
+zone=="terraform output -raw zone_demo3"
 
-terraform import google_compute_disk_async_replication.demo5_data[0] projects/$project/zones/$zone/disks/data
-terraform import google_compute_disk_async_replication.demo5_log[0] projects/$project/zones/$zone/disks/log
+terraform import google_compute_disk_async_replication.demo3_data[0] projects/$project/zones/$zone/disks/data
+terraform import google_compute_disk_async_replication.demo3_log[0] projects/$project/zones/$zone/disks/log
 ```
 
 ### Initialize disk on sql-0
@@ -78,6 +78,8 @@ sqlcmd -S "tcp:sql-0" -Q @"
 
 1. Show disks in Cloud Console
     * [Disks](https://console.cloud.google.com/compute/disks)
+1. Show Asynchronous replication configuration
+    * [Asynchronous replication](https://console.cloud.google.com/compute/asynchronousReplication)
 1. Show storage configuration on sql-0
     * Disk configuration
     * Explain two separate drives for data and log and impact on consistency
@@ -138,9 +140,9 @@ GO
 1. Create clone from secondary disk and attach it to a VM in that region
 
 ```sh
-project=`terraform output -raw project_id_demo5`
-zone=`terraform output -raw zone_demo5`
-zone_secondary=`terraform output -raw zone_secondary_demo5`
+project=`terraform output -raw project_id_demo3`
+zone=`terraform output -raw zone_demo3`
+zone_secondary=`terraform output -raw zone_secondary_demo3`
 group=`gcloud compute resource-policies list --project $project --filter "region=europe-west3" --format "value(self_link)"`
 
 gcloud compute disks bulk create \
