@@ -80,6 +80,7 @@ sqlcmd -S "tcp:sql-0" -Q @"
     * [Disks](https://console.cloud.google.com/compute/disks)
 1. Show Asynchronous replication configuration
     * [Asynchronous replication](https://console.cloud.google.com/compute/asynchronousReplication)
+1. Write order consistency ensured through consistency groups
 1. Show storage configuration on sql-0
     * Disk configuration
     * Explain two separate drives for data and log and impact on consistency
