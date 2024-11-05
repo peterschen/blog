@@ -178,7 +178,7 @@ configuration ConfigurationWorkload
             Script "DownloadSqlServerMedia"
             {
                 GetScript = {
-                    $path  = Join-Path -Path "C:\sql_server_install\" -ChildPath "*.iso";
+                    $path  = Join-Path -Path "C:\sql_server_install" -ChildPath "*.iso";
                     if((Test-Path -Path $path))
                     {
                         $result = "Present";
@@ -200,10 +200,10 @@ configuration ConfigurationWorkload
                     $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "sqlserver.exe";
                     Start-Process -FilePath $path -ArgumentList @("/ENU", "/Quiet", "/Action=Download", "/MEDIAPATH=C:\sql_server_install", "/MEDIATYPE=iso") -Wait;
 
-                    $pathIso = Join-Path -Path "C:\sql_server_install\" -ChildPath "*.iso";
+                    $pathIso = Join-Path -Path "C:\sql_server_install" -ChildPath "*.iso";
                     $item = Get-Item -Path $pathIso;
 
-                    $pathIso = Join-Path -Path "C:\sql_server_install\" -ChildPath "sqlserver.iso";
+                    $pathIso = Join-Path -Path "C:\sql_server_install" -ChildPath "sqlserver.iso";
                     Move-Item -Path $item.FullName -Destination $pathIso;
                 }
 
@@ -420,6 +420,17 @@ configuration ConfigurationWorkload
                     DependsOn = "[SqlAlwaysOnService]EnableAlwaysOn"
                 }
             #>
+        }
+
+        # Enable customization configuration which gets inlined into this file
+        Customization "Customization"
+        {
+            Credential = $domainCredential
+            Parameters = $Parameters
+            
+            # Composite configurations don't support dependencies
+            # see https://dille.name/blog/2015/01/11/reusing-psdsc-node-configuration-with-nested-configurations-the-horror/
+            # DependsOn = $customizationDependency
         }
     }
 }
