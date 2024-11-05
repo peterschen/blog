@@ -77,3 +77,8 @@ variable "enable_iam" {
   type = bool
   default = true
 }
+
+variable "configuration_customization" {
+  type = list(string)
+  default = []
+}

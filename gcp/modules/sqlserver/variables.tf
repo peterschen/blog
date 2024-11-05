@@ -67,3 +67,8 @@ variable "enable_alwayson" {
   type = bool
   default = false
 }
+
+variable "configuration_customization_sql" {
+  type = list(string)
+  default = []
+}

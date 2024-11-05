@@ -21,6 +21,11 @@ module "demo2" {
   machine_type_bastion = "n4-highcpu-4"
   machine_type_sql = "n2-standard-4"
   # machine_type_sql = "m3-ultramem-32"
+
+  configuration_customization = [
+    templatefile("${path.module}/demo2_customization-sql-0.ps1", {}),
+    templatefile("${path.module}/demo2_customization-sql-1.ps1", {}),
+  ]
 }
 
 resource "google_compute_disk" "demo2_data" {
