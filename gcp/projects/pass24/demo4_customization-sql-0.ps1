@@ -1,0 +1,308 @@
+configuration Customization
+{
+    param 
+    ( 
+        [Parameter(Mandatory = $true)]
+        [PSCredential] $Credential,
+
+        [Parameter(Mandatory = $false)]
+        [PSCustomObject] $Parameters
+    ); 
+
+    Import-DscResource -ModuleName PSDesiredStateConfiguration,
+        SqlServerDsc;
+
+    $agentCredential = New-Object System.Management.Automation.PSCredential ("$($Parameters.domainName)\s-SqlAgent", $Credential.Password);
+    $engineCredential = New-Object System.Management.Automation.PSCredential ("$($Parameters.domainName)\s-SqlEngine", $Credential.Password);
+
+    Script "InitDisk"
+    {
+        GetScript = {
+            $disks = Get-PhysicalDisk -CanPool $true;
+            if($disks -eq $null)
+            {
+                $result = "Present";
+            }
+            else
+            {
+                $result = "Absent";
+            }
+            
+            return @{Ensure = $result};
+        }
+
+        TestScript = {
+            $state = [scriptblock]::Create($GetScript).Invoke();
+            return $state.Ensure -eq "Present";
+        }
+
+        SetScript = {
+            $friendlyName = "pass24";
+            $disks = Get-PhysicalDisk -CanPool $true;
+            $subsystem = Get-StorageSubSystem -Model "Windows Storage";
+
+            # Create storage pool across all disks
+            $pool = New-StoragePool -FriendlyName $friendlyName -PhysicalDisks $disks `
+                -StorageSubSystemUniqueId $subsystem.UniqueId -ProvisioningTypeDefault "Fixed" `
+                -ResiliencySettingNameDefault "Simple";
+
+            # Create virtual disk in the pool
+            $disk = New-VirtualDisk -FriendlyName $friendlyName -StoragePoolUniqueId $pool.UniqueId -UseMaximumSize;
+
+            # Initialize disk
+            Initialize-Disk -UniqueId $disk.UniqueId -PassThru | 
+                New-Partition -DriveLetter "T" -UseMaximumSize | 
+                Format-Volume;
+
+            # Add access for s-SqlEngine
+            icacls t:\ /grant "PASS24\s-SqlEngine:(OI)(CI)(F)";
+        }
+    }
+
+    Script "CreateCredential"
+    {
+        GetScript = {
+            $result = Invoke-Sqlcmd -Query "SELECT name FROM sys.credentials WHERE credential_identity = 'S3 Access Key'" -ServerInstance "sql-0";
+            if($result -ne $null)
+            {
+                $result = "Present";
+            }
+            else
+            {
+                $result = "Absent";
+            }
+            
+            return @{Ensure = $result};
+        }
+
+        TestScript = {
+            $state = [scriptblock]::Create($GetScript).Invoke();
+            return $state.Ensure -eq "Present";
+        }
+
+        SetScript = {
+            $secret = gcloud secrets versions access 1 --secret pass24-gcs-access --project cbpetersen-shared;
+            $query = @"
+-- Configure credential for GCS
+IF NOT EXISTS (SELECT * FROM sys.credentials WHERE credential_identity = 'S3 Access Key')
+    CREATE CREDENTIAL [s3://storage.googleapis.com/pass-demo-2024]
+    WITH
+        IDENTITY = 'S3 Access Key',
+        SECRET = '${secret}';
+"@;
+            Invoke-Sqlcmd -Query $query -ServerInstance "sql-0";
+        }
+    }
+
+    SqlScriptQuery "RestoreDatabase1"
+    {
+        Id = "RestoreDatabase1"
+        ServerName = "sql-0"
+        InstanceName = "MSSQLSERVER"
+
+        TestQuery = @"
+IF (SELECT COUNT(name) FROM sys.databases WHERE name = 'pass_1') = 0
+BEGIN
+    RAISERROR ('Did not find database [pass_1]', 16, 1)
+END
+ELSE
+BEGIN
+    PRINT 'Found database [pass_1]'
+END
+"@
+        GetQuery = "SELECT name FROM sys.databases WHERE name = 'pass_1'"
+        SetQuery = @"
+-- Restore database
+RESTORE DATABASE [pass_1]
+FROM
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_01.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_02.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_03.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_04.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_05.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_06.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_07.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_08.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_09.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_10.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_11.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_12.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_13.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_14.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_15.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_16.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_17.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_18.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_19.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_20.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_21.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_22.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_23.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_24.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_25.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_26.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_27.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_28.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_29.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_30.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_31.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_32.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_33.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_34.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_35.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_36.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_37.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_38.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_39.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_40.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_41.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_42.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_43.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_44.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_45.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_46.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_47.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_48.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_49.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_50.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_51.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_52.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_53.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_54.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_55.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_56.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_57.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_58.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_59.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_60.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_61.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_62.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_63.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_64.bak'
+WITH 
+    MOVE 'pass' TO 'T:\pass_1.mdf',
+    MOVE 'pass_log' TO 'T:\pass_1_log.ldf',
+    STATS = 10, 
+    RECOVERY,
+    REPLACE;
+GO
+
+ALTER DATABASE [pass_1] MODIFY FILE ( NAME = N'pass_log', SIZE = 128GB, FILEGROWTH = 0)
+ALTER DATABASE [pass_1] SET RECOVERY SIMPLE;
+ALTER DATABASE [pass_1] SET TORN_PAGE_DETECTION OFF;
+ALTER DATABASE [pass_1] SET PAGE_VERIFY NONE;
+ALTER DATABASE [pass_1] SET TARGET_RECOVERY_TIME = 15 MINUTES;
+GO
+"@;
+        Variable = @("FilePath=C:\windows\temp\restoredatabase_1")
+        
+        DependsOn = "[Script]CreateCredential"
+        PsDscRunAsCredential = $Credential
+    }
+
+    SqlScriptQuery "RestoreDatabase2"
+    {
+        Id = "RestoreDatabase2"
+        ServerName = "sql-0"
+        InstanceName = "MSSQLSERVER"
+
+        TestQuery = @"
+IF (SELECT COUNT(name) FROM sys.databases WHERE name = 'pass_2') = 0
+BEGIN
+    RAISERROR ('Did not find database [pass_2]', 16, 1)
+END
+ELSE
+BEGIN
+    PRINT 'Found database [pass_2]'
+END
+"@
+        GetQuery = "SELECT name FROM sys.databases WHERE name = 'pass_2'"
+        SetQuery = @"
+-- Restore database
+RESTORE DATABASE [pass_2]
+FROM
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_01.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_02.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_03.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_04.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_05.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_06.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_07.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_08.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_09.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_10.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_11.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_12.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_13.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_14.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_15.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_16.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_17.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_18.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_19.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_20.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_21.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_22.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_23.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_24.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_25.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_26.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_27.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_28.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_29.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_30.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_31.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_32.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_33.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_34.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_35.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_36.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_37.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_38.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_39.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_40.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_41.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_42.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_43.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_44.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_45.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_46.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_47.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_48.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_49.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_50.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_51.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_52.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_53.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_54.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_55.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_56.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_57.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_58.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_59.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_60.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_61.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_62.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_63.bak',
+    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_2500_64.bak'
+WITH 
+    MOVE 'pass' TO 'T:\pass_2.mdf',
+    MOVE 'pass_log' TO 'T:\pass_2_log.ldf',
+    STATS = 10, 
+    RECOVERY,
+    REPLACE;
+GO
+
+ALTER DATABASE [pass_2] MODIFY FILE ( NAME = N'pass_log', SIZE = 128GB, FILEGROWTH = 0)
+ALTER DATABASE [pass_2] SET RECOVERY SIMPLE;
+ALTER DATABASE [pass_2] SET TORN_PAGE_DETECTION OFF;
+ALTER DATABASE [pass_2] SET PAGE_VERIFY NONE;
+ALTER DATABASE [pass_2] SET TARGET_RECOVERY_TIME = 15 MINUTES;
+GO
+"@;
+        Variable = @("FilePath=C:\windows\temp\restoredatabase_2")
+        
+        DependsOn = "[Script]CreateCredential"
+        PsDscRunAsCredential = $Credential
+    }
+}

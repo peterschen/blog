@@ -23,8 +23,8 @@ module "demo2" {
   # machine_type_sql = "m3-ultramem-32"
 
   configuration_customization = [
-    templatefile("${path.module}/demo2_customization-sql-0.ps1", {}),
-    templatefile("${path.module}/demo2_customization-sql-1.ps1", {}),
+    file("${path.module}/demo2_customization-sql-0.ps1"),
+    file("${path.module}/demo2_customization-sql-1.ps1"),
   ]
 }
 
