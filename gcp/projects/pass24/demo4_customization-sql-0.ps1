@@ -59,7 +59,7 @@ configuration Customization
         }
     }
 
-    Script "CreateCredential"
+    Script "ConfigureDatabase"
     {
         GetScript = {
             $result = Invoke-Sqlcmd -Query "SELECT name FROM sys.credentials WHERE credential_identity = 'S3 Access Key'" -ServerInstance "sql-0";
@@ -83,6 +83,24 @@ configuration Customization
         SetScript = {
             $secret = gcloud secrets versions access 1 --secret pass24-gcs-access --project cbpetersen-shared;
             $query = @"
+-- Server configuration
+EXEC sp_configure 'show advanced options', 1;
+RECONFIGURE;
+EXEC sp_configure 'max degree of parallelism', 8;
+EXEC sp_configure 'max worker threads', 6000;
+EXEC sp_configure 'min server memory', 0;
+EXEC sp_configure 'max server memory', 131072;
+EXEC sp_configure 'recovery interval (min)', 15;
+EXEC sp_configure 'lightweight pooling', 1;
+EXEC sp_configure 'priority boost', 1;
+RECONFIGURE;
+
+-- Enable checkpoint tracing
+DBCC TRACEON (3502, -1);
+DBCC TRACEON (3504, -1);
+DBCC TRACEON (3605, -1);
+GO
+
 -- Configure credential for GCS
 IF NOT EXISTS (SELECT * FROM sys.credentials WHERE credential_identity = 'S3 Access Key')
     CREATE CREDENTIAL [s3://storage.googleapis.com/pass-demo-2024]
