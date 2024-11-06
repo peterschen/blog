@@ -124,7 +124,18 @@ if(-not (Test-Path -Path $pathDscConfigurationDefinition))
     else
     {
         # Set empty customization if not present
-        $content = "Configuration Customization {}";
+        $content = @'
+Configuration Customization {
+    param 
+    ( 
+        [Parameter(Mandatory = $true)]
+        [PSCredential] $Credential,
+
+        [Parameter(Mandatory = $false)]
+        [PSCustomObject] $Parameters
+    ); 
+}
+'@;
     }
 
     $content += "`n`n$([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($inlineConfiguration)))";
