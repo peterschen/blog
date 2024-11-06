@@ -340,6 +340,12 @@ Set-Location -Path $pathHammerdb;
 
 # Start first run
 .\hammerdbcli auto $pathTools/pass_run_1.tcl
+```
+
+```powershell
+$pathTools = "C:\tools";
+$pathHammerdb = Join-Path -Path $pathTools -ChildPath "hammerdb\HammerDB-4.12";
+Set-Location -Path $pathHammerdb;
 
 # Start second run
 .\hammerdbcli auto $pathTools/pass_run_2.tcl
