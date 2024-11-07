@@ -44,7 +44,7 @@ configuration Customization
     Script "CreateCredential"
     {
         GetScript = {
-            $result = Invoke-Sqlcmd -Query "SELECT name FROM sys.credentials WHERE credential_identity = 'S3 Access Key'" -ServerInstance "sql-0";
+            $result = Invoke-Sqlcmd -Query "SELECT name FROM sys.credentials WHERE credential_identity = 'S3 Access Key'" -ServerInstance "sql";
             if($result -ne $null)
             {
                 $result = "Present";
@@ -72,7 +72,7 @@ IF NOT EXISTS (SELECT * FROM sys.credentials WHERE credential_identity = 'S3 Acc
         IDENTITY = 'S3 Access Key',
         SECRET = '${secret}';
 "@;
-            Invoke-Sqlcmd -Query $query -ServerInstance "sql-0";
+            Invoke-Sqlcmd -Query $query -ServerInstance "sql";
         }
 
         DependsOn = "[SqlSetup]SqlServerSetup"
