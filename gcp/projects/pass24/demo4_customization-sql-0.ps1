@@ -214,7 +214,7 @@ GO
 "@;
         Variable = @("FilePath=C:\windows\temp\restoredatabase_1")
         
-        DependsOn = "[Script]CreateCredential"
+        DependsOn = "[Script]ConfigureDatabase"
         PsDscRunAsCredential = $Credential
     }
 
@@ -320,7 +320,7 @@ GO
 "@;
         Variable = @("FilePath=C:\windows\temp\restoredatabase_2")
         
-        DependsOn = "[Script]CreateCredential"
+        DependsOn = "[Script]ConfigureDatabase"
         PsDscRunAsCredential = $Credential
     }
 }
