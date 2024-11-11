@@ -39,6 +39,31 @@ variable "password" {
   sensitive = true
 }
 
+variable "machine_type_dc" {
+  type = string
+  default = "n4-highcpu-2"
+}
+
+variable "machine_type_ca" {
+  type = string
+  default = "n4-highcpu-2"
+}
+
+variable "machine_type_bastion" {
+  type = string
+  default = "n4-highcpu-4"
+}
+
+variable "machine_type_adjoin" {
+  type = string
+  default = "n4-highcpu-2"
+}
+
+variable "machine_type_joinvm" {
+  type = string
+  default = "e2-medium"
+}
+
 variable "windows_image" {
   type = string
   default = "windows-cloud/windows-2022"

@@ -42,11 +42,11 @@ locals {
     "${prefix}.2"
   ]
 
-  machine_type_dc = "n4-highcpu-2"
-  machine_type_ca = "n4-highcpu-2"
-  machine_type_bastion = "n4-standard-4"
-  machine_type_adjoin = "n4-highcpu-2"
-  machine_type_joinvm = "e2-medium"
+  machine_type_dc = var.machine_type_dc
+  machine_type_ca = var.machine_type_ca
+  machine_type_bastion = var.machine_type_bastion
+  machine_type_adjoin = var.machine_type_adjoin
+  machine_type_joinvm = var.machine_type_joinvm
 
   # Number of vCPU in VM * 7 workers + 1
   server_workers = 2 * 7 + 1
