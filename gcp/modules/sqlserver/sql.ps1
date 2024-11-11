@@ -310,14 +310,15 @@ configuration ConfigurationWorkload
                     DependsOn = "[Cluster]CreateCluster"
                 }
 
+                # Reference: https://learn.microsoft.com/en-us/azure/azure-sql/virtual-machines/windows/hadr-cluster-best-practices?view=azuresql&tabs=windows2012#heartbeat-and-threshold
                 Script IncreaseClusterTimeouts
                 {
                     GetScript = {
                         $cluster = Get-Cluster;
-                        if($cluster.SameSubnetDelay -eq 2000 -and `
-                            $cluster.SameSubnetThreshold -eq 15 -and `
-                            $cluster.CrossSubnetDelay -eq 3000 -and `
-                            $cluster.CrossSubnetThreshold -eq 15)
+                        if($cluster.SameSubnetDelay -eq 1000 -and `
+                            $cluster.SameSubnetThreshold -eq 40 -and `
+                            $cluster.CrossSubnetDelay -eq 1000 -and `
+                            $cluster.CrossSubnetThreshold -eq 40)
                         {
                             $result = "Present";
                         }
@@ -328,18 +329,21 @@ configuration ConfigurationWorkload
 
                         return @{Ensure = $result};
                     }
+
                     TestScript = {
                         $state = [scriptblock]::Create($GetScript).Invoke();
                         return $state.Ensure -eq "Present";
                     }
+
                     SetScript = {
                         $cluster = Get-Cluster;
-                        $cluster.SameSubnetDelay = 2000;
-                        $cluster.SameSubnetThreshold = 15;
-                        $cluster.CrossSubnetDelay = 3000;
-                        $cluster.CrossSubnetThreshold = 15;
+                        $cluster.SameSubnetDelay = 1000;
+                        $cluster.SameSubnetThreshold = 40;
+                        $cluster.CrossSubnetDelay = 1000;
+                        $cluster.CrossSubnetThreshold = 40;
                     }
                     
+                    PsDscRunAsCredential = $domainCredential
                     DependsOn = "[Cluster]CreateCluster"
                 }
 
