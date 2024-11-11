@@ -262,6 +262,17 @@ configuration ConfigurationWorkload
                 Protocol = "TCP"
             }
 
+            Firewall SqlServerHadr
+            {
+                Name = "SqlServerHadr"
+                DisplayName = "SQL Server HADR Endpoint"
+                Ensure = "Present"
+                Enabled = "True"
+                Direction = "InBound"
+                LocalPort = ("5022")
+                Protocol = "TCP"
+            }
+
             if($Parameters.isFirst)
             {
                 ADComputer "PrestageClusterResource"
