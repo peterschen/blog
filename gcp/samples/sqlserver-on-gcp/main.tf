@@ -13,9 +13,11 @@ locals {
 
   network_range = "10.0.0.0/16"
 
-  machine_type_dc = "n4-highcpu-2"
-  machine_type_bastion = "n4-standard-4"
-  machine_type_sql = "n4-standard-4"
+  machine_type_dc = var.machine_type_dc
+  machine_type_bastion = var.machine_type_bastion
+  machine_type_sql = var.machine_type_sql
+
+  use_developer_edition = var.use_developer_edition
 
   enable_cluster = var.enable_cluster
   enable_alwayson = var.enable_alwayson
@@ -30,6 +32,7 @@ module "project" {
   prefix = local.prefix
 
   apis = [
+    "compute.googleapis.com",
     "dns.googleapis.com"
   ]
 }
@@ -110,6 +113,7 @@ module "bastion" {
 
   enable_domain = true
   enable_discoveryclient = false
+  enable_ssms = true
 
   depends_on = [
     module.ad
@@ -131,8 +135,16 @@ module "sqlserver" {
   windows_image = local.sql_image
   machine_type = local.machine_type_sql
 
+  use_developer_edition = local.use_developer_edition
+
   enable_cluster = local.enable_cluster
   enable_alwayson = local.enable_alwayson
+
+  configuration_customization_sql = [
+    file("${path.module}/customization-sql-0.ps1"),
+    file("${path.module}/customization-sql-1.ps1"),
+  ]
+
   depends_on = [module.ad]
 }
 
@@ -159,4 +171,33 @@ resource "google_compute_firewall" "allow-all-internal" {
   source_ranges = [
     local.network_range
   ]
+}
+
+resource "google_compute_disk" "data" {
+  provider = google-beta
+  count = local.enable_cluster ? 1 : 0
+  project = module.project.id
+  zone = local.zones[0]
+  name = "data"
+  type = "pd-ssd"
+  multi_writer = true
+  size = 100
+}
+
+resource "google_compute_attached_disk" "data" {
+  for_each = {
+    for entry in flatten([
+      for disk in google_compute_disk.data: [
+        for instance in module.sqlserver.instances:  {
+            instance = instance
+            disk = disk
+        }
+      ]
+    ]): "${entry.instance.name}.${entry.disk.name}" => entry
+  }
+
+  project = module.project.id
+  disk = each.value.disk.id
+  instance = each.value.instance.id
+  device_name = each.value.disk.name
 }

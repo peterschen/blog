@@ -19,16 +19,32 @@ variable "region" {
 variable "zones" {
   type = list(string)
   default = [
-    "europe-west4-a",
-    "europe-west4-b"
+    "europe-west4-a"
   ]
 }
 
 variable "domain_name" {
+  type = string
+  default = "sql.lab"
 }
 
 variable "password" {
   sensitive = true
+}
+
+variable "machine_type_dc" {
+  type = string
+  default = "n4-highcpu-2"
+}
+
+variable "machine_type_bastion" {
+  type = string
+  default = "n4-highcpu-4"
+}
+
+variable "machine_type_sql" {
+  type = string
+  default = "n4-highcpu-4"
 }
 
 variable "windows_image" {
@@ -44,6 +60,11 @@ variable "windows_core_image" {
 variable "sql_image" {
   type = string
   default = "windows-sql-cloud/sql-ent-2022-win-2022"
+}
+
+variable "use_developer_edition" {
+  type = bool
+  default = true
 }
 
 variable "enable_cluster" {
