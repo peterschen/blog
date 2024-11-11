@@ -18,7 +18,7 @@ resource "google_compute_firewall" "sqlserver" {
 
   allow {
     protocol = "tcp"
-    ports    = ["1433", "1434"]
+    ports    = ["1433", "1434", "5022"]
   }
 
   direction = "INGRESS"
