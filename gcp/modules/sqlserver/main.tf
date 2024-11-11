@@ -247,6 +247,7 @@ resource "google_compute_region_backend_service" "wsfc" {
     for_each = google_compute_instance_group.wsfc_sql
     content {
       group = backend.value.id
+      balancing_mode = "CONNECTION"
     }
   }
 }
@@ -265,6 +266,7 @@ resource "google_compute_region_backend_service" "wsfc_sql" {
     for_each = google_compute_instance_group.wsfc_sql
     content {
       group = backend.value.id
+      balancing_mode = "CONNECTION"
     }
   }
 }
