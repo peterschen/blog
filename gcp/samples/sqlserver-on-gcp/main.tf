@@ -173,31 +173,32 @@ resource "google_compute_firewall" "allow-all-internal" {
   ]
 }
 
-resource "google_compute_disk" "data" {
-  provider = google-beta
-  count = local.enable_cluster ? 1 : 0
-  project = module.project.id
-  zone = local.zones[0]
-  name = "data"
-  type = "pd-ssd"
-  multi_writer = true
-  size = 100
-}
+# resource "google_compute_disk" "data" {
+#   provider = google-beta
+#   count = local.enable_cluster ? 1 : 0
+#   project = module.project.id
+#   zone = local.zones[0]
+#   name = "data"
+#   type = "pd-ssd"
+#   multi_writer = true
+#   size = 100
+#   depends_on = [ module.project ]
+# }
 
-resource "google_compute_attached_disk" "data" {
-  for_each = {
-    for entry in flatten([
-      for disk in google_compute_disk.data: [
-        for instance in module.sqlserver.instances:  {
-            instance = instance
-            disk = disk
-        }
-      ]
-    ]): "${entry.instance.name}.${entry.disk.name}" => entry
-  }
+# resource "google_compute_attached_disk" "data" {
+#   for_each = {
+#     for entry in flatten([
+#       for disk in google_compute_disk.data: [
+#         for instance in module.sqlserver.instances:  {
+#             instance = instance
+#             disk = disk
+#         }
+#       ]
+#     ]): "${entry.instance.name}.${entry.disk.name}" => entry
+#   }
 
-  project = module.project.id
-  disk = each.value.disk.id
-  instance = each.value.instance.id
-  device_name = each.value.disk.name
-}
+#   project = module.project.id
+#   disk = each.value.disk.id
+#   instance = each.value.instance.id
+#   device_name = each.value.disk.name
+# }
