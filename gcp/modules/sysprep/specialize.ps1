@@ -169,4 +169,4 @@ $pathDscConfigurationPending = Join-Path -Path "C:\Windows\system32\Configuratio
 Move-Item -Path (Join-Path -Path $pathDscConfigurationOutput -ChildPath "$($nameHost).mof") -Destination $pathDscConfigurationPending;
 
 # Enact DSC configuration for debugging/testing purposes
-# Start-DscConfiguration -Path $pathDscConfigurationOutput -Wait -Force;
+# Start-DscConfiguration -Path $pathDscConfigurationOutput -Wait -Force -ErrorAction Stop;
