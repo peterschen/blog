@@ -53,6 +53,7 @@ configuration Customization
         Id = "SetServerName"
         ServerName = $Node.NodeName
         InstanceName = "MSSQLSERVER"
+        Encrypt = "Optional"
 
         TestQuery = @"
 IF (SELECT @@SERVERNAME) != $($Node.NodeName)
@@ -118,6 +119,7 @@ GO
         Id = "SetClusterPermission"
         ServerName = $Node.NodeName
         InstanceName = "MSSQLSERVER"
+        Encrypt = "Optional"
 
         TestQuery = "RAISERROR ('Always false', 16, 1)"
         GetQuery = "SELECT 'false' AS result"
@@ -237,6 +239,7 @@ GO
         Id = "RestoreDatabase"
         ServerName = $Node.NodeName
         InstanceName = "MSSQLSERVER"
+        Encrypt = "Optional"
 
         TestQuery = @"
 IF (SELECT COUNT(name) FROM sys.databases WHERE name = 'AdventureWorks') = 0

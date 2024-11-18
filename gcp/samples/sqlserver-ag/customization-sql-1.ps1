@@ -52,6 +52,7 @@ configuration Customization
         Id = "SetServerName"
         ServerName = $Node.NodeName
         InstanceName = "MSSQLSERVER"
+        Encrypt = "Optional"
 
         TestQuery = @"
 IF (SELECT @@SERVERNAME) != $($Node.NodeName)
