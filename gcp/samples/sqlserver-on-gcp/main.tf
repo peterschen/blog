@@ -20,7 +20,6 @@ locals {
   use_developer_edition = var.use_developer_edition
 
   enable_cluster = var.enable_cluster
-  enable_alwayson = var.enable_alwayson
 }
 
 module "project" {
@@ -116,7 +115,7 @@ module "bastion" {
   enable_ssms = true
 
   depends_on = [
-    module.ad
+    module.nat
   ]
 }
 
@@ -138,14 +137,15 @@ module "sqlserver" {
   use_developer_edition = local.use_developer_edition
 
   enable_cluster = local.enable_cluster
-  enable_alwayson = local.enable_alwayson
 
   configuration_customization_sql = [
     file("${path.module}/customization-sql-0.ps1"),
     file("${path.module}/customization-sql-1.ps1"),
   ]
 
-  depends_on = [module.ad]
+  depends_on = [
+    module.nat
+  ]
 }
 
 module "firewall_iap" {
