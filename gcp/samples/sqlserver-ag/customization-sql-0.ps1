@@ -73,7 +73,6 @@ GO
 sp_addserver '$($Node.NodeName)', local;
 GO
 "@;
-        Variable = @("FilePath=C:\windows\temp\SetServerMame")
 
         DependsOn = "[SqlProtocolTcpIp]SqlProtocolTcpIp"
         PsDscRunAsCredential = $Credential
@@ -128,8 +127,6 @@ GRANT ALTER ANY AVAILABILITY GROUP TO [NT SERVICE\ClusSvc]
 GRANT VIEW SERVER STATE TO [NT SERVICE\ClusSvc]
 GO
 "@;
-        Variable = @("FilePath=C:\windows\temp\SetClusterPermission")
-
         DependsOn = "[SqlLogin]AddNTServiceClusSvc"
         PsDscRunAsCredential = $Credential
     }
@@ -281,8 +278,6 @@ WITH
     NOUNLOAD
 GO
 "@;
-        Variable = @("FilePath=C:\windows\temp\restoredatabase")
-
         DependsOn = "[SqlSetup]SqlServerSetup", "[Script]DownloadAdventurWorks"
         PsDscRunAsCredential = $Credential
     }
