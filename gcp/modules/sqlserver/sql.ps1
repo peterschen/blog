@@ -365,38 +365,14 @@ configuration ConfigurationWorkload
                 }
 
                 # Reference: https://learn.microsoft.com/en-us/azure/azure-sql/virtual-machines/windows/hadr-cluster-best-practices?view=azuresql&tabs=windows2012#heartbeat-and-threshold
-                Script IncreaseClusterTimeouts
+                ClusterProperty ClusterTimeouts
                 {
-                    GetScript = {
-                        $cluster = Get-Cluster;
-                        if($cluster.SameSubnetDelay -eq 1000 -and `
-                            $cluster.SameSubnetThreshold -eq 40 -and `
-                            $cluster.CrossSubnetDelay -eq 1000 -and `
-                            $cluster.CrossSubnetThreshold -eq 40)
-                        {
-                            $result = "Present";
-                        }
-                        else
-                        {
-                            $result = "Absent";
-                        }
+                    Name = "$($Parameters.nodePrefix)-cl"
+                    SameSubnetDelay = 1000
+                    SameSubnetThreshold = 40
+                    CrossSubnetDelay = 1000
+                    CrossSubnetThreshold = 40
 
-                        return @{Ensure = $result};
-                    }
-
-                    TestScript = {
-                        $state = [scriptblock]::Create($GetScript).Invoke();
-                        return $state.Ensure -eq "Present";
-                    }
-
-                    SetScript = {
-                        $cluster = Get-Cluster;
-                        $cluster.SameSubnetDelay = 1000;
-                        $cluster.SameSubnetThreshold = 40;
-                        $cluster.CrossSubnetDelay = 1000;
-                        $cluster.CrossSubnetThreshold = 40;
-                    }
-                    
                     PsDscRunAsCredential = $domainCredential
                     DependsOn = "[Cluster]CreateCluster"
                 }
