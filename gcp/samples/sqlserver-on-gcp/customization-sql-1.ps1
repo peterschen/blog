@@ -30,25 +30,31 @@ configuration Customization
         PsDscRunAsCredential = $Credential
     }
 
-    ADServicePrincipalName "SetSpnHostname"
+    SqlScriptQuery "SetServerName"
     {
-        ServicePrincipalName = "MSSQLSvc/$($Node.NodeName):1433"
-        Account = "s-SqlEngine"
-        PsDscRunAsCredential = $Credential
-    }
-
-    ADServicePrincipalName "SetSpnFqdn"
-    {
-        ServicePrincipalName = "MSSQLSvc/$($Node.NodeName).$($Parameters.domainName):1433"
-        Account = "s-SqlEngine"
-        PsDscRunAsCredential = $Credential
-    }
-
-    SqlAlwaysOnService "EnableAlwaysOn"
-    {
-        Ensure = "Present"
+        Id = "SetServerName"
         ServerName = $Node.NodeName
         InstanceName = "MSSQLSERVER"
+
+        TestQuery = @"
+IF (SELECT @@SERVERNAME) != $($Node.NodeName)
+BEGIN
+RAISERROR ('Server name is not set correctly', 16, 1)
+END
+ELSE
+BEGIN
+PRINT 'Server name is set correctly'
+END
+"@
+        GetQuery = "SELECT @@SERVERNAME"
+        SetQuery = @"
+sp_dropserver @@SERVERNAME;
+GO
+
+sp_addserver '$($Node.NodeName)', local;
+GO
+"@;
+        Variable = @("FilePath=C:\windows\temp\SetServerMame")
 
         DependsOn = "[SqlSetup]SqlServerSetup"
         PsDscRunAsCredential = $Credential
@@ -60,9 +66,9 @@ configuration Customization
         InstanceName = "MSSQLSERVER"
         ServiceType = "DatabaseEngine"
         ServiceAccount = $engineCredential
-        RestartService = $true
+        RestartService = $false
 
-        DependsOn = "[ADServicePrincipalName]SetSpnHostname", "[ADServicePrincipalName]SetSpnFqdn", "[SqlAlwaysOnService]EnableAlwaysOn"
+        DependsOn = "[SqlSetup]SqlServerSetup"
         PsDscRunAsCredential = $Credential
     }
 
@@ -74,29 +80,79 @@ configuration Customization
         ServiceAccount = $agentCredential
         RestartService = $true
 
+        DependsOn = "[SqlSetup]SqlServerSetup"
+        PsDscRunAsCredential = $Credential
+    }
+
+    SqlLogin "AddNTServiceClusSvc"
+    {
+        ServerName = $Node.NodeName
+        InstanceName = "MSSQLSERVER"
+        Name = "NT SERVICE\ClusSvc"
+        LoginType = "WindowsUser"
+
+        DependsOn = "[SqlSetup]SqlServerSetup"
+        PsDscRunAsCredential = $Credential
+    }
+
+    SqlScriptQuery "SetClusterPermission"
+    {
+        Id = "SetClusterPermission"
+        ServerName = $Node.NodeName
+        InstanceName = "MSSQLSERVER"
+
+        TestQuery = "RAISERROR ('Always false', 16, 1)"
+        GetQuery = "SELECT 'false' AS result"
+        SetQuery = @"
+GRANT ALTER ANY AVAILABILITY GROUP TO [NT SERVICE\ClusSvc]
+GRANT VIEW SERVER STATE TO [NT SERVICE\ClusSvc]
+GO
+"@;
+        Variable = @("FilePath=C:\windows\temp\SetClusterPermission")
+
+        DependsOn = "[SqlLogin]AddNTServiceClusSvc"
+        PsDscRunAsCredential = $Credential
+    }
+
+    SqlAlwaysOnService "EnableAlwaysOn"
+    {
+        Ensure = "Present"
+        ServerName = $Node.NodeName
+        InstanceName = "MSSQLSERVER"
+
+        DependsOn = "[SqlScriptQuery]SetServerName", "[SqlServiceAccount]EngineAccount"
+        PsDscRunAsCredential = $Credential
+    }
+
+    SqlLogin "EngineAccount"
+    {
+        ServerName = $Node.NodeName
+        InstanceName = "MSSQLSERVER"
+        Name = "$($Parameters.domainName.Split(".")[0])\$($engineCredential.UserName.Split("\")[1])"
+        LoginType = "WindowsUser"
+        PsDscRunAsCredential = $Credential
+    }
+
+    SqlEndpoint "CreateEndpoint"
+    {
+        EndpointName = "AdventureWorks"
+        EndpointType = "DatabaseMirroring"
+        InstanceName = "MSSQLSERVER"
+
         DependsOn = "[SqlAlwaysOnService]EnableAlwaysOn"
         PsDscRunAsCredential = $Credential
     }
 
-    SqlScriptQuery "ConfigureEndpointPermission"
+    SqlEndpointPermission "EndpointPermission"
     {
-        Id = "ConfigureEndpointPermission"
+        Ensure = "Present"
         ServerName = $Node.NodeName
         InstanceName = "MSSQLSERVER"
+        Name = "AdventureWorks"
+        Principal = "$($Parameters.domainName.Split(".")[0])\$($engineCredential.UserName.Split("\")[1])"
+        Permission = "CONNECT"
 
-        TestQuery = @"
-SELECT 'true' AS result
-"@
-        GetQuery = "SELECT 'true' AS result"
-        SetQuery = @"
-USE [master];
-CREATE LOGIN [$($engineCredential.UserName)] FROM WINDOWS;
-GRANT CONNECT ON ENDPOINT::[Hadr_endpoint] TO [$($engineCredential.UserName)];
-GO
-"@;
-        Variable = @("FilePath=C:\windows\temp\configureendpoints")
-        
-        DependsOn = "[Script]DownloadAdventurWorks2016"
+        DependsOn = "[SqlEndpoint]CreateEndpoint"
         PsDscRunAsCredential = $Credential
     }
 }
