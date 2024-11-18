@@ -13,8 +13,8 @@ configuration ConfigurationWorkload
     );
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration, 
-        ActiveDirectoryDsc, xPSDesiredStateConfiguration, NetworkingDsc, 
-        xDnsServer, CertificateDsc;
+        ComputerManagementDsc, ActiveDirectoryDsc, xPSDesiredStateConfiguration,
+        NetworkingDsc, xDnsServer, CertificateDsc;
 
     $features = @(
         "AD-Domain-Services"
@@ -353,6 +353,29 @@ configuration ConfigurationWorkload
                 
                 DependsOn = "[ADReplicationSite]ReplicationSite-$($Parameters.region)"
             }
+        }
+
+        File "Share"
+        {
+            DestinationPath = "C:\share"
+            Type = "Directory"
+        }
+
+        SmbShare "Share"
+        {
+            Name = "Share"
+            Path = "C:\share"
+            EncryptData = $false
+            FolderEnumerationMode = "Unrestricted"
+            CachingMode = "None"
+            ContinuouslyAvailable = $false
+            FullAccess = @(
+                "$($Parameters.domainName)\Domain Computers",
+                "$($Parameters.domainName)\Domain Admins",
+                "$($Parameters.domainName)\s-SqlEngine"
+            )
+            
+            DependsOn = "[File]Share"
         }
 
         if($Parameters.enableSsl)
