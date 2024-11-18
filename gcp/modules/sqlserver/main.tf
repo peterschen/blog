@@ -17,8 +17,7 @@ locals {
 
   use_developer_edition = var.use_developer_edition
   enable_firewall = var.enable_firewall
-  enable_cluster = var.enable_alwayson ? true : var.enable_cluster
-  enable_alwayson = var.enable_alwayson
+  enable_cluster = var.enable_cluster
 
   configuration_customization_sql = var.configuration_customization_sql
 }
@@ -154,6 +153,7 @@ resource "google_compute_instance" "sql" {
           domainName = local.domain_name,
           zone = local.zones[count.index]
           networkRange = data.google_compute_subnetwork.subnetwork.ip_cidr_range,
+          networkMask = cidrnetmask(data.google_compute_subnetwork.subnetwork.ip_cidr_range),
           isFirst = (count.index == 0),
           nodePrefix = local.machine_prefix,
           nodeCount = length(local.zones),
@@ -164,7 +164,6 @@ resource "google_compute_instance" "sql" {
           inlineConfigurationCustomization = try(base64encode(local.configuration_customization_sql[count.index]), null),
           useDeveloperEdition = local.use_developer_edition,
           enableCluster = local.enable_cluster,
-          enableAlwaysOn = local.enable_alwayson,
           modulesDsc = [
             {
               Name = "FailOverClusterDsc",
