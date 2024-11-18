@@ -71,8 +71,3 @@ variable "enable_cluster" {
   type = bool
   default = false
 }
-
-variable "enable_alwayson" {
-  type = bool
-  default = false
-}
