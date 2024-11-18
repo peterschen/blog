@@ -19,13 +19,14 @@ variable "region" {
 variable "zones" {
   type = list(string)
   default = [
-    "europe-west4-a"
+    "europe-west4-a",
+    "europe-west4-b",
   ]
 }
 
 variable "domain_name" {
   type = string
-  default = "sql.lab"
+  default = "sqlag.lab"
 }
 
 variable "password" {
@@ -59,7 +60,7 @@ variable "windows_core_image" {
 
 variable "sql_image" {
   type = string
-  default = "windows-sql-cloud/sql-ent-2022-win-2022"
+  default = "windows-cloud/windows-2022-core"
 }
 
 variable "use_developer_edition" {
@@ -69,5 +70,5 @@ variable "use_developer_edition" {
 
 variable "enable_cluster" {
   type = bool
-  default = false
+  default = true
 }

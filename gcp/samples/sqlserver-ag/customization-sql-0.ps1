@@ -172,23 +172,6 @@ GO
         PsDscRunAsCredential = $Credential
     }
 
-    # SqlAGReplica "AddReplica"
-    # {
-    #     ServerName = $Node.NodeName
-    #     InstanceName = "MSSQLSERVER"
-    #     AvailabilityGroupName = "AdventureWorks"
-    #     Name = "AdventureWorks"
-
-    #     PrimaryReplicaServerName = "$($Parameters.nodePrefix)-0"
-    #     PrimaryReplicaInstanceName = "MSSQLSERVER"
-    #     AvailabilityMode = "SynchronousCommit"
-    #     FailoverMode = "Automatic"
-    #     EndpointHostName = "$($Node.NodeName).$($Parameters.domainName)"
-
-    #     DependsOn = "[SqlAG]CreateAvailabilityGroup"
-    #     PsDscRunAsCredential = $Credential
-    # }
-
     SqlAGListener "AddListener"
     {
         Ensure = "Present"
