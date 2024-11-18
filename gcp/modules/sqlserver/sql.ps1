@@ -146,6 +146,58 @@ configuration ConfigurationWorkload
         # Set basic dependencies for setup
         $setupDependency = @("[ADUser]ServiceSqlEngine", "[ADUser]ServiceSqlAgent", "[ADGroup]SqlAdministrators");
 
+        File "Data"
+        {
+            DestinationPath = "C:\data"
+            Type = "Directory"
+        }
+
+        Script "SetPermissions"
+        {
+            GetScript = {
+                $acl = Get-Acl -Path "C:\data";
+                if($acl.Owner.Contains("s-SqlEngine"))
+                {
+                    $result = "Present";
+                }
+                else
+                {
+                    $result = "Absent";
+                }
+                
+                return @{Ensure = $result};
+            }
+
+            TestScript = {
+                $state = [scriptblock]::Create($GetScript).Invoke();
+                return $state.Ensure -eq "Present";
+            }
+
+            SetScript = {
+                $acl = Get-Acl -Path "C:\data";
+                $owner = New-Object System.Security.Principal.NTAccount($Using:engineCredential.UserName);
+                $acl.SetOwner($owner);
+                Set-Acl -Path "C:\data" -AclObject $acl | Out-Null;
+            }
+
+            DependsOn = "[ADUser]ServiceSqlEngine", "[File]Data"
+            PsDscRunAsCredential = $domainCredential
+        }
+
+        ADServicePrincipalName "SetSpnHostname"
+        {
+            ServicePrincipalName = "MSSQLSvc/$($Node.NodeName):1433"
+            Account = $engineCredential.UserName.Split("\")[1]
+            PsDscRunAsCredential = $domainCredential
+        }
+
+        ADServicePrincipalName "SetSpnFqdn"
+        {
+            ServicePrincipalName = "MSSQLSvc/$($Node.NodeName).$($Parameters.domainName):1433"
+            Account = $engineCredential.UserName.Split("\")[1]
+            PsDscRunAsCredential = $domainCredential
+        }
+
         if($Parameters.useDeveloperEdition)
         {
             Script "DownloadSqlServerBinary"
@@ -394,6 +446,36 @@ configuration ConfigurationWorkload
                 DependsOn = $setupDependency
             }
 
+            SqlScriptQuery "SetServerName"
+            {
+                Id = "SetServerName"
+                ServerName = $Node.NodeName
+                InstanceName = "MSSQLSERVER"
+
+                TestQuery = @"
+IF (SELECT @@SERVERNAME) != $($Node.NodeName)
+BEGIN
+    RAISERROR ('Server name is not set correctly', 16, 1)
+END
+ELSE
+BEGIN
+    PRINT 'Server name is set correctly'
+END
+"@
+                GetQuery = "SELECT @@SERVERNAME"
+                SetQuery = @"
+sp_dropserver @@SERVERNAME;
+GO
+
+sp_addserver '$($Node.NodeName)', local;
+GO
+"@;
+                Variable = @("FilePath=C:\windows\temp\SetServerMame")
+                
+                DependsOn = "[SqlSetup]SqlServerSetup"
+                PsDscRunAsCredential = $Credential
+            }
+
             SqlProtocol "SqlEnableTcp"
             {
                 InstanceName = "MSSQLSERVER"
@@ -410,31 +492,49 @@ configuration ConfigurationWorkload
                 Features = "SQLENGINE,FULLTEXT"
                 DependsOn = "[SqlSetup]SqlServerSetup"
             }
-        }
 
-        if($Parameters.enableCluster -and $Parameters.enableAlwaysOn)
-        {
+            SqlServiceAccount "EngineAccount"
+            {
+                ServerName = $Node.NodeName
+                InstanceName = "MSSQLSERVER"
+                ServiceType = "DatabaseEngine"
+                ServiceAccount = $engineCredential
+                RestartService = $false
+
+                DependsOn = "[ADUser]ServiceSqlEngine", "[ADServicePrincipalName]SetSpnHostname", "[ADServicePrincipalName]SetSpnFqdn"
+                PsDscRunAsCredential = $domainCredential
+            }
+
+            SqlServiceAccount "AgentAccount"
+            {
+                ServerName = $Node.NodeName
+                InstanceName = "MSSQLSERVER"
+                ServiceType = "SQLServerAgent"
+                ServiceAccount = $agentCredential
+                RestartService = $true
+
+                DependsOn = "[ADUser]ServiceSqlAgent", "[ADServicePrincipalName]SetSpnHostname", "[ADServicePrincipalName]SetSpnFqdn"
+                PsDscRunAsCredential = $domainCredential
+            }
+
             SqlAlwaysOnService "EnableAlwaysOn"
             {
                 Ensure = "Present"
-                ServerName = "localhost"
+                ServerName = $Node.NodeName
                 InstanceName = "MSSQLSERVER"
-                RestartTimeout = 120
-                DependsOn = "[SqlWindowsFirewall]SqlServerFirewall"
+
+                DependsOn = "[SqlScriptQuery]SetServerName", "[SqlSetup]SqlServerSetup"
+                PsDscRunAsCredential = $domainCredential
             }
 
-            <#
-                SqlAGListener "AvailabilityGroup"
-                {
-                    Ensure = "Present"
-                    ServerName = "localhost"
-                    InstanceName = "MSSQLSERVER"
-                    AvailabilityGroup = $Parameters.nodePrefix
-                    Name = "$($Parameters.nodePrefix)-ag"
-                    DHCP = $true
-                    DependsOn = "[SqlAlwaysOnService]EnableAlwaysOn"
-                }
-            #>
+            SqlLogin "EngineAccount"
+            {
+                ServerName = $Node.NodeName
+                InstanceName = "MSSQLSERVER"
+                Name = "$($Parameters.domainName.Split(".")[0])\$($engineCredential.UserName.Split("\")[1])"
+                LoginType = "WindowsUser"
+                PsDscRunAsCredential = $Credential
+            }
         }
 
         # Enable customization configuration which gets inlined into this file
