@@ -45,9 +45,11 @@ configuration ConfigurationWorkload
         "$($Parameters.domainName)\g-LocalAdmins"
     );
 
+    $engineUser = "s-SqlEngine";
+
     $domainCredential = New-Object System.Management.Automation.PSCredential ("$($Parameters.domainName)\Administrator", $Password);
     $agentCredential = New-Object System.Management.Automation.PSCredential ("$($Parameters.domainName)\s-SqlAgent", $Password);
-    $engineCredential = New-Object System.Management.Automation.PSCredential ("$($Parameters.domainName)\s-SqlEngine", $Password);
+    $engineCredential = New-Object System.Management.Automation.PSCredential ("$($Parameters.domainName)\$engineUser", $Password);
 
     Node $ComputerName
     {
@@ -156,7 +158,7 @@ configuration ConfigurationWorkload
         {
             GetScript = {
                 $acl = Get-Acl -Path "C:\data";
-                if($acl.Owner.Contains("s-SqlEngine"))
+                if($acl.Owner.Contains($engineUser))
                 {
                     $result = "Present";
                 }
@@ -175,7 +177,7 @@ configuration ConfigurationWorkload
 
             SetScript = {
                 $acl = Get-Acl -Path "C:\data";
-                $owner = New-Object System.Security.Principal.NTAccount($Using:engineCredential.UserName);
+                $owner = New-Object System.Security.Principal.NTAccount($Using:engineUser);
                 $acl.SetOwner($owner);
                 Set-Acl -Path "C:\data" -AclObject $acl | Out-Null;
             }
