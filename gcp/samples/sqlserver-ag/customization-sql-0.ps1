@@ -31,6 +31,23 @@ configuration Customization
         PsDscRunAsCredential = $Credential
     }
 
+    SqlProtocol "SqlProtocol"
+    {
+        InstanceName = "MSSQLSERVER"
+        ProtocolName = "TcpIp"
+        Enabled = $true
+        ListenOnAllIpAddresses = $true
+        DependsOn = "[SqlSetup]SqlServerSetup"
+    }
+
+    SqlProtocolTcpIp "SqlProtocolTcpIp"
+    {
+        InstanceName = "MSSQLSERVER"
+        IpAddressGroup = "IPAll"
+        TcpPort = 1433
+        DependsOn = "[SqlProtocol]SqlProtocol"
+    }
+
     SqlScriptQuery "SetServerName"
     {
         Id = "SetServerName"
@@ -57,7 +74,7 @@ GO
 "@;
         Variable = @("FilePath=C:\windows\temp\SetServerMame")
 
-        DependsOn = "[SqlSetup]SqlServerSetup"
+        DependsOn = "[SqlProtocolTcpIp]SqlProtocolTcpIp"
         PsDscRunAsCredential = $Credential
     }
 
