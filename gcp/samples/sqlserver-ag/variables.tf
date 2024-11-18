@@ -60,7 +60,7 @@ variable "windows_core_image" {
 
 variable "sql_image" {
   type = string
-  default = "windows-cloud/windows-2022-core"
+  default = "windows-cloud/windows-2022"
 }
 
 variable "use_developer_edition" {
