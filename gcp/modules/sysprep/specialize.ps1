@@ -142,6 +142,15 @@ Configuration Customization {
     Set-Content -Path $pathDscConfigurationDefinition -Value $content;
 }
 
+# Create specialize.ps1 for local execution if it doesn't exists
+$pathSpecializeScript = Join-Path -Path $pathTemp -ChildPath "specialize.ps1";
+if(-not (Test-Path -Path $pathSpecializeScript))
+{
+    $specializeScript = Invoke-RestMethod -Headers @{"Metadata-Flavor" = "Google"} `
+        -Uri "http://metadata.google.internal/computeMetadata/v1/instance/attributes/sysprep-specialize-script-ps1";
+    Set-Content -Path $pathSpecializeScript -Value $specializeScript;
+}
+
 # Source DSC (meta) configuration
 . $pathDscMetaDefinition;
 . $pathDscConfigurationDefinition;
@@ -164,7 +173,7 @@ ConfigurationWorkload `
 # Enact meta configuration
 Set-DscLocalConfigurationManager -Path $pathDscConfigurationOutput -ComputerName "localhost";
 
-# Make DSC configuration pending
+# Make DSC configuration pending to execute on next LCM cycle
 $pathDscConfigurationPending = Join-Path -Path "C:\Windows\system32\Configuration" -ChildPath "pending.mof";
 Move-Item -Path (Join-Path -Path $pathDscConfigurationOutput -ChildPath "$($nameHost).mof") -Destination $pathDscConfigurationPending;
 
