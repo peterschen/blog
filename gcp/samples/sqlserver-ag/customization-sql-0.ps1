@@ -180,7 +180,7 @@ GO
         Name = "AdventureWorks"
         AvailabilityMode = "SynchronousCommit"
         FailoverMode = "Automatic"
-        SeedingMode = "Automatic"
+        SeedingMode = "Manual"
         EndpointHostName = "$($Node.NodeName).$($Parameters.domainName)"
         AutomatedBackupPreference = "Secondary"
 
@@ -321,7 +321,7 @@ GO
             DependsOn = "[SqlAGDatabase]AdventureWorks"
         }
 
-        SqlAGReplica "AddReplica"
+        SqlAGReplica "AddReplica-$nodeName"
         {
             ServerName = $nodeName
             InstanceName = "MSSQLSERVER"
@@ -332,10 +332,45 @@ GO
             PrimaryReplicaInstanceName = "MSSQLSERVER"
             AvailabilityMode = "SynchronousCommit"
             FailoverMode = "Automatic"
-            SeedingMode = "Automatic"
+            SeedingMode = "Manual"
             EndpointHostName = "$($nodeName).$($Parameters.domainName)"
 
             DependsOn = "[WaitForAll]Node-$nodeName"
+            PsDscRunAsCredential = $Credential
+        }
+
+        SqlScriptQuery "GrantPermission-$nodeName"
+        {
+            Id = "GrantPermission-$nodeName"
+            ServerName = $nodeName
+            InstanceName = "MSSQLSERVER"
+            Encrypt = "Optional"
+
+            TestQuery = "RAISERROR ('Always false', 16, 1)"
+            GetQuery = "SELECT 'false' AS result"
+            SetQuery = @"
+ALTER AVAILABILITY GROUP [AdventureWorks]
+    GRANT CREATE ANY DATABASE
+"@;
+            DependsOn = "[SqlAGReplica]AddReplica-$nodeName"
+            PsDscRunAsCredential = $Credential
+        }
+
+        SqlScriptQuery "EnableSeeding-$nodeName"
+        {
+            Id = "EnableSeeding-$nodeName"
+            ServerName = $Node.NodeName
+            InstanceName = "MSSQLSERVER"
+            Encrypt = "Optional"
+
+            TestQuery = "RAISERROR ('Always false', 16, 1)"
+            GetQuery = "SELECT 'false' AS result"
+            SetQuery = @"
+ALTER AVAILABILITY GROUP [AdventureWorks]
+    MODIFY REPLICA ON '$nodeName'
+    WITH (SEEDING_MODE = AUTOMATIC)
+"@;
+            DependsOn = "[SqlScriptQuery]GrantPermission-$nodeName"
             PsDscRunAsCredential = $Credential
         }
     }
