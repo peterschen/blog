@@ -36,6 +36,10 @@ $modules = @(
     @{
         Name = "ActiveDirectoryDsc"
         Version = "6.2.0"
+    },
+    @{
+        Name = "xCredSSP"
+        Version = "1.4.0"
     }
 );
 
