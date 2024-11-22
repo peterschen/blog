@@ -186,10 +186,9 @@ module "sqlserver" {
   windows_image = local.sql_image
   machine_type = local.machine_type_sql
 
-  configuration_customization_sql = local.configuration_customization
+  configuration_customization = local.configuration_customization
 
   enable_cluster = local.enable_cluster
-  enable_alwayson = local.enable_alwayson
   depends_on = [module.ad]
 }
 

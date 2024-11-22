@@ -87,7 +87,6 @@ module "sqlserver_demo3" {
   # Firewall configuration already made by other sqlserver deployment
   enable_firewall = false
   enable_cluster = false
-  enable_alwayson = false
 
   depends_on = [
     google_compute_subnetwork.secondary_subnetwork
