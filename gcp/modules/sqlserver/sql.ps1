@@ -546,7 +546,7 @@ GO
                 InstanceName = "MSSQLSERVER"
                 Name = "$($Parameters.domainName.Split(".")[0])\$($engineCredential.UserName.Split("\")[1])"
                 LoginType = "WindowsUser"
-                PsDscRunAsCredential = $Credential
+                PsDscRunAsCredential = $domainCredential
             }
         }
 
