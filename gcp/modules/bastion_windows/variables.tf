@@ -87,3 +87,8 @@ variable "enable_windowsadmincenter" {
     type = bool
     default = false
 }
+
+variable "configuration_customization" {
+  type = string
+  default = null
+}

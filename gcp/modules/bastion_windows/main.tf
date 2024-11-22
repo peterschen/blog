@@ -23,6 +23,8 @@ locals {
   enable_python = var.enable_python
   enable_discoveryclient = var.enable_discoveryclient
   enable_windowsadmincenter = var.enable_windowsadmincenter
+
+  configuration_customization = var.configuration_customization
 }
 
 data "google_project" "default" {
@@ -104,6 +106,7 @@ resource "google_compute_instance" "bastion" {
       parametersConfiguration = jsonencode({
         inlineMeta = filebase64(module.sysprep.path_meta),
         inlineConfiguration = filebase64("${path.module}/bastion.ps1"),
+        inlineConfigurationCustomization = try(base64encode(local.configuration_customization), null),
         nameDomain = local.domain_name,
         enableDomain = local.enable_domain,
         enableSsms = local.enable_ssms,
