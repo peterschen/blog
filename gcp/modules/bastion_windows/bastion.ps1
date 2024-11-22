@@ -639,4 +639,15 @@ configuration ConfigurationWorkload
         }
 #endregion Windows Admin Center
     }
+
+    # Enable customization configuration which gets inlined into this file
+    Customization "Customization"
+    {
+        Credential = $domainCredential
+        Parameters = $Parameters
+        
+        # Composite configurations don't support dependencies
+        # see https://dille.name/blog/2015/01/11/reusing-psdsc-node-configuration-with-nested-configurations-the-horror/
+        # DependsOn = $customizationDependency
+    }
 }
