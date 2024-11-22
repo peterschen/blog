@@ -72,8 +72,3 @@ variable "use_developer_edition" {
   type = bool
   default = true
 }
-
-variable "enable_cluster" {
-  type = bool
-  default = true
-}

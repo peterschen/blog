@@ -19,8 +19,6 @@ locals {
   machine_type_sql = var.machine_type_sql
 
   use_developer_edition = var.use_developer_edition
-
-  enable_cluster = var.enable_cluster
 }
 
 module "project" {
@@ -144,7 +142,7 @@ module "sqlserver" {
 
   use_developer_edition = local.use_developer_edition
 
-  enable_cluster = local.enable_cluster
+  enable_cluster = true
 
   configuration_customization = [
     file("${path.module}/customization-sql-0.ps1"),
