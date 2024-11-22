@@ -114,6 +114,8 @@ module "bastion" {
   enable_discoveryclient = false
   enable_ssms = true
 
+  configuration_customization = file("${path.module}/customization-bastion.ps1")
+
   depends_on = [
     module.nat
   ]
@@ -138,7 +140,7 @@ module "sqlserver" {
 
   enable_cluster = local.enable_cluster
 
-  configuration_customization_sql = [
+  configuration_customization = [
     file("${path.module}/customization-sql-0.ps1"),
     file("${path.module}/customization-sql-1.ps1"),
   ]
