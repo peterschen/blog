@@ -363,6 +363,35 @@ configuration ConfigurationWorkload
                     PsDscRunAsCredential = $domainCredential
                 }
 
+                Script "SetClusterPermissions"
+                {
+                    GetScript = {
+                        $access = Get-ClusterAccess -User $using:engineUser -ErrorAction SilentlyContinue;
+                        if($access -ne $Null)
+                        {
+                            $result = "Present";
+                        }
+                        else
+                        {
+                            $result = "Absent";
+                        }
+                        
+                        return @{Ensure = $result};
+                    }
+
+                    TestScript = {
+                        $state = [scriptblock]::Create($GetScript).Invoke();
+                        return $state.Ensure -eq "Present";
+                    }
+
+                    SetScript = {
+                        Grant-ClusterAccess -User $using:engineUser -Full;
+                    }
+
+                    DependsOn = "[Cluster]CreateCluster"
+                    PsDscRunAsCredential = $domainCredential
+                }
+
                 ClusterQuorum "Quorum"
                 {
                     Type = "NodeMajority"
