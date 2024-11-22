@@ -1,8 +1,9 @@
 locals {
+  project_id = var.project_id
   prefix = var.prefix
   region = var.region
   zones = var.zones
-  sample_name = "sqlserver-on-gcp"
+  sample_name = "sqlserver-ag"
   
   domain_name = var.domain_name
   password = var.password
@@ -23,6 +24,7 @@ locals {
 }
 
 module "project" {
+  count = local.project_id != null ? 0 : 1
   source = "../../modules/project"
 
   org_id = var.org_id
@@ -36,18 +38,22 @@ module "project" {
   ]
 }
 
+data "google_project" "project" {
+  project_id = local.project_id != null ? local.project_id : module.project[0].id
+}
+
 data "google_compute_default_service_account" "default" {
-  project = module.project.id
+  project = data.google_project.project.project_id
 }
 
 resource "google_compute_network" "network" {
-  project = module.project.id
+  project = data.google_project.project.project_id
   name = local.sample_name
   auto_create_subnetworks = false
 }
 
 resource "google_compute_subnetwork" "subnetwork" {
-  project = module.project.id
+  project = data.google_project.project.project_id
   region = local.region
   name = local.region
   ip_cidr_range = local.network_range
@@ -57,7 +63,7 @@ resource "google_compute_subnetwork" "subnetwork" {
 
 module "nat" {
   source = "../../modules/nat"
-  project = module.project.id
+  project = data.google_project.project.project_id
 
   region = local.region
   network = google_compute_network.network.name
@@ -69,7 +75,7 @@ module "nat" {
 
 module "ad" {
   source = "../../modules/ad"
-  project = module.project.id
+  project = data.google_project.project.project_id
 
   regions = [local.region]
   zones = local.zones
@@ -94,7 +100,7 @@ module "ad" {
 
 module "bastion" {
   source = "../../modules/bastion_windows"
-  project = module.project.id
+  project = data.google_project.project.project_id
 
   region = local.region
   zone = local.zones[0]
@@ -123,7 +129,7 @@ module "bastion" {
 
 module "sqlserver" {
   source = "../../modules/sqlserver"
-  project = module.project.id
+  project = data.google_project.project.project_id
   region = local.region
   zones = local.zones
   
@@ -152,14 +158,14 @@ module "sqlserver" {
 
 module "firewall_iap" {
   source = "../../modules/firewall_iap"
-  project = module.project.id
+  project = data.google_project.project.project_id
   network = google_compute_network.network.name
   enable_ssh = false
 }
 
 resource "google_compute_firewall" "allow-all-internal" {
   name    = "allow-all-internal"
-  project = module.project.id
+  project = data.google_project.project.project_id
 
   network = google_compute_network.network.name
   priority = 1000

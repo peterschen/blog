@@ -6,6 +6,11 @@ variable "billing_account" {
   type = string
 }
 
+variable "project_id" {
+  type = string
+  default = null
+}
+
 variable "prefix" {
   type = string
   default = null
