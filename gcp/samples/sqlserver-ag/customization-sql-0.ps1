@@ -84,7 +84,7 @@ GO
         InstanceName = "MSSQLSERVER"
         ServiceType = "DatabaseEngine"
         ServiceAccount = $engineCredential
-        RestartService = $false
+        RestartService = $true
 
         DependsOn = "[SqlSetup]SqlServerSetup"
         PsDscRunAsCredential = $Credential
