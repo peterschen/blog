@@ -63,7 +63,7 @@ variable "enable_cluster" {
   default = false
 }
 
-variable "configuration_customization_sql" {
+variable "configuration_customization" {
   type = list(string)
   default = []
 }
