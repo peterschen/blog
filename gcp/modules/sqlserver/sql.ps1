@@ -14,7 +14,7 @@ configuration ConfigurationWorkload
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration, 
         ComputerManagementDsc, ActiveDirectoryDsc, FailoverClusterDsc, 
-        NetworkingDsc, SqlServerDsc, StorageDsc;
+        NetworkingDsc, SqlServerDsc, StorageDsc, xCredSSP;
 
     $components = $Parameters.domainName.Split(".");
     $dc = "";
@@ -70,6 +70,12 @@ configuration ConfigurationWorkload
                 Ensure = "Present"
                 Enabled = "True"
             }
+        }
+
+        xCredSSP Server
+        {
+            Ensure = "Present"
+            Role = "Server"
         }
 
         WaitForADDomain "WFAD"
