@@ -209,7 +209,9 @@ resource "google_compute_health_check" "wsfc" {
   name = "wsfc"
   project = local.project
   timeout_sec = 1
-  check_interval_sec = 2
+  check_interval_sec = 1
+  healthy_threshold = 1
+  unhealthy_threshold = 1
 
   tcp_health_check {
     port = 59998
@@ -223,7 +225,9 @@ resource "google_compute_health_check" "wsfc_sql" {
   name = "wsfc-sql"
   project = local.project
   timeout_sec = 1
-  check_interval_sec = 2
+  check_interval_sec = 1
+  healthy_threshold = 1
+  unhealthy_threshold = 1
 
   tcp_health_check {
     port = 59998
