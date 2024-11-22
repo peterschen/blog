@@ -326,7 +326,7 @@ GO
             ServerName = $nodeName
             InstanceName = "MSSQLSERVER"
             AvailabilityGroupName = "AdventureWorks"
-            Name = $nodeName.ToUpper()
+            Name = $nodeName
 
             PrimaryReplicaServerName = $Node.NodeName
             PrimaryReplicaInstanceName = "MSSQLSERVER"
