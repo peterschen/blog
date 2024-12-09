@@ -486,7 +486,7 @@ GO
                 Variable = @("FilePath=C:\windows\temp\SetServerMame")
                 
                 DependsOn = "[SqlSetup]SqlServerSetup"
-                PsDscRunAsCredential = $Credential
+                PsDscRunAsCredential = $domainCredential
             }
 
             SqlProtocol "SqlEnableTcp"
