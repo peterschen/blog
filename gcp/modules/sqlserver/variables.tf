@@ -39,6 +39,11 @@ variable "machine_prefix" {
   default = "sql"
 }
 
+variable "threads_per_core" {
+  type = number
+  default = 2
+}
+
 variable "domain_name" {
   type = string
 }
