@@ -127,16 +127,6 @@ advancedMachineFeatures:
     },
 
     @{
-        Sku = "c3-standard-16-lssd"
-        ThreadsPerCore = 2
-    },
-    
-    @{
-        Sku = "c3-standard-16-lssd"
-        ThreadsPerCore = 1
-    },
-
-    @{
         Sku = "c3-standard-22-lssd"
         ThreadsPerCore = 2
     },
@@ -213,17 +203,18 @@ Write-Host "Restoring HammerDB from GCS";
 gsutil cp gs://cbpetersen-smtoff/hammerdb/hammer.DB `$env:TEMP\hammer.DB;
 
 `$target = "sql-0";
+`$region = "europe-west4";
 `$zone = "europe-west4-a";
 `$previousVmName = "sql-0"; 
 
+Write-Host "Stopping VM";
+gcloud compute instances stop `$previousVmName --discard-local-ssd true --zone `$zone --quiet;
+
+Write-Host "Detaching boot disk";
+gcloud compute instances detach-disk `$previousVmName --device-name "persistent-disk-0" --zone `$zone;
+
 foreach(`$configuration in `$configurations)
 {
-    Write-Host "Stopping VM";
-    gcloud compute instances stop `$previousVmName --discard-local-ssd true --zone `$zone --quiet;
-
-    Write-Host "Detaching boot disk";
-    gcloud compute instances detach-disk `$previousVmName --device-name "persistent-disk-0" --zone `$zone;
-
     Write-Host "Creating new instance";
     `$vmName = "sql-`$(`$configuration.Sku)-t`$(`$configuration.ThreadsPerCore)";
     gcloud compute instances create `$vmName ``
@@ -236,28 +227,27 @@ foreach(`$configuration in `$configurations)
         --shielded-secure-boot ``
         --shielded-vtpm ``
         --shielded-integrity-monitoring ``
-        --threads-per-core 2
+        --threads-per-core 2;
 
-    # Write-Host "Reconfiguring VM to `$(`$configuration.Sku) (threadsPerCore = `$(`$configuration.ThreadsPerCore))";
-    # gcloud compute instances export `$target --destination c:\tools\config.yaml --zone `$zone --quiet;
-
-    # `$config = (Get-Content -Path c:\tools\config.yaml).Where{ `$_ -ne "advancedMachineFeatures:" -and `$_ -ne "  threadsPerCore: 1" -and `$_ -ne "  threadsPerCore: 2"};
-    # `$config += "advancedMachineFeatures:";
-    # `$config += "  threadsPerCore: `$(`$configuration.ThreadsPerCore)";
-    # Set-Content -Path c:\tools\config.yaml -Value `$config;
-
-    # gcloud compute instances update-from-file `$target --source c:\tools\config.yaml --zone `$zone --quiet;
-    # gcloud compute instances set-machine-type `$target --machine-type `$configuration.Sku --zone `$zone --quiet;
+    `$ip = gcloud compute instances describe `$vmName --zone `$zone --format "value(networkInterfaces.networkIP)";
 
     Write-Host "Starting VM";
     gcloud compute instances start `$vmName --zone `$zone --quiet;
+
+    # Update DNS
+    Write-Host "Updating DNS"
+    `$oldRecord = Get-DnsServerResourceRecord -ComputerName "dc-0" -ZoneName "smtoff.lab" -Name `$target -RRType "A";
+    `$newRecord = [ciminstance]::new(`$oldRecord);
+    `$newRecord.RecordData.IPv4Address = `$ip;
+    Set-DnsServerResourceRecord -ComputerName "dc-0" -NewInputObject `$newRecord -OldInputObject `$oldRecord -ZoneName "smtoff.lab";
+    ipconfig /flushdns
 
     # Wait for SQL Server to become available
     `$connectionSuceeded = `$False;
     Write-Host "Waiting for SQL Server to become available";
     while(-not `$connectionSucceeded)
     {
-        `$result = Test-NetConnection -ComputerName `$target -Port 1433;
+        `$result = Test-NetConnection -ComputerName `$ip -Port 1433;
         `$connectionSucceeded = `$result.TcpTestSucceeded;
         Start-Sleep -Seconds 10;
     }
@@ -344,11 +334,17 @@ RESTORE DATABASE [smtoff]
     gsutil cp c:\tools\perfcounter.csv gs://cbpetersen-smtoff/data/`$date/perfcounter-`$(`$configuration.Sku)-t`$(`$configuration.ThreadsPerCore).csv
 
     # Clean up
-    Remove-Item -Path "c:\tools\perfcounter.csv";
-    Remove-Item -Path "c:\tools\config.yaml";
+    Remove-Item -Path "c:\tools\perfcounter.csv" -ErrorAction "SilentlyContinue";
+    Remove-Item -Path "c:\tools\config.yaml" -ErrorAction "SilentlyContinue";
 
     Write-Host "Stopping VM";
     gcloud compute instances stop `$vmName --discard-local-ssd true --zone `$zone --quiet;
+
+    Write-Host "Detaching boot disk";
+    gcloud compute instances detach-disk `$vmName --device-name "persistent-disk-0" --zone `$zone;
+
+    Write-Host "Deleting VM";
+    gcloud compute instances delete `$vmName --zone `$zone --quiet;
 
     `$previousVmName = `$vmName;
 
