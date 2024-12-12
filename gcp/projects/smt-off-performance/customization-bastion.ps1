@@ -97,18 +97,6 @@ foreach z { $using:configurations } {
         }
 
         PsDscRunAsCredential = $Credential
-    } 
-
-    for($i = 1; $i -lt 3; $i++)
-    {
-        File "TpcConfig-$i" {
-            DestinationPath = "c:\tools\config_tpc_$i.yaml"
-            Contents = @"
-advancedMachineFeatures:
-  threadsPerCore: $i
-"@
-            Type = "File"
-        }
     }
 
     File ControlScript {
@@ -335,7 +323,6 @@ RESTORE DATABASE [smtoff]
 
     # Clean up
     Remove-Item -Path "c:\tools\perfcounter.csv" -ErrorAction "SilentlyContinue";
-    Remove-Item -Path "c:\tools\config.yaml" -ErrorAction "SilentlyContinue";
 
     Write-Host "Stopping VM";
     gcloud compute instances stop `$vmName --discard-local-ssd true --zone `$zone --quiet;
@@ -385,10 +372,14 @@ finally
 param(`$users);
 `$counters = @(
     "\Processor(_Total)\% Processor Time",
-    "\PhysicalDisk(1 T:)\Disk Bytes/sec",
-    "\PhysicalDisk(1 T:)\Disk Transfers/sec",
     "\SQLServer:Buffer Manager\Lazy writes/sec"
 )
+
+# Disk index changes with the number of Local SSD drives attached
+# so we are dynamically determining the respective counters
+`$set = Get-Counter -ListSet "PhysicalDisk";
+`$counters += `$set.PathsWithInstances | Select-String -Pattern "T:\)\\Disk Bytes/sec";
+`$counters += `$set.PathsWithInstances | Select-String -Pattern "T:\)\\Disk Transfers/sec";
 
 Get-Counter -Counter `$counters -ComputerName "sql-0" -SampleInterval 1 -Continuous | ForEach-Object {
     `$_.CounterSamples | ForEach-Object {
