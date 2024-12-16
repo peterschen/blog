@@ -77,19 +77,33 @@ diset tpcc mssqls_duration 1
 diset tpcc mssqls_checkpoint true
 diset tpcc mssqls_timeprofile true
 diset tpcc mssqls_allwarehouse false
+diset tpcc mssqls_count_ware 2500
+
+tcset refreshrate 2
+
+vuset delay 150
+vuset repeat 0
+vuset iterations 1
 
 loadscript
 foreach z { $using:configurations } {
     puts "`$z VU TEST"
     vuset vu `$z
     vucreate
-    set ppid [ exec powershell "c:/tools/perfcounter_start.ps1 `$z" & ]
     tcstart
-    tcstatus
-    set jobid [ vurun ]
-    runtimer 60
-    tcstop
+
+    # Start capturing performance counter    
+    set ppid [ exec powershell "c:/tools/perfcounter_start.ps1 `$z sql-0" & ]
+    
+    for {set i 0} {`$i < 6} {incr i} {
+        puts "ITERATION `$i"
+        vurun
+    }
+
+    # Stop capturing performance counter
     exec powershell "c:/tools/perfcounter_stop.ps1 `$ppid" &
+    
+    tcstop
     vudestroy
 }
 "@
@@ -187,84 +201,90 @@ foreach z { $using:configurations } {
 
 `$date = (Get-Date -Format "yyyy-MM-ddTHH:mmK");
 
-Write-Host "Restoring HammerDB from GCS";
-gsutil cp gs://cbpetersen-smtoff/hammerdb/hammer.DB `$env:TEMP\hammer.DB;
-
 `$target = "sql-0";
 `$region = "europe-west4";
 `$zone = "europe-west4-a";
-`$previousVmName = "sql-0"; 
+`$vmName = "sql-0";
+`$previousVmName = "sql-0";
+`$suspend = `$false;
 
-Write-Host "Stopping VM";
-gcloud compute instances stop `$previousVmName --discard-local-ssd true --zone `$zone --quiet;
+Write-Host "Retrieving IP";
+`$ip = gcloud compute addresses describe sql-sut --region `$region --format "value(address)";
 
-Write-Host "Detaching boot disk";
-gcloud compute instances detach-disk `$previousVmName --device-name "persistent-disk-0" --zone `$zone;
+# Update DNS
+Write-Host "Updating DNS"
+`$oldRecord = Get-DnsServerResourceRecord -ComputerName "dc-0" -ZoneName "smtoff.lab" -Name `$target -RRType "A";
+`$newRecord = [ciminstance]::new(`$oldRecord);
+`$newRecord.RecordData.IPv4Address = `$ip;
+`$newRecord.TimeToLive = [System.TimeSpan]::FromSeconds(5);
+Set-DnsServerResourceRecord -ComputerName "dc-0" -NewInputObject `$newRecord -OldInputObject `$oldRecord -ZoneName "smtoff.lab";
 
-foreach(`$configuration in `$configurations)
+# Flush DNS cache for good measure
+Write-Host "Flush DNS cache";
+ipconfig /flushdns
+
+try
 {
-    Write-Host "Creating new instance";
-    `$vmName = "sql-`$(`$configuration.Sku)-t`$(`$configuration.ThreadsPerCore)";
-    gcloud compute instances create `$vmName ``
-        --zone `$zone ``
-        --machine-type `$(`$configuration.Sku) ``
-        --network-interface "stack-type=IPV4_ONLY,subnet=europe-west4,no-address" ``
-        --scopes https://www.googleapis.com/auth/cloud-platform ``
-        --tags "mssql,rdp,wsfc" ``
-        --disk "boot=yes,device-name=persistent-disk-0,mode=rw,name=sql-0" ``
-        --shielded-secure-boot ``
-        --shielded-vtpm ``
-        --shielded-integrity-monitoring ``
-        --threads-per-core 2;
+    Write-Host "Stopping VM";
+    gcloud compute instances stop `$previousVmName --discard-local-ssd true --zone `$zone --quiet;
 
-    `$ip = gcloud compute instances describe `$vmName --zone `$zone --format "value(networkInterfaces.networkIP)";
+    Write-Host "Detaching boot disk";
+    gcloud compute instances detach-disk `$previousVmName --device-name "persistent-disk-0" --zone `$zone;
 
-    Write-Host "Starting VM";
-    gcloud compute instances start `$vmName --zone `$zone --quiet;
-
-    # Update DNS
-    Write-Host "Updating DNS"
-    `$oldRecord = Get-DnsServerResourceRecord -ComputerName "dc-0" -ZoneName "smtoff.lab" -Name `$target -RRType "A";
-    `$newRecord = [ciminstance]::new(`$oldRecord);
-    `$newRecord.RecordData.IPv4Address = `$ip;
-    Set-DnsServerResourceRecord -ComputerName "dc-0" -NewInputObject `$newRecord -OldInputObject `$oldRecord -ZoneName "smtoff.lab";
-    ipconfig /flushdns
-
-    # Wait for SQL Server to become available
-    `$connectionSuceeded = `$False;
-    Write-Host "Waiting for SQL Server to become available";
-    while(-not `$connectionSucceeded)
+    foreach(`$configuration in `$configurations)
     {
-        `$result = Test-NetConnection -ComputerName `$ip -Port 1433;
-        `$connectionSucceeded = `$result.TcpTestSucceeded;
-        Start-Sleep -Seconds 10;
-    }
+        Write-Host "Creating new instance";
+        `$vmName = "sql-`$(`$configuration.Sku)-t`$(`$configuration.ThreadsPerCore)";
+        gcloud compute instances create `$vmName ``
+            --zone `$zone ``
+            --machine-type `$(`$configuration.Sku) ``
+            --network-interface "private-network-ip=`$ip,stack-type=IPV4_ONLY,subnet=europe-west4,no-address" ``
+            --scopes https://www.googleapis.com/auth/cloud-platform ``
+            --tags "mssql,rdp,wsfc" ``
+            --disk "boot=yes,device-name=persistent-disk-0,mode=rw,name=sql-0" ``
+            --shielded-secure-boot ``
+            --shielded-vtpm ``
+            --shielded-integrity-monitoring ``
+            --threads-per-core 2;
 
-    Invoke-Command -ComputerName `$target -ScriptBlock {
-        `$friendlyName = "lssd-stripe";
-        `$disks = Get-PhysicalDisk -CanPool `$true;
-        `$subsystem = Get-StorageSubSystem -Model "Windows Storage";
+        Write-Host "Starting VM";
+        gcloud compute instances start `$vmName --zone `$zone --quiet;
 
-        # Create storage pool across all disks
-        `$pool = New-StoragePool -FriendlyName `$friendlyName -PhysicalDisks `$disks ``
-            -StorageSubSystemUniqueId `$subsystem.UniqueId -ProvisioningTypeDefault "Fixed" ``
-            -ResiliencySettingNameDefault "Simple";
+        # Wait for SQL Server to become available
+        `$connectionSuceeded = `$False;
+        Write-Host "Waiting for SQL Server to become available";
+        while(-not `$connectionSucceeded)
+        {
+            `$result = Test-NetConnection -ComputerName `$ip -Port 1433;
+            `$connectionSucceeded = `$result.TcpTestSucceeded;
+            Start-Sleep -Seconds 10;
+        }
 
-        # Create virtual disk in the pool
-        `$disk = New-VirtualDisk -FriendlyName `$friendlyName -StoragePoolUniqueId `$pool.UniqueId -UseMaximumSize;
+        Invoke-Command -ComputerName `$target -ScriptBlock {
+            `$friendlyName = "lssd-stripe";
+            `$disks = Get-PhysicalDisk -CanPool `$true;
+            `$subsystem = Get-StorageSubSystem -Model "Windows Storage";
 
-        # Initialize disk
-        Initialize-Disk -UniqueId `$disk.UniqueId -PassThru | 
-            New-Partition -DriveLetter "T" -UseMaximumSize | 
-            Format-Volume;
+            # Create storage pool across all disks
+            `$pool = New-StoragePool -FriendlyName `$friendlyName -PhysicalDisks `$disks ``
+                -StorageSubSystemUniqueId `$subsystem.UniqueId -ProvisioningTypeDefault "Fixed" ``
+                -ResiliencySettingNameDefault "Simple";
 
-        # Add access for s-SqlEngine
-        icacls t:\ /grant "s-SqlEngine:(OI)(CI)(F)"
-    }
+            # Create virtual disk in the pool
+            `$disk = New-VirtualDisk -FriendlyName `$friendlyName -StoragePoolUniqueId `$pool.UniqueId -UseMaximumSize;
 
-    # Restore database
-    Write-Host "Restoring database";
-    sqlcmd -S "tcp:`$target" -Q `@"
+            # Initialize disk
+            Initialize-Disk -UniqueId `$disk.UniqueId -PassThru | 
+                New-Partition -DriveLetter "T" -UseMaximumSize | 
+                Format-Volume;
+
+            # Add access for s-SqlEngine
+            icacls t:\ /grant "s-SqlEngine:(OI)(CI)(F)"
+        }
+
+        # Restore database
+        Write-Host "Restoring database";
+        sqlcmd -S "tcp:`$target" -Q `@"
 RESTORE DATABASE [smtoff]
     FROM
         URL = 's3://storage.googleapis.com/cbpetersen-smtoff/db/smtoff_01.bak',
@@ -312,33 +332,52 @@ RESTORE DATABASE [smtoff]
     GO
 "`@;
 
-    # Run benchmark
-    Write-Host "Running HammerDB";
-    c:\tools\hammerdb_smtoff.ps1
+        # Run benchmark
+        Write-Host "Running HammerDB";
+        c:\tools\hammerdb_smtoff.ps1
 
-    # Save data
-    Write-Host "Saving data to GCS";
-    gsutil cp `$env:TEMP\hammer.DB gs://cbpetersen-smtoff/hammerdb/
-    gsutil cp c:\tools\perfcounter.csv gs://cbpetersen-smtoff/data/`$date/perfcounter-`$(`$configuration.Sku)-t`$(`$configuration.ThreadsPerCore).csv
+        # Save data
+        Write-Host "Saving HammerDB and performance counters to GCS";
+        gsutil cp `$env:TEMP\hammer.DB gs://cbpetersen-smtoff/data/`$date/hammer-`$(`$configuration.Sku)-t`$(`$configuration.ThreadsPerCore).db
+        gsutil cp c:\tools\perfcounter.csv gs://cbpetersen-smtoff/data/`$date/perfcounter-`$(`$configuration.Sku)-t`$(`$configuration.ThreadsPerCore).csv
 
-    # Clean up
-    Remove-Item -Path "c:\tools\perfcounter.csv" -ErrorAction "SilentlyContinue";
+        # Clean up
+        Remove-Item -Path "`$env:TEMP\hammer.DB" -ErrorAction "SilentlyContinue";
+        Remove-Item -Path "c:\tools\perfcounter.csv" -ErrorAction "SilentlyContinue";
 
-    Write-Host "Stopping VM";
-    gcloud compute instances stop `$vmName --discard-local-ssd true --zone `$zone --quiet;
+        Write-Host "Stopping VM";
+        gcloud compute instances stop `$vmName --discard-local-ssd true --zone `$zone --quiet;
 
-    Write-Host "Detaching boot disk";
-    gcloud compute instances detach-disk `$vmName --device-name "persistent-disk-0" --zone `$zone;
+        Write-Host "Detaching boot disk";
+        gcloud compute instances detach-disk `$vmName --device-name "persistent-disk-0" --zone `$zone;
 
-    Write-Host "Deleting VM";
-    gcloud compute instances delete `$vmName --zone `$zone --quiet;
+        Write-Host "Deleting VM";
+        gcloud compute instances delete `$vmName --zone `$zone --quiet;
 
-    `$previousVmName = `$vmName;
+        `$previousVmName = `$vmName;
 
-    if((Test-Path -Path "c:\tools\smtoff-stop.txt"))
+        if((Test-Path -Path "c:\tools\smtoff-stop.txt"))
+        {
+            Write-Host "smtoff-stop.txt found, stopping run";
+            break;
+        }
+    }
+}
+catch
+{
+    Write-Host -ForegroundColor Yellow "Regular exception detected, suspending bastion: `$_";
+    `$suspend = `$true;
+}
+finally
+{
+    Write-Host -ForegroundColor Red "Error detected, stopping VMs";
+    gcloud compute instances stop `$vmName --discard-local-ssd true --zone `$zone --async --quiet;
+    gcloud compute instances stop `$previousVmName --discard-local-ssd true --zone `$zone --async --quiet;
+    
+    if (`$suspend)
     {
-        Write-Host "smtoff-stop.txt found, stopping run";
-        break;
+        Write-Host "Suspending bastion";
+        gcloud compute instances suspend "bastion" --zone `$zone --async --quiet;
     }
 }
 "@
@@ -362,14 +401,14 @@ finally
 {
     Set-Location -Path `$path;
 }
-"@;
+"@
         Type = "File"
     }
 
     File PerfCounterStart {
         DestinationPath = "c:\tools\perfcounter_start.ps1"
         Contents = @"
-param(`$users);
+param(`$users, `$target);
 `$counters = @(
     "\Processor(_Total)\% Processor Time",
     "\SQLServer:Buffer Manager\Lazy writes/sec"
@@ -377,21 +416,21 @@ param(`$users);
 
 # Disk index changes with the number of Local SSD drives attached
 # so we are dynamically determining the respective counters
-`$set = Get-Counter -ListSet "PhysicalDisk";
+`$set = Get-Counter -ComputerName `$target -ListSet "PhysicalDisk";
 `$counters += `$set.PathsWithInstances | Select-String -Pattern "T:\)\\Disk Bytes/sec";
 `$counters += `$set.PathsWithInstances | Select-String -Pattern "T:\)\\Disk Transfers/sec";
 
-Get-Counter -Counter `$counters -ComputerName "sql-0" -SampleInterval 1 -Continuous | ForEach-Object {
+Get-Counter -Counter `$counters -ComputerName `$target -SampleInterval 1 -Continuous | ForEach-Object {
     `$_.CounterSamples | ForEach-Object {
         [PSCustomObject]@{
-            Users = [int]::Parse(`$users)
+            Users = [int]::Parse`($users)
             TimeStamp = `$_.TimeStamp
             Path = `$_.Path
             Value = `$_.CookedValue
         }
     }
 } |  Export-Csv -Path "c:\tools\perfcounter.csv" -Append -NoTypeInformation;
-"@;
+"@
         Type = "File"
     }
 
@@ -400,7 +439,7 @@ Get-Counter -Counter `$counters -ComputerName "sql-0" -SampleInterval 1 -Continu
         Contents = @"
 param(`$processId);
 Stop-Process -Id `$processId;
-"@;
+"@
         Type = "File"
     }
 }
