@@ -167,6 +167,14 @@ resource "google_compute_firewall" "allow-all-internal" {
   ]
 }
 
+resource "google_compute_address" "sql_sut" {
+  project = data.google_project.project.project_id
+  region = local.region
+  subnetwork = google_compute_subnetwork.subnetwork.id
+  name = "sql-sut"
+  address_type = "INTERNAL"
+}
+
 # resource "google_compute_disk" "data" {
 #   project = data.google_project.project.project_id
 #   zone = local.zone
