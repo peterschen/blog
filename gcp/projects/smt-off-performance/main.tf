@@ -212,11 +212,14 @@ resource "google_project_iam_member" "storage_object_user" {
   member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
 }
 
-resource "google_compute_instance_iam_member" "instance_admin" {
-  count = length(module.sqlserver.instances)
+resource "google_project_iam_member" "iam_service_account_user" {
   project = data.google_project.project.project_id
-  zone = local.zone
-  instance_name = module.sqlserver.instances[count.index].name
+  role = "roles/iam.serviceAccountUser"
+  member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
+}
+
+resource "google_project_iam_member" "instance_admin" {
+  project = data.google_project.project.project_id
   role = "roles/compute.instanceAdmin.v1"
   member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
 }
