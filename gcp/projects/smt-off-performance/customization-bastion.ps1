@@ -250,14 +250,23 @@ try
         Write-Host "Starting VM";
         gcloud compute instances start `$vmName --zone `$zone --quiet;
 
-        # Wait for SQL Server to become available
-        `$connectionSuceeded = `$False;
-        Write-Host "Waiting for SQL Server to become available";
-        while(-not `$connectionSucceeded)
+        Write-Host "Waiting for SQL to become available";
+        `$sqlAvailable = `$false;
+        while(-not `$sqlAvailable)
         {
-            `$result = Test-NetConnection -ComputerName `$ip -Port 1433;
-            `$connectionSucceeded = `$result.TcpTestSucceeded;
-            Start-Sleep -Seconds 10;
+            try
+            {
+                sqlcmd -S "tcp:sql-0" -Q "SELECT GETDATE()" -t 9 | Out-Null
+                if(`$LASTEXITCODE -eq 0)
+                {
+                    `$sqlAvailable = `$true;
+                }
+            }
+            catch
+            {
+                Start-Sleep -Seconds 1;
+                # Empty catch
+            }
         }
 
         Invoke-Command -ComputerName `$target -ScriptBlock {
@@ -362,15 +371,18 @@ RESTORE DATABASE [smtoff]
             break;
         }
     }
+
+    Write-Host "Tests completed, suspending bastion";
+    `$suspend = `$true;
 }
 catch
 {
-    Write-Host -ForegroundColor Yellow "Regular exception detected, suspending bastion: `$_";
+    Write-Host -ForegroundColor Yellow "Exception detected, suspending bastion: `$_";
     `$suspend = `$true;
 }
 finally
 {
-    Write-Host -ForegroundColor Red "Error detected, stopping VMs";
+    Write-Host -ForegroundColor Red "Finished main loop, stopping VMs";
     gcloud compute instances stop `$vmName --discard-local-ssd true --zone `$zone --async --quiet;
     gcloud compute instances stop `$previousVmName --discard-local-ssd true --zone `$zone --async --quiet;
     
