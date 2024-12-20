@@ -348,11 +348,11 @@ RESTORE DATABASE [smtoff]
 
         # Save data
         Write-Host "Saving HammerDB and performance counters to GCS";
-        gsutil cp `$env:TEMP\hammer.DB gs://cbpetersen-smtoff/data/`$date/hammer-`$(`$configuration.Sku)-t`$(`$configuration.ThreadsPerCore).db
-        gsutil cp c:\tools\perfcounter.csv gs://cbpetersen-smtoff/data/`$date/perfcounter-`$(`$configuration.Sku)-t`$(`$configuration.ThreadsPerCore).csv
+        gsutil cp `$(`$env:TEMP)\hammer.DB gs://cbpetersen-smtoff/data/`$date/hammer_`$(`$configuration.Sku)-t`$(`$configuration.ThreadsPerCore).db
+        gsutil cp c:\tools\perfcounter.csv gs://cbpetersen-smtoff/data/`$date/perfcounter_`$(`$configuration.Sku)-t`$(`$configuration.ThreadsPerCore).csv
 
         # Clean up
-        Remove-Item -Path "`$env:TEMP\hammer.DB" -ErrorAction "SilentlyContinue";
+        Remove-Item -Path "`$(`$env:TEMP)\hammer.DB" -ErrorAction "SilentlyContinue";
         Remove-Item -Path "c:\tools\perfcounter.csv" -ErrorAction "SilentlyContinue";
 
         Write-Host "Stopping VM";
