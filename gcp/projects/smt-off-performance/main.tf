@@ -223,3 +223,10 @@ resource "google_project_iam_member" "instance_admin" {
   role = "roles/compute.instanceAdmin.v1"
   member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
 }
+
+resource "google_bigquery_dataset_iam_member" "biquery_data_editor" {
+  project = "cbpetersen-shared"
+  dataset_id = "smtoff"
+  role = "roles/bigquery.dataEditor"
+  member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
+}
