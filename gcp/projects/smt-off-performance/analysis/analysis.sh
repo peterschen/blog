@@ -129,13 +129,14 @@ import_bigquery() {
 
     # Set format to coerce "run" to string
     case $table in
-      jobs)
-        format="sku:STRING,run:STRING,jobid:STRING,timestamp:TIMESTAMP,users:INTEGER,nopm:INTEGER,tpm:INTEGER"
-        ;;
       counters)
         format="sku:STRING,run:STRING,jobid:STRING,timestamp:TIMESTAMP,counter:INTEGER"
         ;;
+      jobs)
+        format="sku:STRING,run:STRING,jobid:STRING,timestamp:TIMESTAMP,users:INTEGER,nopm:INTEGER,tpm:INTEGER"
+        ;;
       perfcounters)
+        # TODO Christoph: Fix timestamp type
         format="sku:STRING,run:STRING,users:INTEGER,timestamp:STRING,path:STRING,value:FLOAT"
         ;;
     esac
@@ -150,6 +151,13 @@ import_bigquery() {
       $file \
       $format
   done
+}
+
+run_bigquery() {
+  bq query \
+    --project_id $PROJECT \
+    --use_legacy_sql=false \
+    --headless < bigquery.sql 1> /dev/null
 }
 
 remove_files() {
@@ -190,4 +198,5 @@ fi
 download_gcs
 write_hammerdb
 import_bigquery
+run_bigquery
 remove_files
