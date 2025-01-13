@@ -119,6 +119,16 @@ foreach z { $using:configurations } {
 `$ErrorActionPreference = "Stop";
 `$configurations = @(
     @{
+        Sku = "c3-standard-4-lssd"
+        ThreadsPerCore = 2
+    },
+
+    @{
+        Sku = "c3-standard-4-lssd"
+        ThreadsPerCore = 1
+    },
+
+    @{
         Sku = "c3-standard-8-lssd"
         ThreadsPerCore = 2
     },
