@@ -119,94 +119,220 @@ foreach z { $using:configurations } {
 `$ErrorActionPreference = "Stop";
 `$configurations = @(
     @{
+        Sku = "n4-standard-4"
+        ThreadsPerCore = 2
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "n4-standard-4"
+        ThreadsPerCore = 1
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "n4-standard-8"
+        ThreadsPerCore = 2
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "n4-standard-8"
+        ThreadsPerCore = 1
+        DiskType = "hdb"
+    },
+    
+    @{
+        Sku = "n4-standard-16"
+        ThreadsPerCore = 2
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "n4-standard-16"
+        ThreadsPerCore = 1
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "n4-standard-32"
+        ThreadsPerCore = 2
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "n4-standard-32"
+        ThreadsPerCore = 1
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "n4-standard-48"
+        ThreadsPerCore = 2
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "n4-standard-48"
+        ThreadsPerCore = 1
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "n4-standard-64"
+        ThreadsPerCore = 2
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "n4-standard-64"
+        ThreadsPerCore = 1
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "n4-standard-80"
+        ThreadsPerCore = 2
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "n4-standard-80"
+        ThreadsPerCore = 1
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "c4-standard-4"
+        ThreadsPerCore = 2
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "c4-standard-4"
+        ThreadsPerCore = 1
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "c4-standard-8"
+        ThreadsPerCore = 2
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "c4-standard-8"
+        ThreadsPerCore = 1
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "c4-standard-16"
+        ThreadsPerCore = 2
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "c4-standard-16"
+        ThreadsPerCore = 1
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "c4-standard-32"
+        ThreadsPerCore = 2
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "c4-standard-32"
+        ThreadsPerCore = 1
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "c4-standard-48"
+        ThreadsPerCore = 2
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "c4-standard-48"
+        ThreadsPerCore = 1
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "c4-standard-96"
+        ThreadsPerCore = 2
+        DiskType = "hdb"
+    },
+
+    @{
+        Sku = "c4-standard-96"
+        ThreadsPerCore = 1
+        DiskType = "hdb"
+    },
+
+    @{
         Sku = "c3-standard-4-lssd"
         ThreadsPerCore = 2
+        DiskType = "lssd"
     },
 
     @{
         Sku = "c3-standard-4-lssd"
         ThreadsPerCore = 1
+        DiskType = "lssd"
     },
 
     @{
         Sku = "c3-standard-8-lssd"
         ThreadsPerCore = 2
+        DiskType = "lssd"
     },
     
     @{
         Sku = "c3-standard-8-lssd"
         ThreadsPerCore = 1
+        DiskType = "lssd"
     },
 
     @{
         Sku = "c3-standard-22-lssd"
         ThreadsPerCore = 2
+        DiskType = "lssd"
     },
     
     @{
         Sku = "c3-standard-22-lssd"
         ThreadsPerCore = 1
+        DiskType = "lssd"
     },
 
     @{
         Sku = "c3-standard-44-lssd"
         ThreadsPerCore = 2
+        DiskType = "lssd"
     },
     
     @{
         Sku = "c3-standard-44-lssd"
         ThreadsPerCore = 1
+        DiskType = "lssd"
     },
 
     @{
         Sku = "c3-standard-88-lssd"
         ThreadsPerCore = 2
+        DiskType = "lssd"
     },
     
     @{
         Sku = "c3-standard-88-lssd"
         ThreadsPerCore = 1
+        DiskType = "lssd"
     }
-
-    # @{
-    #     Sku = "c4-highcpu-16"
-    #     ThreadsPerCore = 2
-    # },
-
-    # @{
-    #     Sku = "c4-highcpu-16"
-    #     ThreadsPerCore = 1
-    # },
-
-    # @{
-    #     Sku = "c4-highcpu-32"
-    #     ThreadsPerCore = 2
-    # },
-
-    # @{
-    #     Sku = "c4-highcpu-32"
-    #     ThreadsPerCore = 1
-    # },
-
-    # @{
-    #     Sku = "c4-highcpu-48"
-    #     ThreadsPerCore = 2
-    # },
-
-    # @{
-    #     Sku = "c4-highcpu-48"
-    #     ThreadsPerCore = 1
-    # },
-
-    # @{
-    #     Sku = "c4-highcpu-96"
-    #     ThreadsPerCore = 2
-    # },
-
-    # @{
-    #     Sku = "c4-highcpu-96"
-    #     ThreadsPerCore = 1
-    # }
 )
 
 `$date = (Get-Date -Format "yyyy-MM-ddTHH:mmK");
@@ -216,7 +342,7 @@ foreach z { $using:configurations } {
 `$zone = "europe-west4-a";
 `$vmName = "sql-0";
 `$previousVmName = "sql-0";
-`$suspend = `$false;
+`$stop = `$false;
 
 Write-Host "Retrieving IP";
 `$ip = gcloud compute addresses describe sql-sut --region `$region --format "value(address)";
@@ -243,19 +369,56 @@ try
 
     foreach(`$configuration in `$configurations)
     {
+        if(`$configuration.DiskType -ne "lssd")
+        {
+            if(`$configuration.DiskType -eq "hdb")
+            {
+                `$type = "hyperdisk-balanced";
+                `$size = "750GB";
+                `$iops = 160000;
+                `$throughput = 2400;
+            }
+
+            gcloud compute disks create data ``
+                --zone `$zone ``
+                --type `$type ``
+                --size `$size ``
+                --provisioned-iops `$iops ``
+                --provisioned-throughput `$throughput;
+        }
+
         Write-Host "Creating new instance";
         `$vmName = "sql-`$(`$configuration.Sku)-t`$(`$configuration.ThreadsPerCore)";
-        gcloud compute instances create `$vmName ``
-            --zone `$zone ``
-            --machine-type `$(`$configuration.Sku) ``
-            --network-interface "private-network-ip=`$ip,stack-type=IPV4_ONLY,subnet=europe-west4,no-address" ``
-            --scopes https://www.googleapis.com/auth/cloud-platform ``
-            --tags "mssql,rdp,wsfc" ``
-            --disk "boot=yes,device-name=persistent-disk-0,mode=rw,name=sql-0" ``
-            --shielded-secure-boot ``
-            --shielded-vtpm ``
-            --shielded-integrity-monitoring ``
-            --threads-per-core `$(`$configuration.ThreadsPerCore);
+        
+        if (`$configuration.DiskType -eq "lssd")
+        {
+            gcloud compute instances create `$vmName ``
+                --zone `$zone ``
+                --machine-type `$(`$configuration.Sku) ``
+                --network-interface "private-network-ip=`$ip,stack-type=IPV4_ONLY,subnet=europe-west4,no-address" ``
+                --scopes https://www.googleapis.com/auth/cloud-platform ``
+                --tags "mssql,rdp,wsfc" ``
+                --disk "boot=yes,device-name=persistent-disk-0,mode=rw,name=sql-0" ``
+                --shielded-secure-boot ``
+                --shielded-vtpm ``
+                --shielded-integrity-monitoring ``
+                --threads-per-core `$(`$configuration.ThreadsPerCore) ``
+        }
+        else
+        {
+            gcloud compute instances create `$vmName ``
+                --zone `$zone ``
+                --machine-type `$(`$configuration.Sku) ``
+                --network-interface "private-network-ip=`$ip,stack-type=IPV4_ONLY,subnet=europe-west4,no-address" ``
+                --scopes https://www.googleapis.com/auth/cloud-platform ``
+                --tags "mssql,rdp,wsfc" ``
+                --disk "boot=yes,device-name=persistent-disk-0,mode=rw,name=sql-0" ``
+                --shielded-secure-boot ``
+                --shielded-vtpm ``
+                --shielded-integrity-monitoring ``
+                --threads-per-core `$(`$configuration.ThreadsPerCore) ``
+                --disk "boot=no,device-name=data,mode=rw,name=data";
+        }
 
         Write-Host "Starting VM";
         gcloud compute instances start `$vmName --zone `$zone --quiet;
@@ -374,6 +537,13 @@ RESTORE DATABASE [smtoff]
         Write-Host "Deleting VM";
         gcloud compute instances delete `$vmName --zone `$zone --quiet;
 
+        if(`$configuration.DiskType -ne "lssd")
+        {
+            Write-Host "Deleting Disk";
+            gcloud compute disks delete data ``
+                --zone `$zone;
+        }
+
         `$previousVmName = `$vmName;
 
         if((Test-Path -Path "c:\tools\smtoff-stop.txt"))
@@ -383,24 +553,32 @@ RESTORE DATABASE [smtoff]
         }
     }
 
-    Write-Host "Tests completed, suspending bastion";
-    `$suspend = `$true;
+    Write-Host "Tests completed, stopping bastion";
+    `$stop = `$true;
 }
 catch
 {
-    Write-Host -ForegroundColor Yellow "Exception detected, suspending bastion: `$_";
-    `$suspend = `$true;
+    Write-Host -ForegroundColor Red "Exception detected: `$_";
+    Write-Host "Stopping VMs";
+    gcloud compute instances stop `$vmName --discard-local-ssd true --zone `$zone --async --quiet;
+    gcloud compute instances stop `$previousVmName --discard-local-ssd true --zone `$zone --async --quiet;
+
+    `$stop = `$true;
 }
 finally
 {
-    Write-Host -ForegroundColor Red "Finished main loop, stopping VMs";
-    gcloud compute instances stop `$vmName --discard-local-ssd true --zone `$zone --async --quiet;
-    gcloud compute instances stop `$previousVmName --discard-local-ssd true --zone `$zone --async --quiet;
-    
-    if (`$suspend)
+    Write-Host "Detaching data disk";
+    gcloud compute instances detach-disk `$vmName --device-name "data" --zone `$zone;
+    gcloud compute instances detach-disk `$previousVmName --device-name "data" --zone `$zone;
+
+    Write-Host "Deleting data disk";
+    gcloud compute disks delete data ``
+        --zone `$zone;
+
+    if (`$stop)
     {
-        Write-Host "Suspending bastion";
-        gcloud compute instances suspend "bastion" --zone `$zone --async --quiet;
+        Write-Host "Stopping bastion";
+        gcloud compute instances stop bastion --zone `$zone --async --quiet;
     }
 }
 "@
