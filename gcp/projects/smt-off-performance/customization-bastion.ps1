@@ -245,7 +245,7 @@ try
             --shielded-secure-boot ``
             --shielded-vtpm ``
             --shielded-integrity-monitoring ``
-            --threads-per-core 2;
+            --threads-per-core `$(`$configuration.ThreadsPerCore);
 
         Write-Host "Starting VM";
         gcloud compute instances start `$vmName --zone `$zone --quiet;
