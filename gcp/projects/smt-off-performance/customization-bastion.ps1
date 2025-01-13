@@ -436,8 +436,8 @@ param(`$users, `$target);
 Get-Counter -Counter `$counters -ComputerName `$target -SampleInterval 1 -Continuous | ForEach-Object {
     `$_.CounterSamples | ForEach-Object {
         [PSCustomObject]@{
-            Users = [int]::Parse`($users)
-            TimeStamp = `$_.TimeStamp
+            Users = [int]::Parse(`$users)
+            TimeStamp = `$_.TimeStamp.ToString("yyyy-MM-ddTHH:mm:sszzz")
             Path = `$_.Path
             Value = `$_.CookedValue
         }
