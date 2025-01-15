@@ -21,6 +21,22 @@ configuration Customization
         Role = "Server"
     }
 
+    Registry WindowsUpdateNoAutoRebootWithLoggedOnUsers
+    {
+        Key = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"
+        ValueName = "NoAutoRebootWithLoggedOnUsers"
+        ValueData = 1
+        Ensure = "Present"
+    }
+
+    Registry WindowsUpdateAlwaysAutoRebootAtScheduledTime
+    {
+        Key = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"
+        ValueName = "AlwaysAutoRebootAtScheduledTime"
+        ValueData = 0
+        Ensure = "Present"
+    }
+
     Script "AddCredential"
     {
         GetScript = {

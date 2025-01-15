@@ -24,6 +24,22 @@ configuration Customization
         DelegateComputers = $nodes
     }
 
+    Registry WindowsUpdateNoAutoRebootWithLoggedOnUsers
+    {
+        Key = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"
+        ValueName = "NoAutoRebootWithLoggedOnUsers"
+        ValueData = 1
+        Ensure = "Present"
+    }
+
+    Registry WindowsUpdateAlwaysAutoRebootAtScheduledTime
+    {
+        Key = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"
+        ValueName = "AlwaysAutoRebootAtScheduledTime"
+        ValueData = 0
+        Ensure = "Present"
+    }
+
     $configurations = @();
     for($i = 1; $i -lt 31; $i++)
     {
