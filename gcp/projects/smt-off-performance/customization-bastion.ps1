@@ -29,6 +29,7 @@ configuration Customization
         Key = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"
         ValueName = "NoAutoRebootWithLoggedOnUsers"
         ValueData = 1
+        ValueType = "Dword"
         Ensure = "Present"
     }
 
@@ -37,6 +38,7 @@ configuration Customization
         Key = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"
         ValueName = "AlwaysAutoRebootAtScheduledTime"
         ValueData = 0
+        ValueType = "Dword"
         Ensure = "Present"
     }
 
