@@ -521,7 +521,7 @@ RESTORE DATABASE [smtoff]
 
         # Save data
         Write-Host "Saving HammerDB and performance counters to GCS";
-        gsutil cp `$(`$env:TEMP)\hammer.DB gs://cbpetersen-smtoff/data/`$date/hammer_`$(`$configuration.Sku)-t`$(`$configuration.ThreadsPerCore).db
+        gsutil cp "`$(`$env:TEMP)\hammer.DB" gs://cbpetersen-smtoff/data/`$date/hammer_`$(`$configuration.Sku)-t`$(`$configuration.ThreadsPerCore).db
         gsutil cp c:\tools\perfcounter.csv gs://cbpetersen-smtoff/data/`$date/perfcounter_`$(`$configuration.Sku)-t`$(`$configuration.ThreadsPerCore).csv
 
         # Clean up
@@ -541,7 +541,8 @@ RESTORE DATABASE [smtoff]
         {
             Write-Host "Deleting Disk";
             gcloud compute disks delete data ``
-                --zone `$zone;
+                --zone `$zone ``
+                 --quiet;
         }
 
         `$previousVmName = `$vmName;
@@ -573,7 +574,8 @@ finally
 
     Write-Host "Deleting data disk";
     gcloud compute disks delete data ``
-        --zone `$zone;
+        --zone `$zone ``
+        --quiet;
 
     if (`$stop)
     {
