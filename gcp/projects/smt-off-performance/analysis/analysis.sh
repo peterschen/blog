@@ -136,8 +136,7 @@ import_bigquery() {
         format="sku:STRING,run:STRING,jobid:STRING,timestamp:TIMESTAMP,users:INTEGER,nopm:INTEGER,tpm:INTEGER"
         ;;
       perfcounters)
-        # TODO Christoph: Fix timestamp type
-        format="sku:STRING,run:STRING,users:INTEGER,timestamp:STRING,path:STRING,value:FLOAT"
+        format="sku:STRING,run:STRING,users:INTEGER,timestamp:TIMESTAMP,path:STRING,value:FLOAT"
         ;;
     esac
 
