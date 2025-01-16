@@ -11,6 +11,7 @@ GCS_BUCKET="cbpetersen-smtoff"
 
 POSITIONAL_ARGS=()
 TIMESTAMP=
+CLEAN=false
 
 printHelp()
 {
@@ -112,6 +113,19 @@ add_file_meta() {
   rm $file.temp
 }
 
+clean_bigquery() {
+  tables=( counters jobs perfcounters perfcounters_r )
+
+  for table in "${tables[@]}"; do
+    bq rm \
+      --project_id $PROJECT \
+      --headless \
+      --force \
+      --table \
+      smtoff.$table
+  done
+}
+
 import_bigquery() {
   # Import files to Big Query
   files=`ls -S1 $SCRIPT_DIR/*.csv | tac`
@@ -166,6 +180,10 @@ remove_files() {
 
 while [[ $# -gt 0 ]]; do
   case $1 in
+    --clean)
+      CLEAN=true
+      shift
+      ;;
     --)
       shift;
       break
@@ -196,6 +214,11 @@ fi
 
 download_gcs
 write_hammerdb
+
+if [ $CLEAN == true ]; then
+  clean_bigquery
+fi
+
 import_bigquery
 run_bigquery
 remove_files
