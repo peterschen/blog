@@ -90,7 +90,7 @@ diset connection mssqls_server {sql-0}
 diset tpcc mssqls_dbase smtoff
 diset tpcc mssqls_driver timed
 diset tpcc mssqls_total_iterations 10000000
-diset tpcc mssqls_rampup 2
+diset tpcc mssqls_rampup 1
 diset tpcc mssqls_duration 1
 diset tpcc mssqls_checkpoint true
 diset tpcc mssqls_timeprofile true
@@ -99,7 +99,7 @@ diset tpcc mssqls_count_ware 2500
 
 tcset refreshrate 2
 
-vuset delay 150
+vuset delay 50
 vuset repeat 0
 vuset iterations 1
 
@@ -113,7 +113,7 @@ foreach z { $using:configurations } {
     # Start capturing performance counter    
     set ppid [ exec powershell "c:/tools/perfcounter_start.ps1 `$z sql-0" & ]
     
-    for {set i 0} {`$i < 6} {incr i} {
+    for {set i 0} {`$i < 4} {incr i} {
         puts "ITERATION `$i"
         vurun
     }
