@@ -39,3 +39,8 @@ variable "domain_name" {
 variable "password" {
   sensitive = true
 }
+
+variable "skus" {
+  type = string
+  default = "all"
+}

@@ -13,6 +13,8 @@ locals {
   machine_type_dc = "n4-highcpu-2"
   machine_type_bastion = "n4-highcpu-32"
   machine_type_sql = var.machine_type
+
+  skus = var.skus
 }
 
 module "project" {
@@ -108,7 +110,9 @@ module "bastion" {
   enable_discoveryclient = false
   enable_ssms = true
 
-  configuration_customization = file("${path.module}/customization-bastion.ps1")
+  configuration_customization = templatefile("${path.module}/customization-bastion.ps1", {
+    skus = local.skus
+  })
 
   depends_on = [
     module.nat

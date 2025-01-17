@@ -135,223 +135,306 @@ foreach z { $using:configurations } {
         DestinationPath = "c:\tools\smtoff.ps1"
         Contents = @"
 `$ErrorActionPreference = "Stop";
-`$configurations = @(
-    @{
-        Sku = "n4-standard-4"
-        ThreadsPerCore = 2
-        DiskType = "hdb"
-    },
+`$configurations = @();
 
-    @{
-        Sku = "n4-standard-4"
-        ThreadsPerCore = 1
-        DiskType = "hdb"
-    },
+# Injected by Terraform
+`$skus = '${skus}';
 
-    @{
-        Sku = "n4-standard-8"
-        ThreadsPerCore = 2
-        DiskType = "hdb"
-    },
+if(`$skus -eq "all" -or `$skus.Contains("n4"))
+{
+    `$configurations += @(
+        @{
+            Sku = "n4-standard-4"
+            ThreadsPerCore = 2
+            DiskType = "hdb"
+        };
 
-    @{
-        Sku = "n4-standard-8"
-        ThreadsPerCore = 1
-        DiskType = "hdb"
-    },
-    
-    @{
-        Sku = "n4-standard-16"
-        ThreadsPerCore = 2
-        DiskType = "hdb"
-    },
+        @{
+            Sku = "n4-standard-4"
+            ThreadsPerCore = 1
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "n4-standard-16"
-        ThreadsPerCore = 1
-        DiskType = "hdb"
-    },
+        @{
+            Sku = "n4-standard-8"
+            ThreadsPerCore = 2
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "n4-standard-32"
-        ThreadsPerCore = 2
-        DiskType = "hdb"
-    },
+        @{
+            Sku = "n4-standard-8"
+            ThreadsPerCore = 1
+            DiskType = "hdb"
+        },
+        
+        @{
+            Sku = "n4-standard-16"
+            ThreadsPerCore = 2
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "n4-standard-32"
-        ThreadsPerCore = 1
-        DiskType = "hdb"
-    },
+        @{
+            Sku = "n4-standard-16"
+            ThreadsPerCore = 1
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "n4-standard-48"
-        ThreadsPerCore = 2
-        DiskType = "hdb"
-    },
+        @{
+            Sku = "n4-standard-32"
+            ThreadsPerCore = 2
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "n4-standard-48"
-        ThreadsPerCore = 1
-        DiskType = "hdb"
-    },
+        @{
+            Sku = "n4-standard-32"
+            ThreadsPerCore = 1
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "n4-standard-64"
-        ThreadsPerCore = 2
-        DiskType = "hdb"
-    },
+        @{
+            Sku = "n4-standard-48"
+            ThreadsPerCore = 2
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "n4-standard-64"
-        ThreadsPerCore = 1
-        DiskType = "hdb"
-    },
+        @{
+            Sku = "n4-standard-48"
+            ThreadsPerCore = 1
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "n4-standard-80"
-        ThreadsPerCore = 2
-        DiskType = "hdb"
-    },
+        @{
+            Sku = "n4-standard-64"
+            ThreadsPerCore = 2
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "n4-standard-80"
-        ThreadsPerCore = 1
-        DiskType = "hdb"
-    },
+        @{
+            Sku = "n4-standard-64"
+            ThreadsPerCore = 1
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "c4-standard-4"
-        ThreadsPerCore = 2
-        DiskType = "hdb"
-    },
+        @{
+            Sku = "n4-standard-80"
+            ThreadsPerCore = 2
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "c4-standard-4"
-        ThreadsPerCore = 1
-        DiskType = "hdb"
-    },
+        @{
+            Sku = "n4-standard-80"
+            ThreadsPerCore = 1
+            DiskType = "hdb"
+        }
+    );
+}
 
-    @{
-        Sku = "c4-standard-8"
-        ThreadsPerCore = 2
-        DiskType = "hdb"
-    },
+if(`$skus -eq "all" -or `$skus.Contains("c4"))
+{
+    `$configurations += @(
+        @{
+            Sku = "c4-standard-4"
+            ThreadsPerCore = 2
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "c4-standard-8"
-        ThreadsPerCore = 1
-        DiskType = "hdb"
-    },
+        @{
+            Sku = "c4-standard-4"
+            ThreadsPerCore = 1
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "c4-standard-16"
-        ThreadsPerCore = 2
-        DiskType = "hdb"
-    },
+        @{
+            Sku = "c4-standard-8"
+            ThreadsPerCore = 2
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "c4-standard-16"
-        ThreadsPerCore = 1
-        DiskType = "hdb"
-    },
+        @{
+            Sku = "c4-standard-8"
+            ThreadsPerCore = 1
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "c4-standard-32"
-        ThreadsPerCore = 2
-        DiskType = "hdb"
-    },
+        @{
+            Sku = "c4-standard-16"
+            ThreadsPerCore = 2
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "c4-standard-32"
-        ThreadsPerCore = 1
-        DiskType = "hdb"
-    },
+        @{
+            Sku = "c4-standard-16"
+            ThreadsPerCore = 1
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "c4-standard-48"
-        ThreadsPerCore = 2
-        DiskType = "hdb"
-    },
+        @{
+            Sku = "c4-standard-32"
+            ThreadsPerCore = 2
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "c4-standard-48"
-        ThreadsPerCore = 1
-        DiskType = "hdb"
-    },
+        @{
+            Sku = "c4-standard-32"
+            ThreadsPerCore = 1
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "c4-standard-96"
-        ThreadsPerCore = 2
-        DiskType = "hdb"
-    },
+        @{
+            Sku = "c4-standard-48"
+            ThreadsPerCore = 2
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "c4-standard-96"
-        ThreadsPerCore = 1
-        DiskType = "hdb"
-    },
+        @{
+            Sku = "c4-standard-48"
+            ThreadsPerCore = 1
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "c3-standard-4-lssd"
-        ThreadsPerCore = 2
-        DiskType = "lssd"
-    },
+        @{
+            Sku = "c4-standard-96"
+            ThreadsPerCore = 2
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "c3-standard-4-lssd"
-        ThreadsPerCore = 1
-        DiskType = "lssd"
-    },
+        @{
+            Sku = "c4-standard-96"
+            ThreadsPerCore = 1
+            DiskType = "hdb"
+        }
+    );
+}
 
-    @{
-        Sku = "c3-standard-8-lssd"
-        ThreadsPerCore = 2
-        DiskType = "lssd"
-    },
-    
-    @{
-        Sku = "c3-standard-8-lssd"
-        ThreadsPerCore = 1
-        DiskType = "lssd"
-    },
+if(`$skus -eq "all" -or `$skus.Contains("c3"))
+{
+    `$configurations += @(
+        @{
+            Sku = "c3-standard-4"
+            ThreadsPerCore = 2
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "c3-standard-22-lssd"
-        ThreadsPerCore = 2
-        DiskType = "lssd"
-    },
-    
-    @{
-        Sku = "c3-standard-22-lssd"
-        ThreadsPerCore = 1
-        DiskType = "lssd"
-    },
+        @{
+            Sku = "c3-standard-4"
+            ThreadsPerCore = 1
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "c3-standard-44-lssd"
-        ThreadsPerCore = 2
-        DiskType = "lssd"
-    },
-    
-    @{
-        Sku = "c3-standard-44-lssd"
-        ThreadsPerCore = 1
-        DiskType = "lssd"
-    },
+        @{
+            Sku = "c3-standard-8"
+            ThreadsPerCore = 2
+            DiskType = "hdb"
+        },
+        
+        @{
+            Sku = "c3-standard-8"
+            ThreadsPerCore = 1
+            DiskType = "hdb"
+        },
 
-    @{
-        Sku = "c3-standard-88-lssd"
-        ThreadsPerCore = 2
-        DiskType = "lssd"
-    },
-    
-    @{
-        Sku = "c3-standard-88-lssd"
-        ThreadsPerCore = 1
-        DiskType = "lssd"
-    }
-)
+        @{
+            Sku = "c3-standard-22"
+            ThreadsPerCore = 2
+            DiskType = "hdb"
+        },
+        
+        @{
+            Sku = "c3-standard-22"
+            ThreadsPerCore = 1
+            DiskType = "hdb"
+        },
+
+        @{
+            Sku = "c3-standard-44"
+            ThreadsPerCore = 2
+            DiskType = "hdb"
+        },
+        
+        @{
+            Sku = "c3-standard-44"
+            ThreadsPerCore = 1
+            DiskType = "hdb"
+        },
+
+        @{
+            Sku = "c3-standard-88"
+            ThreadsPerCore = 2
+            DiskType = "hdb"
+        },
+        
+        @{
+            Sku = "c3-standard-88"
+            ThreadsPerCore = 1
+            DiskType = "hdb"
+        }
+    );
+}
+
+if(`$skus -eq "all" -or `$skus.Contains("c3-lssd"))
+{
+    `$configurations += @(
+        @{
+            Sku = "c3-standard-4-lssd"
+            ThreadsPerCore = 2
+            DiskType = "lssd"
+        },
+
+        @{
+            Sku = "c3-standard-4-lssd"
+            ThreadsPerCore = 1
+            DiskType = "lssd"
+        },
+
+        @{
+            Sku = "c3-standard-8-lssd"
+            ThreadsPerCore = 2
+            DiskType = "lssd"
+        },
+        
+        @{
+            Sku = "c3-standard-8-lssd"
+            ThreadsPerCore = 1
+            DiskType = "lssd"
+        },
+
+        @{
+            Sku = "c3-standard-22-lssd"
+            ThreadsPerCore = 2
+            DiskType = "lssd"
+        },
+        
+        @{
+            Sku = "c3-standard-22-lssd"
+            ThreadsPerCore = 1
+            DiskType = "lssd"
+        },
+
+        @{
+            Sku = "c3-standard-44-lssd"
+            ThreadsPerCore = 2
+            DiskType = "lssd"
+        },
+        
+        @{
+            Sku = "c3-standard-44-lssd"
+            ThreadsPerCore = 1
+            DiskType = "lssd"
+        },
+
+        @{
+            Sku = "c3-standard-88-lssd"
+            ThreadsPerCore = 2
+            DiskType = "lssd"
+        },
+        
+        @{
+            Sku = "c3-standard-88-lssd"
+            ThreadsPerCore = 1
+            DiskType = "lssd"
+        }
+    );
+}
 
 `$date = (Get-Date -Format "yyyy-MM-ddTHH:mmK");
 
