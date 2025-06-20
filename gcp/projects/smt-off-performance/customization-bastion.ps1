@@ -110,6 +110,8 @@ foreach z { $using:configurations } {
     vucreate
     tcstart
 
+    # Flush caches
+
     # Start capturing performance counter    
     set ppid [ exec powershell "c:/tools/perfcounter_start.ps1 `$z sql-0" & ]
     

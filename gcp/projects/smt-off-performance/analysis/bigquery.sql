@@ -85,13 +85,28 @@ AS (
     sku,
     jobid,
     path,
-    MIN(value) AS value_min,
-    MAX(value) AS value_max,
-    AVG(value) AS value_avg,
-    APPROX_QUANTILES(value, 100)[OFFSET(90)] AS value_90
-  FROM
-    smtoff.perfcounters_v
-  WHERE rnk = 1
-  GROUP BY 1, 2, 3, 4, 5
+    `timestamp`,
+    MIN(value_min) AS value_min,
+    MAX(value_max) AS value_max,
+    AVG(value_avg) AS value_avg,
+    APPROX_QUANTILES(value_90, 100)[OFFSET(90)] AS value_90
+  FROM (
+    SELECT
+        run,
+        users,
+        sku,
+        jobid,
+        path,
+        TIMESTAMP_SECONDS(30 * DIV(UNIX_SECONDS(`timestamp`), 30)) AS `timestamp`,
+        MIN(value) AS value_min,
+        MAX(value) AS value_max,
+        AVG(value) AS value_avg,
+        APPROX_QUANTILES(value, 100)[OFFSET(90)] AS value_90
+      FROM
+        smtoff.perfcounters_v
+      WHERE rnk = 1
+      GROUP BY 1, 2, 3, 4, 5, 6
+  )
+  GROUP BY 1, 2, 3, 4, 5, 6
 )
 ;
