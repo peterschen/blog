@@ -33,12 +33,30 @@ resource "google_compute_disk" "demo2_data" {
   project = module.demo2[0].project_id
   zone = local.zone_demo2
   name = "data"
-  # type = "pd-ssd"
-  # multi_writer = true
   type = "hyperdisk-balanced"
   access_mode = "READ_WRITE_MANY"
   size = 100
+  provisioned_iops = 3000
+  provisioned_throughput = 140
 }
+
+# resource "google_compute_region_disk" "demo2_quorum" {
+#   provider = google-beta
+#   count = local.enable_demo2 ? 1 : 0
+#   project = module.demo2[0].project_id
+#   region = local.region_demo2
+#   replica_zones = [
+#     local.zone_demo2,
+#     # local.zone_secondary_demo2
+#     "europe-west4-b"
+#   ]
+#   name = "quorum"
+#   type = "hyperdisk-balanced-high-availability"
+#   size = 4
+#   access_mode = "READ_WRITE_MANY"
+#   provisioned_iops = 2000
+#   provisioned_throughput = 140
+# }
 
 resource "google_compute_attached_disk" "demo2_data" {
   for_each = {
@@ -54,6 +72,21 @@ resource "google_compute_attached_disk" "demo2_data" {
   instance = each.value.id
   device_name = google_compute_disk.demo2_data[0].name
 }
+
+# resource "google_compute_attached_disk" "demo2_quorum" {
+#   for_each = {
+#     for entry in flatten([
+#       for module in module.demo2: [
+#         for instance in module.instances: instance
+#       ]
+#     ]): "${entry.name}" => entry
+#   }
+
+#   project = module.demo2[0].project_id
+#   disk = google_compute_region_disk.demo2_quorum[0].id
+#   instance = each.value.id
+#   device_name = google_compute_region_disk.demo2_quorum[0].name
+# }
 
 data "google_compute_default_service_account" "default_demo2" {
   count = local.enable_demo2 ? 1 : 0

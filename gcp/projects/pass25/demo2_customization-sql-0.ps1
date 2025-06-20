@@ -15,6 +15,8 @@ configuration Customization
     $agentCredential = New-Object System.Management.Automation.PSCredential ("$($Parameters.domainName)\s-SqlAgent", $Credential.Password);
     $engineCredential = New-Object System.Management.Automation.PSCredential ("$($Parameters.domainName)\s-SqlEngine", $Credential.Password);
 
+    # TODO Christoph: Configure quorum!
+
     Script "InitDisk"
     {
         GetScript = {
