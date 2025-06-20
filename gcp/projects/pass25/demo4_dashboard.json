@@ -1,0 +1,71 @@
+{
+    "displayName": "PASS - Demo 4 - Disk performance",
+    "mosaicLayout": {
+      "columns": 48,
+      "tiles": [
+        {
+          "width": 24,
+          "height": 25,
+          "widget": {
+            "title": "IOPS",
+            "xyChart": {
+              "chartOptions": {
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "plotType": "STACKED_AREA",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesQueryLanguage": "fetch gce_instance\n| filter(resource.project_id = '${project_id}')\n| { t_read:\n      metric 'compute.googleapis.com/instance/disk/read_ops_count'\n      | filter(metric.instance_name =~ 'sql-[0-9]+')\n      | filter(metric.device_name =~ 'data-[0-9]+')\n      | align rate(1m)\n      | group_by [], [total: sum(value.read_ops_count)]\n      | map add[direction: 'Read']\n  ; t_write:\n      metric 'compute.googleapis.com/instance/disk/write_ops_count'\n      | filter(metric.instance_name =~ 'sql-[0-9]+')\n      | filter(metric.device_name =~ 'data-[0-9]+')\n      | align rate(1m)\n      | group_by [], [total: sum(value.write_ops_count)]\n      | map add[direction: 'Write'] }\n| union"
+                  }
+                }
+              ],
+              "thresholds": [
+                {
+                  "label": "HdX limit",
+                  "targetAxis": "Y1",
+                  "value": 500000
+                }
+              ],
+              "yAxis": {
+                "scale": "LINEAR"
+              }
+            }
+          }
+        },
+        {
+          "xPos": 24,
+          "width": 24,
+          "height": 25,
+          "widget": {
+            "title": "Throughput",
+            "xyChart": {
+              "chartOptions": {
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "plotType": "STACKED_AREA",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesQueryLanguage": "fetch gce_instance\n| filter(resource.project_id = '${project_id}')\n| { t_read:\n      metric 'compute.googleapis.com/instance/disk/read_bytes_count'\n      | filter(metric.instance_name =~ 'sql-[0-9]+')\n      | filter(metric.device_name =~ 'data-[0-9]+')\n      | align rate(1m)\n      | group_by [], [total: sum(value.read_bytes_count)]\n      | map add[direction: 'Read']\n  ; t_write:\n      metric 'compute.googleapis.com/instance/disk/write_bytes_count'\n      | filter(metric.instance_name =~ 'sql-[0-9]+')\n      | filter(metric.device_name =~ 'data-[0-9]+')\n      | align rate(1m)\n      | group_by [], [total: sum(value.write_bytes_count)]\n      | map add[direction: 'Write'] }\n| union"
+                  }
+                }
+              ],
+              "thresholds": [
+                {
+                    "label": "HdX Limit",
+                    "targetAxis": "Y1",
+                    "value": 10737418240
+                  }
+              ],
+              "yAxis": {
+                "scale": "LINEAR"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
