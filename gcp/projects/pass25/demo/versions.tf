@@ -9,10 +9,10 @@ terraform {
   }
 
   provider_meta "google" {
-    module_name = "pass24/terraform/demo/v1.0.0"
+    module_name = "pass25/terraform/demo/v1.0.0"
   }
 
   provider_meta "google-beta" {
-    module_name = "pass24/terraform/demo/v1.0.0"
+    module_name = "pass25/terraform/demo/v1.0.0"
   }
 }

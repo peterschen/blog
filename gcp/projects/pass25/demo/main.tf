@@ -3,7 +3,7 @@ locals {
   prefix = var.prefix
   region = var.region
   zones = var.zones
-  sample_name = "pass24"
+  sample_name = "pass25"
 
   apis = [
     "compute.googleapis.com",

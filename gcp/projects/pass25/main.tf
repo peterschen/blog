@@ -37,7 +37,7 @@ locals {
   zone_secondary_demo2 = var.zone_secondary_demo2
   zone_secondary_demo3 = var.zone_secondary_demo3
 
-  domain_name = "pass24.lab"
+  domain_name = "pass.lab"
 
   enable_demo1 = var.enable_demo1
   enable_demo2 = var.enable_demo2

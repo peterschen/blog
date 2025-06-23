@@ -63,11 +63,11 @@ configuration Customization
         }
 
         SetScript = {
-            $secret = gcloud secrets versions access 1 --secret pass24-gcs-access --project cbpetersen-shared;
+            $secret = gcloud secrets versions access 1 --secret pass-demo-gcs --project cbpetersen-shared;
             $query = @"
 -- Configure credential for GCS
 IF NOT EXISTS (SELECT * FROM sys.credentials WHERE credential_identity = 'S3 Access Key')
-    CREATE CREDENTIAL [s3://storage.googleapis.com/pass-demo-2024]
+    CREATE CREDENTIAL [s3://storage.googleapis.com/cbpetersen-demos]
     WITH
         IDENTITY = 'S3 Access Key',
         SECRET = '${secret}';

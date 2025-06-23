@@ -8,7 +8,7 @@ variable "billing_account" {
 
 variable "domain_name" {
   type = string
-  default = "pass24.lab"
+  default = "pass.lab"
 }
 
 variable "password" {

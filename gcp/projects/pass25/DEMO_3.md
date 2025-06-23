@@ -34,7 +34,7 @@ Invoke-Command -ComputerName "sql-0" -ScriptBlock {
             Format-Volume;
 
         # Add access for s-SqlEngine
-        icacls ${driveletter}:\ /grant "PASS24\s-SqlEngine:(OI)(CI)(F)"
+        icacls ${driveletter}:\ /grant "PASS\s-SqlEngine:(OI)(CI)(F)"
 
         $index++;
     }
@@ -44,11 +44,11 @@ Invoke-Command -ComputerName "sql-0" -ScriptBlock {
 ### Restore database
 
 ```powershell
-$secret = gcloud secrets versions access 1 --secret pass24-gcs-access --project cbpetersen-shared;
+$secret = gcloud secrets versions access 1 --secret pass-demo-gcs --project cbpetersen-shared;
 sqlcmd -S "tcp:sql-0" -Q @"
     -- Configure credential for GCS
 	IF NOT EXISTS (SELECT * FROM sys.credentials WHERE credential_identity = 'S3 Access Key')
-		CREATE CREDENTIAL [s3://storage.googleapis.com/pass-demo-2024]
+		CREATE CREDENTIAL [s3://storage.googleapis.com/cbpetersen-demos]
 		WITH
 			IDENTITY = 'S3 Access Key',
 			SECRET = '${secret}';
@@ -56,14 +56,14 @@ sqlcmd -S "tcp:sql-0" -Q @"
     -- Restore database
     RESTORE DATABASE [AdventureWorks2022]
     FROM
-        URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_01.bak',
-        URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_02.bak',
-        URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_03.bak',
-        URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_04.bak',
-        URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_05.bak',
-        URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_06.bak',
-        URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_07.bak',
-        URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_08.bak'
+        URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_01.bak',
+        URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_02.bak',
+        URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_03.bak',
+        URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_04.bak',
+        URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_05.bak',
+        URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_06.bak',
+        URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_07.bak',
+        URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_08.bak'
     WITH 
         MOVE 'AdventureWorks2022' TO 'T:\AdventureWorks2022.mdf',
         MOVE 'AdventureWorks2022_log' TO 'L:\AdventureWorks2022_log.ldf',

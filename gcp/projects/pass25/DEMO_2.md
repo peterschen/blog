@@ -34,7 +34,7 @@ $ip = gcloud compute addresses describe wsfc-sql --region $region --format "valu
 # Validate cluster
 Test-Cluster -Include "List Disks";
 
-c:\sql_server_install\setup.exe /IACCEPTSQLSERVERLICENSETERMS /INDICATEPROGRESS /Q /ACTION=InstallFailoverCluster /FEATURES=SQLEngine,FullText /INSTANCENAME=MSSQLSERVER /FAILOVERCLUSTERIPADDRESSES="IPv4;$ip;Cluster Network 1;255.255.0.0" /FAILOVERCLUSTERDISKS="Cluster Disk 1" /FAILOVERCLUSTERNETWORKNAME=sql /AGTSVCACCOUNT=PASS24\s-SqlAgent /AGTSVCPASSWORD=Admin123Admin123 /SQLSVCACCOUNT=PASS24\s-SqlEngine /SQLSVCPASSWORD=Admin123Admin123 /INSTALLSQLDATADIR=C:\ClusterStorage\Volume1 /SqlSysadminAccounts=PASS24\g-SqlAdministrators
+c:\sql_server_install\setup.exe /IACCEPTSQLSERVERLICENSETERMS /INDICATEPROGRESS /Q /ACTION=InstallFailoverCluster /FEATURES=SQLEngine,FullText /INSTANCENAME=MSSQLSERVER /FAILOVERCLUSTERIPADDRESSES="IPv4;$ip;Cluster Network 1;255.255.0.0" /FAILOVERCLUSTERDISKS="Cluster Disk 1" /FAILOVERCLUSTERNETWORKNAME=sql /AGTSVCACCOUNT\s-SqlAgent /AGTSVCPASSWORD=Admin123Admin123 /SQLSVCACCOUNT=PASS\s-SqlEngine /SQLSVCPASSWORD=Admin123Admin123 /INSTALLSQLDATADIR=C:\ClusterStorage\Volume1 /SqlSysadminAccounts=PASS\g-SqlAdministrators
 ```
 
 ### Install SQL Server on sql-1
@@ -50,17 +50,17 @@ $region = $zone.Substring($index + 1, $length);
 
 $ip = gcloud compute addresses describe wsfc-sql --region $region --format "value(address)";
 
-c:\sql_server_install\setup.exe /IACCEPTSQLSERVERLICENSETERMS /INDICATEPROGRESS /Q /ACTION=AddNode /INSTANCENAME=MSSQLSERVER /FAILOVERCLUSTERIPADDRESSES="IPv4;$ip;Cluster Network 1;255.255.0.0" /FAILOVERCLUSTERNETWORKNAME=sql /AGTSVCACCOUNT=PASS24\s-SqlAgent /AGTSVCPASSWORD=Admin123Admin123 /SQLSVCACCOUNT=PASS24\s-SqlEngine /SQLSVCPASSWORD=Admin123Admin123 /CONFIRMIPDEPENDENCYCHANGE=0
+c:\sql_server_install\setup.exe /IACCEPTSQLSERVERLICENSETERMS /INDICATEPROGRESS /Q /ACTION=AddNode /INSTANCENAME=MSSQLSERVER /FAILOVERCLUSTERIPADDRESSES="IPv4;$ip;Cluster Network 1;255.255.0.0" /FAILOVERCLUSTERNETWORKNAME=sql /AGTSVCACCOUNT=PASS\s-SqlAgent /AGTSVCPASSWORD=Admin123Admin123 /SQLSVCACCOUNT=PASS\s-SqlEngine /SQLSVCPASSWORD=Admin123Admin123 /CONFIRMIPDEPENDENCYCHANGE=0
 ```
 
 ### Configure secret for GCS
 
 ```powershell
-$secret = gcloud secrets versions access 1 --secret pass24-gcs-access --project cbpetersen-shared;
+$secret = gcloud secrets versions access 1 --secret pass-demo-gcs --project cbpetersen-shared;
 sqlcmd -S "tcp:sql" -Q @"
     -- Configure credential for GCS
 	IF NOT EXISTS (SELECT * FROM sys.credentials WHERE credential_identity = 'S3 Access Key')
-		CREATE CREDENTIAL [s3://storage.googleapis.com/pass-demo-2024]
+		CREATE CREDENTIAL [s3://storage.googleapis.com/cbpetersen-demos]
 		WITH
 			IDENTITY = 'S3 Access Key',
 			SECRET = '${secret}';
@@ -80,14 +80,14 @@ sqlcmd -S "tcp:sql" -Q @"
 -- Restore database
 RESTORE DATABASE [AdventureWorks2022]
 FROM
-    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_01.bak',
-    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_02.bak',
-    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_03.bak',
-    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_04.bak',
-    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_05.bak',
-    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_06.bak',
-    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_07.bak',
-    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_08.bak'
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_01.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_02.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_03.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_04.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_05.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_06.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_07.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_08.bak'
 WITH 
     MOVE 'AdventureWorks2022' TO 'C:\ClusterStorage\Volume1\MSSQL16.MSSQLSERVER\AdventureWorks2022.mdf',
     MOVE 'AdventureWorks2022_log' TO 'C:\ClusterStorage\Volume1\MSSQL16.MSSQLSERVER\AdventureWorks2022_log.ldf',
