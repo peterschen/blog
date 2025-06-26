@@ -401,7 +401,7 @@ configuration ConfigurationWorkload
             Script "DownloadHammerdb"
             {
                 GetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "hammerdb.zip";
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "hammerdb.exe";
                     if((Test-Path -Path $path))
                     {
                         $result = "Present";
@@ -420,15 +420,18 @@ configuration ConfigurationWorkload
                 }
 
                 SetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "hammerdb.zip";
-                    Start-BitsTransfer -Source "https://github.com/TPC-Council/HammerDB/releases/download/v4.12/HammerDB-4.12-Win.zip" -Destination $path;
+                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "hammerdb.exe";
+                    Start-BitsTransfer -Source "https://github.com/TPC-Council/HammerDB/releases/download/v5.0/HammerDB-5.0-Win-x64-Setup.exe" -Destination $path;
                 }
             }
 
-            Archive "ExpandHammerdb"
+            Package "InstallHammerdb"
             {
-                Destination = "c:\tools\hammerdb"
-                Path = "C:\Windows\temp\hammerdb.zip"
+                Ensure = "Present"
+                Name = "HammerDB"
+                ProductID = ""
+                Path = "C:\Windows\temp\hammerdb.exe"
+                Arguments = "--mode unattended --prefix c:\tools\HammerDB\HammerDB-5.0"
                 DependsOn = "[Script]DownloadHammerdb"
             }
         }
