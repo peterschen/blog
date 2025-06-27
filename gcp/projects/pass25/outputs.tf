@@ -69,6 +69,7 @@ output "rdp_demo3" {
   value = local.enable_demo3 ? [
     "rdp bastion --project ${module.demo3[0].project_id} --zone ${local.zone_demo3} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
     "rdp sql-0 --project ${module.demo3[0].project_id} --zone ${local.zone_demo3} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
+    "rdp sql-clone-0 --project ${module.demo3[0].project_id} --zone ${local.zone_secondary_demo3} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
   ] : null
 }
 
