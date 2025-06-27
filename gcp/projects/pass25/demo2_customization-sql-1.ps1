@@ -75,6 +75,7 @@ IF NOT EXISTS (SELECT * FROM sys.credentials WHERE credential_identity = 'S3 Acc
             Invoke-Sqlcmd -Query $query -ServerInstance "sql";
         }
 
+        PsDscRunAsCredential = $Credential
         DependsOn = "[SqlSetup]SqlServerSetup"
     }
 }
