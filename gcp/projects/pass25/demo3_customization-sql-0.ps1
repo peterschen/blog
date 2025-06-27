@@ -114,14 +114,14 @@ END
 -- Restore database
 RESTORE DATABASE [AdventureWorks2022]
 FROM
-    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_01.bak',
-    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_02.bak',
-    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_03.bak',
-    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_04.bak',
-    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_05.bak',
-    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_06.bak',
-    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_07.bak',
-    URL = 's3://storage.googleapis.com/pass-demo-2024/pass_adventureworks_08.bak'
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_01.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_02.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_03.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_04.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_05.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_06.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_07.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_08.bak'
 WITH 
     MOVE 'AdventureWorks2022' TO 'T:\AdventureWorks2022.mdf',
     MOVE 'AdventureWorks2022_log' TO 'L:\AdventureWorks2022_log.ldf',
@@ -130,8 +130,6 @@ WITH
     REPLACE;
 GO
 "@;
-        Variable = @("FilePath=C:\windows\temp\restoredatabase")
-        
         DependsOn = "[Script]CreateCredential"
         PsDscRunAsCredential = $Credential
     }
