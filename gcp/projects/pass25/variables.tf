@@ -109,3 +109,8 @@ variable "enable_demo4" {
   type = bool
   default = true
 }
+
+variable "enable_repro" {
+  type = bool
+  default = true
+}
