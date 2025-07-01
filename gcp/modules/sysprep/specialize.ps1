@@ -23,7 +23,7 @@ New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NETFramework\v4.0.
 $modules = @(
     @{
         Name = "xPSDesiredStateConfiguration"
-        Version = "9.1.0"
+        Version = "9.2.0"
     },
     @{
         Name = "NetworkingDsc"
