@@ -143,21 +143,21 @@ configuration ConfigurationWorkload
         }
 #endregion
 
-#region mRemoteNG
-        xRemoteFile "DownloadMremoteng"
+#region IAP Desktop
+        xRemoteFile "DownloadIapdesktop"
         {
-            Uri = "https://github.com/mRemoteNG/mRemoteNG/releases/download/v1.76.20/mRemoteNG-Installer-1.76.20.24615.msi"
-            DestinationPath = "C:\Windows\temp\mremoteng.msi"
+            Uri = "https://github.com/GoogleCloudPlatform/iap-desktop/releases/download/2.46.1737/IapDesktop.msi"
+            DestinationPath = "C:\Windows\temp\iapdesktop.msi"
         }
 
-        Package "InstallMremoteng"
+        Package "InstallIapdesktop"
         {
             Ensure = "Present"
-            Name = "mRemoteNG"
+            Name = "IAP Desktop"
             ProductID = ""
-            Path = "C:\Windows\temp\mremoteng.msi"
+            Path = "C:\Windows\temp\iapdesktop.msi"
             Arguments = "/quiet"
-            DependsOn = "[xRemoteFile]DownloadMremoteng"
+            DependsOn = "[xRemoteFile]DownloadIapdesktop"
         }
 #endregion
 
