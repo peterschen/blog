@@ -13,8 +13,8 @@ configuration ConfigurationWorkload
     );
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration, 
-        ComputerManagementDsc, ActiveDirectoryDsc, FailoverClusterDsc, 
-        NetworkingDsc, SqlServerDsc, StorageDsc, xCredSSP;
+        xPSDesiredStateConfiguration, ComputerManagementDsc, ActiveDirectoryDsc,
+        FailoverClusterDsc, NetworkingDsc, SqlServerDsc, StorageDsc, xCredSSP;
 
     $components = $Parameters.domainName.Split(".");
     $dc = "";
@@ -208,31 +208,10 @@ configuration ConfigurationWorkload
 
         if($Parameters.useDeveloperEdition)
         {
-            Script "DownloadSqlServerBinary"
+            xRemoteFile "DownloadSqlServerBinary"
             {
-                GetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "sqlserver.exe";
-                    if((Test-Path -Path $path))
-                    {
-                        $result = "Present";
-                    }
-                    else
-                    {
-                        $result = "Absent";
-                    }
-
-                    return @{Ensure = $result};
-                }
-
-                TestScript = {
-                    $state = [scriptblock]::Create($GetScript).Invoke();
-                    return $state.Ensure -eq "Present";
-                }
-
-                SetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "sqlserver.exe";
-                    Start-BitsTransfer -Source "https://go.microsoft.com/fwlink/p/?linkid=2215158" -Destination $path;
-                }
+                Uri = "https://go.microsoft.com/fwlink/p/?linkid=2215158"
+                DestinationPath = "C:\Windows\temp\sqlserver.exe"
             }
 
             Script "DownloadSqlServerMedia"
@@ -267,7 +246,7 @@ configuration ConfigurationWorkload
                     Move-Item -Path $item.FullName -Destination $pathIso;
                 }
 
-                DependsOn = "[Script]DownloadSqlServerBinary"
+                DependsOn = "[xRemoteFile]DownloadSqlServerBinary"
             }
 
             MountImage "MountSqlMedia"
