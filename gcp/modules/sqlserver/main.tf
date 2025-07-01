@@ -20,7 +20,7 @@ locals {
   enable_firewall = var.enable_firewall
   enable_cluster = var.enable_cluster
 
-  configuration_customization = var.configuration_customization
+  configuration_customizations = var.configuration_customizations
 }
 
 data "google_project" "default" {
@@ -166,7 +166,7 @@ resource "google_compute_instance" "sql" {
           ipSql = local.enable_cluster ? google_compute_address.wsfc_sql[0].address : null,
           inlineMeta = filebase64(module.sysprep.path_meta),
           inlineConfiguration = filebase64("${path.module}/sql.ps1"),
-          inlineConfigurationCustomization = try(base64encode(local.configuration_customization[count.index]), null),
+          inlineConfigurationCustomization = try(base64encode(local.configuration_customizations[count.index]), null),
           useDeveloperEdition = local.use_developer_edition,
           enableCluster = local.enable_cluster,
           modulesDsc = [

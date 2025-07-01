@@ -68,7 +68,7 @@ variable "enable_cluster" {
   default = false
 }
 
-variable "configuration_customization" {
+variable "configuration_customizations" {
   type = list(string)
   default = []
 }
