@@ -136,6 +136,10 @@ AND LastName = 'Petersen'
 GO
 ```
 
+## Show replication metrics
+
+1. Open dashboard and show replication metrics
+
 ## Clone replicated disks
 
 1. Create clone from secondary disk and attach it to a VM in that region
