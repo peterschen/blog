@@ -31,7 +31,8 @@ locals {
 
   enable_iam = var.enable_iam
 
-  configuration_customization = var.configuration_customization
+  customization_bastion = var.customization_bastion
+  customizations_sql = var.customizations_sql
 }
 
 module "project" {
@@ -166,6 +167,8 @@ module "bastion" {
   enable_hammerdb = true
   enable_discoveryclient = false
 
+  configuration_customization = local.customization_bastion
+
   depends_on = [
     module.ad
   ]
@@ -186,7 +189,7 @@ module "sqlserver" {
   windows_image = local.sql_image
   machine_type = local.machine_type_sql
 
-  configuration_customization = local.configuration_customization
+  configuration_customizations = local.customizations_sql
 
   enable_cluster = local.enable_cluster
   depends_on = [module.ad]

@@ -78,7 +78,12 @@ variable "enable_iam" {
   default = true
 }
 
-variable "configuration_customization" {
+variable "customization_bastion" {
+  type = string
+  default = null
+}
+
+variable "customizations_sql" {
   type = list(string)
   default = []
 }

@@ -21,7 +21,7 @@ module "demo2" {
   machine_type_bastion = "n4-highcpu-4"
   machine_type_sql = "n4-standard-4"
 
-  configuration_customization = [
+  customizations_sql = [
     file("${path.module}/demo2_customization-sql-0.ps1"),
     file("${path.module}/demo2_customization-sql-1.ps1"),
   ]
