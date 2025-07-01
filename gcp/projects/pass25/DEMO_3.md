@@ -9,8 +9,8 @@ Using Async PD to replicate data and log volumes consistently across regions.
 In some cases the disk status is not properly set when starting the replication. These commands will import the resource so the project can be deleted successfully.
 
 ```sh
-project="terraform output -raw project_id_module3"
-zone=="terraform output -raw zone_demo3"
+project=`terraform output -raw project_id_demo3`
+zone=`terraform output -raw zone_demo3`
 
 terraform import google_compute_disk_async_replication.demo3_data[0] projects/$project/zones/$zone/disks/data
 terraform import google_compute_disk_async_replication.demo3_log[0] projects/$project/zones/$zone/disks/log
