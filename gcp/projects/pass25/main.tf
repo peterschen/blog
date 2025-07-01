@@ -11,9 +11,11 @@ terraform {
 }
 
 provider "google" {
+  add_terraform_attribution_label = false
 }
 
 provider "google-beta" {
+  add_terraform_attribution_label = false
 }
 
 locals {
