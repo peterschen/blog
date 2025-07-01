@@ -26,7 +26,7 @@ variable "subnetwork" {
 
 variable "windows_image" {
   type = string
-  default = "windows-cloud/windows-2022"
+  default = "windows-cloud/windows-2025"
 }
 
 variable "machine_type" {
