@@ -50,17 +50,17 @@ variable "machine_type_sql" {
 
 variable "windows_image" {
   type = string
-  default = "windows-cloud/windows-2022"
+  default = "windows-cloud/windows-2025"
 }
 
 variable "windows_core_image" {
   type = string
-  default = "windows-cloud/windows-2022-core"
+  default = "windows-cloud/windows-2025-core"
 }
 
 variable "sql_image" {
   type = string
-  default = "windows-cloud/windows-2022"
+  default = "windows-cloud/windows-2025"
 }
 
 variable "enable_cluster" {
