@@ -24,7 +24,7 @@ module "demo3" {
   ]
 }
 
-resource "google_compute_subnetwork" "secondary_subnetwork" {
+resource "google_compute_subnetwork" "demo3_secondary_subnetwork" {
   count = local.enable_demo3 ? 1 : 0
   project = module.demo3[count.index].project_id
   region = local.region_secondary_demo3
@@ -34,7 +34,7 @@ resource "google_compute_subnetwork" "secondary_subnetwork" {
   private_ip_google_access = true
 }
 
-module "nat" {
+module "demo3_nat" {
   count = local.enable_demo3 ? 1 : 0
   source = "../../modules/nat"
   project = module.demo3[count.index].project_id
@@ -47,7 +47,7 @@ module "nat" {
   ]
 }
 
-resource "google_compute_firewall" "allow-all-internal" {
+resource "google_compute_firewall" "demo_3_allow-all-internal" {
   count = local.enable_demo3 ? 1 :0
   name = "allow-all-internal-demo3"
   project = module.demo3[count.index].project_id
@@ -62,7 +62,7 @@ resource "google_compute_firewall" "allow-all-internal" {
   direction = "INGRESS"
 
   source_ranges = [
-    google_compute_subnetwork.secondary_subnetwork[0].ip_cidr_range
+    google_compute_subnetwork.demo3_secondary_subnetwork[0].ip_cidr_range
   ]
 }
 
@@ -76,7 +76,7 @@ module "sqlserver_demo3" {
   ]
 
   network = module.demo3[count.index].network_name
-  subnetwork = google_compute_subnetwork.secondary_subnetwork[count.index].name
+  subnetwork = google_compute_subnetwork.demo3_secondary_subnetwork[count.index].name
   
   domain_name = local.domain_name
   password = var.password
@@ -89,7 +89,7 @@ module "sqlserver_demo3" {
   enable_cluster = false
 
   depends_on = [
-    google_compute_subnetwork.secondary_subnetwork
+    google_compute_subnetwork.demo3_secondary_subnetwork
   ]
 }
 
