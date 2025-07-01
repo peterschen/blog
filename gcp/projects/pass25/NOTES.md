@@ -96,7 +96,7 @@ DBCC TRACEON (3605, -1);
 ## GCS backup
 
 ```powershell
-$secret = gcloud secrets versions access 2 --secret demo4 --project cbpetersen-shared;
+$secret = gcloud secrets versions access 1 --secret pass-demo-gcs --project cbpetersen-shared;
 $command = @"
 	-- Credentials
 	IF NOT EXISTS (SELECT * FROM sys.credentials WHERE credential_identity = 'S3 Access Key')
