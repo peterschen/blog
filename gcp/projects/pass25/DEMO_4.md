@@ -8,25 +8,20 @@ High performance storage subsystem with up to 500,000 IOPS and 10 GiB/s throughp
 
 ```powershell
 Invoke-Command -ComputerName "sql-0" -ScriptBlock {
-    $friendlyName = "demo4";
-    $disks = Get-PhysicalDisk -CanPool $true;
-    $subsystem = Get-StorageSubSystem -Model "Windows Storage";
+    $letter = [int][char]'T';
+    $disks = Get-Disk | Where-Object -Property PartitionStyle -Value RAW -EQ
 
-    # Create storage pool across all disks
-    $pool = New-StoragePool -FriendlyName $friendlyName -PhysicalDisks $disks `
-        -StorageSubSystemUniqueId $subsystem.UniqueId -ProvisioningTypeDefault "Fixed" `
-        -ResiliencySettingNameDefault "Simple";
+    foreach($disk in $disks)
+    {
+        Initialize-Disk -UniqueId $disk.UniqueId -PassThru | 
+            New-Partition -DriveLetter ([char]$letter) -UseMaximumSize | 
+            Format-Volume -FileSystem ReFS;
 
-    # Create virtual disk in the pool
-    $disk = New-VirtualDisk -FriendlyName $friendlyName -StoragePoolUniqueId $pool.UniqueId -UseMaximumSize;
+        # Add access for s-SqlEngine
+        icacls t:\ /grant "PASS\s-SqlEngine:(OI)(CI)(F)";
 
-    # Initialize disk
-    Initialize-Disk -UniqueId $disk.UniqueId -PassThru | 
-        New-Partition -DriveLetter "T" -UseMaximumSize | 
-        Format-Volume;
-
-    # Add access for s-SqlEngine
-    icacls t:\ /grant "PASS\s-SqlEngine:(OI)(CI)(F)"
+        $letter++;
+    }
 }
 ```
 
@@ -38,7 +33,7 @@ sqlcmd -S "tcp:sql-0" -Q @"
 -- Server configuration
 EXEC sp_configure 'show advanced options', 1;
 RECONFIGURE;
-EXEC sp_configure 'max server memory', 131072;
+EXEC sp_configure 'max server memory', 20480;
 EXEC sp_configure 'recovery interval (min)', 15;
 RECONFIGURE;
 
@@ -51,76 +46,76 @@ IF NOT EXISTS (SELECT * FROM sys.credentials WHERE credential_identity = 'S3 Acc
 "@
 
 $query = "";
-for($i = 0; $i -lt 3; $i++)
+for($i = 0; $i -lt 2; $i++)
 {
     $query += @"
 -- Restore database
 RESTORE DATABASE [demo4_${i}]
 FROM
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_01.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_02.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_03.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_04.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_05.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_06.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_07.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_08.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_09.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_10.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_11.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_12.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_13.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_14.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_15.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_16.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_17.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_18.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_19.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_20.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_21.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_22.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_23.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_24.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_25.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_26.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_27.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_28.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_29.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_30.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_31.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_32.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_33.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_34.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_35.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_36.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_37.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_38.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_39.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_40.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_41.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_42.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_43.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_44.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_45.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_46.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_47.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_48.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_49.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_50.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_51.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_52.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_53.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_54.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_55.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_56.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_57.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_58.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_59.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_60.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_61.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_62.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_63.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_2500_64.bak'
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_01.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_02.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_03.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_04.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_05.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_06.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_07.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_08.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_09.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_10.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_11.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_12.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_13.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_14.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_15.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_16.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_17.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_18.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_19.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_20.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_21.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_22.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_23.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_24.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_25.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_26.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_27.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_28.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_29.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_30.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_31.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_32.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_33.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_34.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_35.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_36.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_37.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_38.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_39.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_40.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_41.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_42.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_43.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_44.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_45.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_46.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_47.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_48.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_49.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_50.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_51.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_52.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_53.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_54.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_55.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_56.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_57.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_58.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_59.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_60.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_61.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_62.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_63.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_64.bak'
 WITH 
     MOVE 'demo4' TO 'T:\demo4_${i}.mdf',
     MOVE 'demo4_log' TO 'T:\demo4_${i}_log.ldf',
@@ -136,18 +131,17 @@ GO
 }
 ```
 
-### Create HammerDB configuration
+### Create HammerDB configuration & runner scripts
 
 ```powershell
 $pathTools = "C:\tools";
 
-for($i = 0; $i -lt 3; $i++)
+for($i = 0; $i -lt 2; $i++)
 {
-    $scriptRun = @'
+    $scriptConfiguration = @"
 #!/bin/tclsh
-# maintainer: Pooja Jain
 
-set tmpdir $::env(TMP)
+set tmpdir `$::env(TMP)
 puts "SETTING CONFIGURATION"
 dbset db mssqls
 dbset bm TPC-C
@@ -160,13 +154,7 @@ diset connection mssqls_trust_server_cert true
 diset connection mssqls_authentication windows
 diset connection mssqls_server {sql-0}
 
-
-'@
-
-    $scriptRun += "diset tpcc mssqls_dbase demo4_$i";
-
-    $scriptRun += @'
-
+diset tpcc mssqls_dbase demo4_${i}
 diset tpcc mssqls_driver timed
 diset tpcc mssqls_total_iterations 10000000
 diset tpcc mssqls_rampup 2
@@ -186,13 +174,24 @@ set jobid [ vurun ]
 vudestroy
 tcstop
 puts "TEST COMPLETE"
-set of [ open $tmpdir/demo4_1 w ]
-puts $of $jobid
-close $of
-'@;
+set of [ open `$tmpdir/demo4_${i} w ]
+puts `$of `$jobid
+close `$of
+"@;
 
-    $fileRun = Join-Path -Path $pathTools -ChildPath "pass_run_$i.tcl";
-    Set-Content -Path $fileRun -Value $scriptRun;
+    $scriptRunner = @"
+`$pathTools = "C:\tools";
+`$pathHammerdb = Join-Path -Path `$pathTools -ChildPath "hammerdb\HammerDB-5.0";
+Set-Location -Path `$pathHammerdb;
+
+# Start run
+.\hammerdbcli auto `$pathTools/pass_run_${i}.tcl
+"@
+
+    $fileConfiguration = Join-Path -Path $pathTools -ChildPath "pass_run_$i.tcl";
+    $fileRunner = Join-Path -Path $pathTools -ChildPath "pass_run_$i.ps1";
+    Set-Content -Path $fileConfiguration -Value $scriptConfiguration;
+    Set-Content -Path $fileRunner -Value $scriptRunner;
 }
 ```
 
@@ -212,41 +211,9 @@ close $of
 ## Run
 
 ```powershell
-$query = "";
-for($i = 0; $i -lt 5; $i++)
-{
-    $query += @"
-USE [demo4_${i}];
-CHECKPOINT;
-GO
-
-"@;
-}
-
-sqlcmd -S "tcp:sql-0" -Q $query;
-
-$pathTools = "C:\tools";
-$pathHammerdb = Join-Path -Path $pathTools -ChildPath "hammerdb\HammerDB-5.0";
-Set-Location -Path $pathHammerdb;
-
-# Start run
-.\hammerdbcli auto $pathTools/pass_run_0.tcl
+\tools\pass_run_0.ps1
 ```
 
 ```powershell
-$pathTools = "C:\tools";
-$pathHammerdb = Join-Path -Path $pathTools -ChildPath "hammerdb\HammerDB-5.0";
-Set-Location -Path $pathHammerdb;
-
-# Start run
-.\hammerdbcli auto $pathTools/pass_run_1.tcl
-```
-
-```powershell
-$pathTools = "C:\tools";
-$pathHammerdb = Join-Path -Path $pathTools -ChildPath "hammerdb\HammerDB-5.0";
-Set-Location -Path $pathHammerdb;
-
-# Start run
-.\hammerdbcli auto $pathTools/pass_run_2.tcl
+\tools\pass_run_1.ps1
 ```
