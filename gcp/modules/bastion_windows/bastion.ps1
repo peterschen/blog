@@ -13,7 +13,7 @@ configuration ConfigurationWorkload
     );
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration, 
-        ComputerManagementDsc, ActiveDirectoryDsc;
+        xPSDesiredStateConfiguration, ComputerManagementDsc, ActiveDirectoryDsc;
 
     $features = @(
         "NET-Framework-Features",
@@ -126,31 +126,10 @@ configuration ConfigurationWorkload
         }
 
 #region Chrome
-        Script "DownloadChrome"
+        xRemoteFile "DownloadChrome"
         {
-            GetScript = {
-                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "chrome.msi";
-                if((Test-Path -Path $path))
-                {
-                    $result = "Present";
-                }
-                else
-                {
-                    $result = "Absent";
-                }
-
-                return @{Ensure = $result};
-            }
-
-            TestScript = {
-                $state = [scriptblock]::Create($GetScript).Invoke();
-                return $state.Ensure -eq "Present";
-            }
-
-            SetScript = {
-                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "chrome.msi";
-                Start-BitsTransfer -Source "https://dl.google.com/tag/s/dl/chrome/install/googlechromestandaloneenterprise64.msi" -Destination $path;
-            }
+            Uri = "https://dl.google.com/tag/s/dl/chrome/install/googlechromestandaloneenterprise64.msi"
+            DestinationPath = "C:\Windows\temp\chrome.msi"
         }
 
         Package "InstallChrome"
@@ -160,36 +139,15 @@ configuration ConfigurationWorkload
             ProductID = ""
             Path = "C:\Windows\temp\chrome.msi"
             Arguments = "/quiet"
-            DependsOn = "[Script]DownloadChrome"
+            DependsOn = "[xRemoteFile]DownloadChrome"
         }
 #endregion
 
 #region mRemoteNG
-        Script "DownloadMremoteng"
+        xRemoteFile "DownloadMremoteng"
         {
-            GetScript = {
-                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "mremoteng.msi";
-                if((Test-Path -Path $path))
-                {
-                    $result = "Present";
-                }
-                else
-                {
-                    $result = "Absent";
-                }
-
-                return @{Ensure = $result};
-            }
-
-            TestScript = {
-                $state = [scriptblock]::Create($GetScript).Invoke();
-                return $state.Ensure -eq "Present";
-            }
-
-            SetScript = {
-                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "mremoteng.msi";
-                Start-BitsTransfer -Source "https://github.com/mRemoteNG/mRemoteNG/releases/download/v1.76.20/mRemoteNG-Installer-1.76.20.24615.msi" -Destination $path;
-            }
+            Uri = "https://github.com/mRemoteNG/mRemoteNG/releases/download/v1.76.20/mRemoteNG-Installer-1.76.20.24615.msi"
+            DestinationPath = "C:\Windows\temp\mremoteng.msi"
         }
 
         Package "InstallMremoteng"
@@ -199,36 +157,15 @@ configuration ConfigurationWorkload
             ProductID = ""
             Path = "C:\Windows\temp\mremoteng.msi"
             Arguments = "/quiet"
-            DependsOn = "[Script]DownloadMremoteng"
+            DependsOn = "[xRemoteFile]DownloadMremoteng"
         }
 #endregion
 
 #region Visual Studio Code
-        Script "DownloadVscode"
+        xRemoteFile "DownloadVscode"
         {
-            GetScript = {
-                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "vscode.exe";
-                if((Test-Path -Path $path))
-                {
-                    $result = "Present";
-                }
-                else
-                {
-                    $result = "Absent";
-                }
-
-                return @{Ensure = $result};
-            }
-
-            TestScript = {
-                $state = [scriptblock]::Create($GetScript).Invoke();
-                return $state.Ensure -eq "Present";
-            }
-
-            SetScript = {
-                $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "vscode.exe";
-                Start-BitsTransfer -Source "https://go.microsoft.com/fwlink/?Linkid=852157" -Destination $path;
-            }
+            Uri = "https://go.microsoft.com/fwlink/?Linkid=852157"
+            DestinationPath = "C:\Windows\temp\vscode.exe"
         }
 
         Package "InstallVscode"
@@ -238,38 +175,17 @@ configuration ConfigurationWorkload
             ProductID = ""
             Path = "C:\Windows\temp\vscode.exe"
             Arguments = "/VERYSILENT"
-            DependsOn = "[Script]DownloadVscode"
+            DependsOn = "[xRemoteFile]DownloadVscode"
         }
 #endregion
 
 #region SQL Server Management Studio
         if($Parameters.enableSsms)
         {
-            Script "DownloadSsms"
+            xRemoteFile "DownloadSsms"
             {
-                GetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "SSMS-Setup-ENU.exe";
-                    if((Test-Path -Path $path))
-                    {
-                        $result = "Present";
-                    }
-                    else
-                    {
-                        $result = "Absent";
-                    }
-
-                    return @{Ensure = $result};
-                }
-
-                TestScript = {
-                    $state = [scriptblock]::Create($GetScript).Invoke();
-                    return $state.Ensure -eq "Present";
-                }
-
-                SetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "SSMS-Setup-ENU.exe";
-                    Start-BitsTransfer -Source "https://aka.ms/ssmsfullsetup" -Destination $path;
-                }
+                Uri = "https://aka.ms/ssmsfullsetup"
+                DestinationPath = "C:\Windows\temp\SSMS-Setup-ENU.exe"
             }
 
             Package "InstallSsms"
@@ -279,7 +195,7 @@ configuration ConfigurationWorkload
                 ProductID = ""
                 Path = "C:\Windows\temp\SSMS-Setup-ENU.exe"
                 Arguments = "/install /quiet"
-                DependsOn = "[Script]DownloadSsms"
+                DependsOn = "[xRemoteFile]DownloadSsms"
             }
         }
 #endregion
@@ -287,85 +203,22 @@ configuration ConfigurationWorkload
 #region HammerDB
         if($Parameters.enableHammerdb)
         {
-            Script "DownloadMsoledbsql"
+            xRemoteFile "DownloadMsoledbsql"
             {
-                GetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "msoledbsql.msi";
-                    if((Test-Path -Path $path))
-                    {
-                        $result = "Present";
-                    }
-                    else
-                    {
-                        $result = "Absent";
-                    }
-
-                    return @{Ensure = $result};
-                }
-
-                TestScript = {
-                    $state = [scriptblock]::Create($GetScript).Invoke();
-                    return $state.Ensure -eq "Present";
-                }
-
-                SetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "msoledbsql.msi";
-                    Start-BitsTransfer -Source "https://go.microsoft.com/fwlink/?linkid=2278038" -Destination $path;
-                }
+                Uri = "https://go.microsoft.com/fwlink/?linkid=2278038"
+                DestinationPath = "C:\Windows\temp\msoledbsql.msi"
             }
 
-            Script "DownloadMsodbcsql"
+            xRemoteFile "DownloadMsodbcsql"
             {
-                GetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "msodbcsql.msi";
-                    if((Test-Path -Path $path))
-                    {
-                        $result = "Present";
-                    }
-                    else
-                    {
-                        $result = "Absent";
-                    }
-
-                    return @{Ensure = $result};
-                }
-
-                TestScript = {
-                    $state = [scriptblock]::Create($GetScript).Invoke();
-                    return $state.Ensure -eq "Present";
-                }
-
-                SetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "msodbcsql.msi";
-                    Start-BitsTransfer -Source "https://go.microsoft.com/fwlink/?linkid=2280794" -Destination $path;
-                }
+                Uri = "https://go.microsoft.com/fwlink/?linkid=2280794"
+                DestinationPath = "C:\Windows\temp\msodbcsql.msi"
             }
-
-            Script "DownloadMssqlcmd"
+        
+            xRemoteFile "DownloadMssqlcmd"
             {
-                GetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "mssqlcmd.msi";
-                    if((Test-Path -Path $path))
-                    {
-                        $result = "Present";
-                    }
-                    else
-                    {
-                        $result = "Absent";
-                    }
-
-                    return @{Ensure = $result};
-                }
-
-                TestScript = {
-                    $state = [scriptblock]::Create($GetScript).Invoke();
-                    return $state.Ensure -eq "Present";
-                }
-
-                SetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "mssqlcmd.msi";
-                    Start-BitsTransfer -Source "https://go.microsoft.com/fwlink/?linkid=2230791" -Destination $path;
-                }
+                Uri = "https://go.microsoft.com/fwlink/?linkid=2230791"
+                DestinationPath = "C:\Windows\temp\mssqlcmd.msi"
             }
 
             Package "InstallMsoledb"
@@ -375,7 +228,7 @@ configuration ConfigurationWorkload
                 ProductID = ""
                 Path = "C:\Windows\temp\msoledbsql.msi"
                 Arguments = "/quiet /log c:\windows\temp\oledb.log IACCEPTMSOLEDBSQLLICENSETERMS=YES"
-                DependsOn = "[Script]DownloadMsoledbsql"
+                DependsOn = "[xRemoteFile]DownloadMsoledbsql"
             }
 
             Package "InstallMsodbc"
@@ -385,7 +238,7 @@ configuration ConfigurationWorkload
                 ProductID = ""
                 Path = "C:\Windows\temp\msodbcsql.msi"
                 Arguments = "/quiet /log c:\windows\temp\odbc.log IACCEPTMSODBCSQLLICENSETERMS=YES"
-                DependsOn = "[Script]DownloadMsodbcsql"
+                DependsOn = "[xRemoteFile]DownloadMsodbcsql"
             }
 
             Package "InstallMssqlcmd"
@@ -395,34 +248,13 @@ configuration ConfigurationWorkload
                 ProductID = ""
                 Path = "C:\Windows\temp\mssqlcmd.msi"
                 Arguments = "/quiet /log c:\windows\temp\sqlcmd.log IACCEPTMSSQLCMDLNUTILSLICENSETERMS=YES"
-                DependsOn = "[Script]DownloadMssqlcmd"
+                DependsOn = "[xRemoteFile]DownloadMssqlcmd"
             }
 
-            Script "DownloadHammerdb"
+            xRemoteFile "DownloadHammerdb"
             {
-                GetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "hammerdb.exe";
-                    if((Test-Path -Path $path))
-                    {
-                        $result = "Present";
-                    }
-                    else
-                    {
-                        $result = "Absent";
-                    }
-
-                    return @{Ensure = $result};
-                }
-
-                TestScript = {
-                    $state = [scriptblock]::Create($GetScript).Invoke();
-                    return $state.Ensure -eq "Present";
-                }
-
-                SetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "hammerdb.exe";
-                    Start-BitsTransfer -Source "https://github.com/TPC-Council/HammerDB/releases/download/v5.0/HammerDB-5.0-Win-x64-Setup.exe" -Destination $path;
-                }
+                Uri = "https://github.com/TPC-Council/HammerDB/releases/download/v5.0/HammerDB-5.0-Win-x64-Setup.exe"
+                DestinationPath = "C:\Windows\temp\hammerdb.exe"
             }
 
             Package "InstallHammerdb"
@@ -432,7 +264,7 @@ configuration ConfigurationWorkload
                 ProductID = ""
                 Path = "C:\Windows\temp\hammerdb.exe"
                 Arguments = "--mode unattended --prefix c:\tools\HammerDB\HammerDB-5.0"
-                DependsOn = "[Script]DownloadHammerdb"
+                DependsOn = "[xRemoteFile]DownloadHammerdb"
             }
         }
 #endregion
@@ -440,39 +272,17 @@ configuration ConfigurationWorkload
 #region Diskspd
         if($Parameters.enableDiskspd)
         {
-            Script "DownloadDiskspd"
+            xRemoteFile "DownloadDiskspd"
             {
-                GetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "diskspd.zip";
-                    if((Test-Path -Path $path))
-                    {
-                        $result = "Present";
-                    }
-                    else
-                    {
-                        $result = "Absent";
-                    }
-
-                    return @{Ensure = $result};
-                }
-
-                TestScript = {
-                    $state = [scriptblock]::Create($GetScript).Invoke();
-                    return $state.Ensure -eq "Present";
-                }
-
-                SetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "diskspd.zip";
-                    $uri = "https://github.com/microsoft/diskspd/releases/download/v2.1/DiskSpd.zip";
-                    Invoke-WebRequest -Uri $uri -OutFile $path;
-                }
+                Uri = "https://github.com/microsoft/diskspd/releases/download/v2.1/DiskSpd.zip"
+                DestinationPath = "C:\Windows\temp\diskspd.zip"
             }
 
             Archive "ExpandDiskspd"
             {
                 Destination = "c:\tools\diskspd"
                 Path = "C:\Windows\temp\diskspd.zip"
-                DependsOn = "[Script]DownloadDiskspd"
+                DependsOn = "[xRemoteFile]DownloadDiskspd"
             }
         }
 #endregion
@@ -480,32 +290,10 @@ configuration ConfigurationWorkload
 #region Python
         if($Parameters.enablePython)
         {
-            Script "DownloadPython"
+            xRemoteFile "DownloadPython"
             {
-                GetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "python.exe";
-                    if((Test-Path -Path $path))
-                    {
-                        $result = "Present";
-                    }
-                    else
-                    {
-                        $result = "Absent";
-                    }
-
-                    return @{Ensure = $result};
-                }
-
-                TestScript = {
-                    $state = [scriptblock]::Create($GetScript).Invoke();
-                    return $state.Ensure -eq "Present";
-                }
-
-                SetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "python.exe";
-                    $uri = "https://www.python.org/ftp/python/3.10.1/python-3.10.1-amd64.exe";
-                    Start-BitsTransfer -Source $uri -Destination $path;
-                }
+                Uri = "https://www.python.org/ftp/python/3.10.1/python-3.10.1-amd64.exe"
+                DestinationPath = "C:\Windows\temp\python.exe"
             }
 
             Package "InstallPython"
@@ -515,7 +303,7 @@ configuration ConfigurationWorkload
                 ProductID = ""
                 Path = "C:\Windows\temp\python.exe"
                 Arguments = "/quiet InstallAllUsers=1 PrependPath=1 Include_test=0"
-                DependsOn = "[Script]DownloadPython"
+                DependsOn = "[xRemoteFile]DownloadPython"
             }
         }
 #endregion
@@ -523,31 +311,10 @@ configuration ConfigurationWorkload
 #region Migration Center Discovery Client
         if($Parameters.enableDiscoveryClient)
         {
-            Script "DownloadDiscoveryClient"
+            xRemoteFile "DownloadDiscoveryClient"
             {
-                GetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "mcc_setup.exe";
-                    if((Test-Path -Path $path))
-                    {
-                        $result = "Present";
-                    }
-                    else
-                    {
-                        $result = "Absent";
-                    }
-
-                    return @{Ensure = $result};
-                }
-
-                TestScript = {
-                    $state = [scriptblock]::Create($GetScript).Invoke();
-                    return $state.Ensure -eq "Present";
-                }
-
-                SetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "mcc_setup.exe";
-                    Start-BitsTransfer -Source "https://storage.googleapis.com/mc-collector-download-prod-eu/download/mcc_setup.exe" -Destination $path;
-                }
+                Uri = "https://storage.googleapis.com/mc-collector-download-prod-eu/download/mcc_setup.exe"
+                DestinationPath = "C:\Windows\temp\mcc_setup.exe"
             }
 
             Script "InstallDiscoveryClient"
@@ -576,71 +343,10 @@ configuration ConfigurationWorkload
                     Start-Process -FilePath $path -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES" -Wait;
                 }
 
-                DependsOn = "[Script]DownloadDiscoveryClient"
+                DependsOn = "[xRemoteFile]DownloadDiscoveryClient"
             }
         }
 #endregion Migration Center Discovery Client
-
-#region Windows Admin Center
-        if($Parameters.enableWindowsAdminCenter)
-        {
-            Script "DownloadWindowsAdminCenter"
-            {
-                GetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "WindowsAdminCenter.msi";
-                    if((Test-Path -Path $path))
-                    {
-                        $result = "Present";
-                    }
-                    else
-                    {
-                        $result = "Absent";
-                    }
-
-                    return @{Ensure = $result};
-                }
-
-                TestScript = {
-                    $state = [scriptblock]::Create($GetScript).Invoke();
-                    return $state.Ensure -eq "Present";
-                }
-
-                SetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "WindowsAdminCenter.exe";
-                    Start-BitsTransfer -Source "https://go.microsoft.com/fwlink/?linkid=2220149&clcid=0x409&culture=en-us&country=us" -Destination $path;
-                }
-            }
-
-            Script "InstallWindowsAdminCenter"
-            {
-                GetScript = {
-                    $path  = "C:\Program Files\Windows Admin Center";
-                    if((Test-Path -Path $path))
-                    {
-                        $result = "Present";
-                    }
-                    else
-                    {
-                        $result = "Absent";
-                    }
-
-                    return @{Ensure = $result};
-                }
-
-                TestScript = {
-                    $state = [scriptblock]::Create($GetScript).Invoke();
-                    return $state.Ensure -eq "Present";
-                }
-
-                SetScript = {
-                    $path  = Join-Path -Path "C:\Windows\temp" -ChildPath "WindowsAdminCenter.msi";
-                    Start-Process -FilePath "msiexec" -ArgumentList "/i $path", "/qn", "SME_PORT=443", "SSL_CERTIFICATE_OPTION=generate" -Wait;
-                }
-
-                DependsOn = "[Script]DownloadWindowsAdminCenter"
-            }
-        }
-#endregion Windows Admin Center
 
         # Enable customization configuration which gets inlined into this file
         Customization "Customization"
