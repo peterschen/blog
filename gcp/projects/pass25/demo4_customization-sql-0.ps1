@@ -97,7 +97,7 @@ IF NOT EXISTS (SELECT * FROM sys.credentials WHERE credential_identity = 'S3 Acc
     }
 
     $letter = [int][char]'T';
-    for($i = 0; $i -lt 3; $i++)
+    for($i = 0; $i -lt 2; $i++)
     {
         SqlScriptQuery "RestoreDatabase${i}"
         {
@@ -200,5 +200,7 @@ ALTER DATABASE [demo4_${i}] SET TARGET_RECOVERY_TIME = 15 MINUTES;
             DependsOn = "[Script]ConfigureDatabase"
             PsDscRunAsCredential = $Credential
         }
+
+        $letter++;
     }
 }
