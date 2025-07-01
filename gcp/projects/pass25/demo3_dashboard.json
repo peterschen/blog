@@ -1,0 +1,85 @@
+{
+    "displayName": "PASS - Demo 3 - Replication",
+    "dashboardFilters": [],
+    "labels": {},
+    "mosaicLayout": {
+      "columns": 48,
+      "tiles": [
+        {
+          "height": 16,
+          "width": 24,
+          "widget": {
+            "title": "Async replication time since last replication [95TH PERCENTILE]",
+            "xyChart": {
+              "chartOptions": {
+                "displayHorizontal": false,
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "minAlignmentPeriod": "60s",
+                  "plotType": "LINE",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesFilter": {
+                      "aggregation": {
+                        "alignmentPeriod": "60s",
+                        "crossSeriesReducer": "REDUCE_PERCENTILE_95",
+                        "groupByFields": [
+                          "metadata.system_labels.\"name\""
+                        ],
+                        "perSeriesAligner": "ALIGN_MEAN"
+                      },
+                      "filter": "metric.type=\"compute.googleapis.com/disk/async_replication/time_since_last_replication\" resource.type=\"gce_disk\""
+                    }
+                  }
+                }
+              ],
+              "thresholds": [],
+              "yAxis": {
+                "scale": "LINEAR"
+              }
+            }
+          }
+        },
+        {
+          "xPos": 24,
+          "height": 16,
+          "width": 24,
+          "widget": {
+            "title": "Async replication sent bytes count [95TH PERCENTILE]",
+            "xyChart": {
+              "chartOptions": {
+                "displayHorizontal": false,
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "minAlignmentPeriod": "60s",
+                  "plotType": "LINE",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesFilter": {
+                      "aggregation": {
+                        "alignmentPeriod": "60s",
+                        "crossSeriesReducer": "REDUCE_PERCENTILE_95",
+                        "groupByFields": [
+                          "metadata.system_labels.\"name\""
+                        ],
+                        "perSeriesAligner": "ALIGN_RATE"
+                      },
+                      "filter": "metric.type=\"compute.googleapis.com/disk/async_replication/sent_bytes_count\" resource.type=\"gce_disk\""
+                    }
+                  }
+                }
+              ],
+              "thresholds": [],
+              "yAxis": {
+                "scale": "LINEAR"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }

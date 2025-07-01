@@ -234,3 +234,9 @@ resource "google_compute_attached_disk" "demo3_log" {
   instance = module.demo3[count.index].instances[0].id
   device_name = google_compute_disk.demo3_log[count.index].name
 }
+
+resource "google_monitoring_dashboard" "demo3_dashboard" {
+  count = local.enable_demo3 ? 1 : 0
+  project = module.demo3[count.index].project_id
+  dashboard_json = file("${path.module}/demo3_dashboard.json")
+}
