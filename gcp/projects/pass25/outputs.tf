@@ -39,7 +39,8 @@ output "links_demo3" {
   value = local.enable_demo3 ? [
     "https://console.cloud.google.com/compute/disks?project=${module.demo3[0].project_id}",
     "https://console.cloud.google.com/compute/asynchronousReplication?project=${module.demo3[0].project_id}&tab=async_replication_disks",
-    "https://console.cloud.google.com/compute/asynchronousReplication?project=${module.demo3[0].project_id}&tab=consistency_groups"
+    "https://console.cloud.google.com/compute/asynchronousReplication?project=${module.demo3[0].project_id}&tab=consistency_groups",
+    "https://console.cloud.google.com/monitoring/dashboards/builder/${google_monitoring_dashboard.demo3_dashboard[0].id}?project=${module.demo3[0].project_id}"
   ] : null
 }
 
@@ -48,6 +49,12 @@ output "links_demo4" {
     "https://console.cloud.google.com/compute/disks?project=${module.demo4[0].project_id}",
     "https://console.cloud.google.com/monitoring/dashboards/builder/${google_monitoring_dashboard.demo4_dashboard[0].id}?project=${module.demo4[0].project_id}"
   ] : null
+}
+
+output "rdp_demo" {
+  value = [
+    "rdp bastion --project ${data.google_project.project.project_id} --zone ${local.zone_demo} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
+  ]
 }
 
 output "rdp_demo1" {
