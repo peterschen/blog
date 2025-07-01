@@ -128,7 +128,7 @@ resource "google_compute_instance" "sql" {
   boot_disk {
     initialize_params {
       image = local.windows_image
-      type = length(regexall("^[cn]{1}4-*", local.machine_type)) > 0 ? "hyperdisk-balanced" : "pd-ssd"
+      type = length(regexall("^[cnhxa]{1}4*", local.machine_type)) > 0 ? "hyperdisk-balanced" : "pd-ssd"
     }
   }
 
