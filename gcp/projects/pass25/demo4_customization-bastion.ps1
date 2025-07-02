@@ -14,7 +14,7 @@ configuration Customization
 
     for($i = 0; $i -lt 2; $i++)
     {
-        File "HammerdbConfiguration${í}"
+        File "HammerdbConfiguration${i}"
         {
             DestinationPath = "C:\tools\pass_run_$i.tcl"
             Contents = @"
@@ -53,7 +53,7 @@ set jobid [ vurun ]
 vudestroy
 tcstop
 puts "TEST COMPLETE"
-set of [ open `$tmpdir/demo4_1 w ]
+set of [ open `$tmpdir/demo4_${i} w ]
 puts `$of `$jobid
 close `$of
 "@
