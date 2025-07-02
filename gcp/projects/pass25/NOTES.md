@@ -38,6 +38,75 @@ fio --name=iops --rw=randrw --rwmixread=70 --bs=4k --numjobs=96 --time_based --r
 fio --name=throughput --rw=randrw --rwmixread=70 --bs=96k --numjobs=96 --time_based --runtime=60m --direct=1 --verify=0 --iodepth=3 --filesize=1G --filename=t\:\\benchmark.fio
 ```
 
+### Single thread latency
+
+#### Reads
+
+```shell
+fio --name=iops --rw=randrw --rwmixread=0 --bs=4k --numjobs=1 --time_based --runtime=60m --direct=1 --verify=0 --iodepth=1 --filesize=50G --filename=t\:\\benchmark.fio -randrepeat=0
+```
+
+```
+iops: (groupid=0, jobs=1): err= 0: pid=20092: Wed Jul 2 07:12:51 2025
+  write: IOPS=1316, BW=5266KiB/s (5392kB/s)(83.6MiB/16254msec); 0 zone resets
+    slat (usec): min=4, max=573, avg=23.84, stdev=89.05
+    clat (usec): min=302, max=2735, avg=493.75, stdev=85.54
+     lat (usec): min=309, max=2741, avg=517.60, stdev=124.94
+    clat percentiles (usec):
+     |  1.00th=[  363],  5.00th=[  392], 10.00th=[  408], 20.00th=[  429],
+     | 30.00th=[  449], 40.00th=[  465], 50.00th=[  482], 60.00th=[  498],
+     | 70.00th=[  519], 80.00th=[  545], 90.00th=[  594], 95.00th=[  635],
+     | 99.00th=[  766], 99.50th=[  840], 99.90th=[ 1037], 99.95th=[ 1254],
+     | 99.99th=[ 1942]
+   bw (  KiB/s): min= 4888, max= 8144, per=100.00%, avg=7625.27, stdev=783.28, samples=22
+   iops        : min= 1222, max= 2036, avg=1905.91, stdev=195.75, samples=22
+  lat (usec)   : 500=61.52%, 750=37.31%, 1000=1.05%
+  lat (msec)   : 2=0.12%, 4=0.01%
+  cpu          : usr=0.00%, sys=0.00%, ctx=0, majf=0, minf=0
+  IO depths    : 1=100.0%, 2=0.0%, 4=0.0%, 8=0.0%, 16=0.0%, 32=0.0%, >=64=0.0%
+     submit    : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%
+     complete  : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%
+     issued rwts: total=0,21398,0,0 short=0,0,0,0 dropped=0,0,0,0
+     latency   : target=0, window=0, percentile=100.00%, depth=1
+
+Run status group 0 (all jobs):
+  WRITE: bw=5266KiB/s (5392kB/s), 5266KiB/s-5266KiB/s (5392kB/s-5392kB/s), io=83.6MiB (87.6MB), run=16254-16254msec
+```
+
+#### Writes
+
+```shell
+fio --name=iops --rw=randrw --rwmixread=0 --bs=4k --numjobs=1 --time_based --runtime=60m --direct=1 --verify=0 --iodepth=1 --filesize=50G --filename=t\:\\benchmark.fio -randrepeat=0
+```
+
+```
+iops: (groupid=0, jobs=1): err= 0: pid=12876: Wed Jul 2 07:16:17 2025
+  read: IOPS=1475, BW=5901KiB/s (6043kB/s)(152MiB/26393msec)
+    slat (usec): min=3, max=149, avg= 4.49, stdev= 2.10
+    clat (usec): min=377, max=105472, avg=672.72, stdev=1172.09
+     lat (usec): min=381, max=105485, avg=677.21, stdev=1172.51
+    clat percentiles (usec):
+     |  1.00th=[  449],  5.00th=[  482], 10.00th=[  498], 20.00th=[  523],
+     | 30.00th=[  545], 40.00th=[  562], 50.00th=[  586], 60.00th=[  603],
+     | 70.00th=[  627], 80.00th=[  668], 90.00th=[  717], 95.00th=[  791],
+     | 99.00th=[ 2180], 99.50th=[ 3359], 99.90th=[14222], 99.95th=[22414],
+     | 99.99th=[57410]
+   bw (  KiB/s): min=  358, max= 6664, per=100.00%, avg=5902.67, stdev=1514.06, samples=52
+   iops        : min=   89, max= 1666, avg=1475.44, stdev=378.56, samples=52
+  lat (usec)   : 500=11.21%, 750=81.52%, 1000=4.78%
+  lat (msec)   : 2=0.89%, 4=1.15%, 10=0.30%, 20=0.09%, 50=0.04%
+  lat (msec)   : 100=0.01%, 250=0.01%
+  cpu          : usr=0.00%, sys=0.00%, ctx=0, majf=0, minf=0
+  IO depths    : 1=100.0%, 2=0.0%, 4=0.0%, 8=0.0%, 16=0.0%, 32=0.0%, >=64=0.0%
+     submit    : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%
+     complete  : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%
+     issued rwts: total=38936,0,0,0 short=0,0,0,0 dropped=0,0,0,0
+     latency   : target=0, window=0, percentile=100.00%, depth=1
+
+Run status group 0 (all jobs):
+   READ: bw=5901KiB/s (6043kB/s), 5901KiB/s-5901KiB/s (6043kB/s-6043kB/s), io=152MiB (159MB), run=26393-26393msec
+```
+
 # SQL Server configuration
 
 ## Server settings
