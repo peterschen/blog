@@ -33,7 +33,7 @@ diset connection mssqls_trust_server_cert true
 diset connection mssqls_authentication windows
 diset connection mssqls_server {sql-0}
 
-diset tpcc mssqls_dbase demo4_${i}"
+diset tpcc mssqls_dbase demo4_${i}
 diset tpcc mssqls_driver timed
 diset tpcc mssqls_total_iterations 10000000
 diset tpcc mssqls_rampup 2
