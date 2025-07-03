@@ -20,6 +20,9 @@ configuration Customization
     Script "InitDisk"
     {
         GetScript = {
+            # Ensure status of disks is current
+            Get-PhysicalDisk | Reset-PhysicalDisk;
+            
             $disk = Get-PhysicalDisk -CanPool $true;
             if($disk -eq $null)
             {
