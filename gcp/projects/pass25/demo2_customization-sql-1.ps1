@@ -67,7 +67,7 @@ configuration Customization
             $query = @"
 -- Configure credential for GCS
 IF NOT EXISTS (SELECT * FROM sys.credentials WHERE credential_identity = 'S3 Access Key')
-    CREATE CREDENTIAL [s3://storage.googleapis.com/cbpetersen-demos]
+    CREATE CREDENTIAL [cbpetersen-demos]
     WITH
         IDENTITY = 'S3 Access Key',
         SECRET = '${secret}';

@@ -87,7 +87,7 @@ configuration Customization
             $query = @"
 -- Configure credential for GCS
 IF NOT EXISTS (SELECT * FROM sys.credentials WHERE credential_identity = 'S3 Access Key')
-    CREATE CREDENTIAL [s3://storage.googleapis.com/cbpetersen-demos]
+    CREATE CREDENTIAL [cbpetersen-demos]
     WITH
         IDENTITY = 'S3 Access Key',
         SECRET = '${secret}';
@@ -125,7 +125,8 @@ FROM
     URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_06.bak',
     URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_07.bak',
     URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_08.bak'
-WITH 
+WITH
+    WITH CREDENTIAL = 'cbpetersen-demos',
     MOVE 'AdventureWorks2022' TO 'T:\AdventureWorks2022.mdf',
     MOVE 'AdventureWorks2022_log' TO 'L:\AdventureWorks2022_log.ldf',
     STATS = 10, 

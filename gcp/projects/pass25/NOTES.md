@@ -169,7 +169,7 @@ $secret = gcloud secrets versions access 1 --secret pass-demo-gcs --project cbpe
 $command = @"
 	-- Credentials
 	IF NOT EXISTS (SELECT * FROM sys.credentials WHERE credential_identity = 'S3 Access Key')
-		CREATE CREDENTIAL [s3://storage.googleapis.com/cbpetersen-demos]
+		CREATE CREDENTIAL [cbpetersen-demos]
 		WITH
 			IDENTITY = 'S3 Access Key',
 			SECRET = '${secret}';
@@ -248,6 +248,7 @@ TO
 	URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_250_63.bak',
 	URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_250_64.bak'
 WITH
+	WITH CREDENTIAL = 'cbpetersen-demos',
 	COMPRESSION,
 	STATS = 10,
 	MAXTRANSFERSIZE = 20971520;
@@ -319,7 +320,8 @@ FROM
 	URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_250_62.bak',
 	URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_250_63.bak',
 	URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_250_64.bak'
-WITH 
+WITH
+	WITH CREDENTIAL = 'cbpetersen-demos',
 	MOVE 'pass' TO 'T:\MSSQL16.MSSQLSERVER\MSSQL\Data\pass.mdf',
 	MOVE 'pass_log' TO 'T:\MSSQL16.MSSQLSERVER\MSSQL\DATA\pass_log.ldf',
 	STATS = 10, 
@@ -448,6 +450,7 @@ TO
 	URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_250_63.bak',
 	URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_250_64.bak'
 WITH
+	WITH CREDENTIAL = 'cbpetersen-demos',
 	COMPRESSION,
 	STATS = 10,
 	MAXTRANSFERSIZE = 20971520;
@@ -520,6 +523,7 @@ FROM
 	URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_250_63.bak',
 	URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_250_64.bak'
 WITH 
+	WITH CREDENTIAL = 'cbpetersen-demos',
 	MOVE 'pass' TO 'T:\demo4.mdf',
 	MOVE 'pass_log' TO 'T:\demo4_log.ldf',
 	STATS = 10, 
@@ -671,6 +675,7 @@ FROM
 	URL = 's3://storage.googleapis.com/cbpetersen-demos/pass_5000_63.bak',
 	URL = 's3://storage.googleapis.com/cbpetersen-demos/pass_5000_64.bak'
 WITH 
+	WITH CREDENTIAL = 'cbpetersen-demos',
 	MOVE 'pass' TO 'T:\pass_5000.mdf',
 	MOVE 'pass_log' TO 'T:\pass_5000_log.ldf',
 	STATS = 10, 
