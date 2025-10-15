@@ -185,7 +185,7 @@ FROM
     URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_63.bak',
     URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_64.bak'
 WITH
-    WITH CREDENTIAL = 'cbpetersen-demos',
+    CREDENTIAL = 'cbpetersen-demos',
     MOVE 'demo4' TO '$([char]$letter):\demo4_${i}.mdf',
     MOVE 'demo4_log' TO '$([char]$letter):\demo4_${i}.ldf',
     STATS = 10, 

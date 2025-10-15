@@ -65,7 +65,7 @@ sqlcmd -S "tcp:sql-0" -Q @"
         URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_07.bak',
         URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_08.bak'
     WITH 
-        WITH CREDENTIAL = 'cbpetersen-demos',
+        CREDENTIAL = 'cbpetersen-demos',
         MOVE 'AdventureWorks2022' TO 'T:\AdventureWorks2022.mdf',
         MOVE 'AdventureWorks2022_log' TO 'L:\AdventureWorks2022_log.ldf',
         STATS = 10, 

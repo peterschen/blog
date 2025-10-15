@@ -89,7 +89,7 @@ FROM
     URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_07.bak',
     URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_08.bak'
 WITH
-    WITH CREDENTIAL = 'cbpetersen-demos',
+    CREDENTIAL = 'cbpetersen-demos',
     MOVE 'AdventureWorks2022' TO 'C:\ClusterStorage\Volume1\MSSQL16.MSSQLSERVER\AdventureWorks2022.mdf',
     MOVE 'AdventureWorks2022_log' TO 'C:\ClusterStorage\Volume1\MSSQL16.MSSQLSERVER\AdventureWorks2022_log.ldf',
     STATS = 10, 
