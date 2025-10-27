@@ -1,11 +1,11 @@
 /* ==========================================================================
    Includes
    ========================================================================== */
-@import "normalize";
-@import "colors";
-@import "icons";
-@import "fonts";
-@import "code";
+@use "normalize";
+@use "colors";
+@use "icons";
+@use "fonts";
+@use "code";
 
 $breakpoint-large: 960px;
 $breakpoint-medium: 640px;
@@ -54,19 +54,6 @@ textarea {
 .post-content {
     font-size: 1.75em;
     line-height: 2em;
-
-    a {
-        color: inherit;
-        text-decoration: none;
-        font-weight: 400;
-        box-shadow: inset 0 -2px 0 var(--theme-accent-color);
-        transition: all ease-out 0.1s;
-
-        &:focus,
-        &:hover {
-            box-shadow: inset 0 -3px 0 var(--theme-accent-color);
-        }
-    }
 
     h1,
     h2,
@@ -478,6 +465,21 @@ textarea {
     input[type="button"]:focus,
     button:focus,
     .button:focus {}
+}
+
+.post-content, .post-excerpt {
+    a {
+        color: var(--color-content-secondary);
+        text-decoration: none;
+        font-weight: 400;
+        box-shadow: inset 0 -2px 0 var(--theme-accent-color);
+        transition: all ease-out 0.1s;
+
+        &:focus,
+        &:hover {
+            box-shadow: inset 0 -3px 0 var(--theme-accent-color);
+        }
+    }
 }
 
 /* ==========================================================================
