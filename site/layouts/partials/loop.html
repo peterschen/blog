@@ -20,7 +20,7 @@
                                 {{- end -}}
                             {{ end }} on <time datetime="{{ .Date }}">{{ .Date.Format .Site.Params.dateFormat }}</time>
                         </span>
-                        <p class="post-excerpt">{{ .Summary }}&hellip;</p>
+                        <div class="post-excerpt">{{ .Summary }}{{ if .Truncated }}<a href="{{ .RelPermalink }}">Continue reading &hellip;</a>{{ end }}</div>
                     </div>
                 </div>
             </article>
