@@ -26,13 +26,20 @@ gcloud compute instances create spotty \
     --shielded-integrity-monitoring
 ```
 
-## Change provisioning model
+But what happens if the nature of your workload changes over time? Or you need to ensure that processing is completed within a certain timeframe? How can you change the provisioning model of a VM configured with a preemtible provisioning model? It is actually quiet simple (once you know how).
 
-But what happens if the nature of your workload changes over time? Or you need to ensure that processing is completed within a certain timeframe? How can you change the provisioning model of a VM configured with a preemtible provisioning model? It is actually quiet simple. The scheduling configuration for a VM can be changed using gcloud.
+You may have started looking at the options to change the VM configuration using Cloud Console but unfortunately it won't let you change the provisioning model, even claiming it is not possible to do so:
+
+![Chaning the provisioning model of a VM in Cloud Console](images/provisioning_model.png)
+
+## Changing the provisioning model using `gcloud`
+
+Fortunately, `gcloud` paired with the right options is able to change the schedulung configuration of a VM. The only requirement is that the VM is turned off when executing the command. 
 
 ```sh
 gcloud compute instances set-scheduling spotty \
     --provisioning-model STANDARD \
+    --maintenance-policy=MIGRATE \
     --no-preemptible \
     --clear-instance-termination-action
 ```
