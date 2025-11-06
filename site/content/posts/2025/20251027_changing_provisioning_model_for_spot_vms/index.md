@@ -9,7 +9,6 @@ tags:
 - gcp
 - spot
 cover: images/cover.png
-draft: true
 ---
 
 Spot VMs is a great way to reduce cost for interruptible, stateless and fault-tolerant workloads like batch processing or containers. Starting these types of VMs follows the same principles as regular VMs. The following snippet launches a C4A Spot VM:
