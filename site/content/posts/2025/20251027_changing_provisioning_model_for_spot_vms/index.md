@@ -15,7 +15,7 @@ Spot VMs is a great way to reduce cost for interruptible, stateless and fault-to
 
 ```sh
 gcloud compute instances create spotty \
-    --machine-type=c4a-standard-1 \
+    --machine-type c4a-standard-1 \
     --create-disk auto-delete=yes,boot=yes,image-project=debian-cloud,image-family=debian-13-arm64,type=hyperdisk-balanced,size=10 \
     --network-interface nic-type=GVNIC,stack-type=IPV4_ONLY,subnet=default,no-address \
     --provisioning-model SPOT \
@@ -38,7 +38,7 @@ Fortunately, `gcloud` paired with the right options is able to change the schedu
 ```sh
 gcloud compute instances set-scheduling spotty \
     --provisioning-model STANDARD \
-    --maintenance-policy=MIGRATE \
+    --maintenance-policy MIGRATE \
     --no-preemptible \
     --clear-instance-termination-action
 ```
