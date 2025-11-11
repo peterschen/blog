@@ -484,3 +484,5 @@ $RECYCLE.BIN/
 *.swp
 
 address.db
+address.db-wal
+address.db-shm
