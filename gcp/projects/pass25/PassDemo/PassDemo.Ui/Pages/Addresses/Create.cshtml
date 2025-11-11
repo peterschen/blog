@@ -1,0 +1,68 @@
+@page
+@model PassDemo.Ui.Pages.Addresses.CreateModel
+@{
+    ViewData["Title"] = "Create New Address";
+}
+
+<h1>Create New Address</h1>
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <form method="post">
+            @*
+                This div displays any errors that are not specific to a single property,
+                such as the API communication errors we added in the Page Model.
+            *@
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Address.Name" class="control-label"></label>
+                <input asp-for="Address.Name" class="form-control" />
+                <span asp-validation-for="Address.Name" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Address.Surname" class="control-label"></label>
+                <input asp-for="Address.Surname" class="form-control" />
+                <span asp-validation-for="Address.Surname" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                @* The asp-for tag helper automatically sets the 'for' attribute and binds the input to the model property. *@
+                <label asp-for="Address.Street" class="control-label"></label>
+                <input asp-for="Address.Street" class="form-control" />
+                @* The asp-validation-for tag helper displays validation errors for this specific property. *@
+                <span asp-validation-for="Address.Street" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Address.City" class="control-label"></label>
+                <input asp-for="Address.City" class="form-control" />
+                <span asp-validation-for="Address.City" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Address.State" class="control-label"></label>
+                <input asp-for="Address.State" class="form-control" />
+                <span asp-validation-for="Address.State" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Address.ZipCode" class="control-label"></label>
+                <input asp-for="Address.ZipCode" class="form-control" />
+                <span asp-validation-for="Address.ZipCode" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-4">
+                <input type="submit" value="Create" class="btn btn-primary" />
+                <a asp-page="/Index" class="btn btn-secondary">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@* This section enables client-side validation using jQuery. *@
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
