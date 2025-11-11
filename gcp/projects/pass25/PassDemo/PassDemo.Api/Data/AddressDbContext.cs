@@ -10,5 +10,6 @@ namespace PassDemo.Api.Data
         }
 
         public DbSet<Address> Addresses { get; set; }
+        public DbSet<WeatherData> WeatherData { get; set; }
     }
 }
