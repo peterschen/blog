@@ -1,4 +1,0 @@
----
-title: LinkedIn
-slug: linkedin
----

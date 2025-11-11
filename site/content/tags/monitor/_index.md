@@ -1,4 +1,0 @@
----
-title: Monitor
-slug: monitor
----

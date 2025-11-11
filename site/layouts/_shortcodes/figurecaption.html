@@ -1,0 +1,2 @@
+{{- $caption := .Get "caption" }}
+{{ with $caption }}<figcaption>{{ . | markdownify }}</figcaption>{{ end }}

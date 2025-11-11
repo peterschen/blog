@@ -1,4 +1,0 @@
----
-title: Billing
-slug: billing
----

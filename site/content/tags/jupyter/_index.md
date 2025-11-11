@@ -1,4 +1,0 @@
----
-title: Jupyter
-slug: jupyter
----

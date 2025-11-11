@@ -1,4 +1,0 @@
----
-title: Pricing
-slug: pricing
----

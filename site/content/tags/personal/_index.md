@@ -1,4 +1,0 @@
----
-title: Personal
-slug: personal
----

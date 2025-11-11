@@ -1,4 +1,0 @@
----
-title: Enterprise
-slug: enterprise
----

@@ -1,4 +1,0 @@
----
-title: Reporting
-slug: reporting
----

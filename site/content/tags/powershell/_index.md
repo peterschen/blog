@@ -1,4 +1,0 @@
----
-title: PowerShell
-slug: powershell
----

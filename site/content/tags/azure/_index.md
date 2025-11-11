@@ -1,4 +1,0 @@
----
-title: Azure
-slug: azure
----

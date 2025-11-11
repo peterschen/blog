@@ -1,4 +1,0 @@
----
-title: DSC
-slug: dsc
----

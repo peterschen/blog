@@ -1,4 +1,0 @@
----
-title: SIEM
-slug: siem
----

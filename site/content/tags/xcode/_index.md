@@ -1,4 +1,0 @@
----
-title: Xcode
-slug: xcode
----

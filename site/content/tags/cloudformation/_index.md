@@ -1,4 +1,0 @@
----
-title: CloudFormation
-slug: cloudformation
----

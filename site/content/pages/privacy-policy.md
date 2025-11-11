@@ -1,6 +1,13 @@
 ---
 title: "Privacy Policy"
 url: /privacy-policy/
+showBreadcrumbs: false
+showDate: false
+showReadingTime: false
+showWordCount: false
+showAuthor: false
+showRelatedContent: false
+showPagination: false
 ---
 
 Even though the primary content of this blog are articles in English to reach the global tech audience this blog still needs to adhere to local law. Thus the privacy policy is penned in German. If you need a translation please use one of the readily available translator services.

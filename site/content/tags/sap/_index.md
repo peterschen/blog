@@ -1,4 +1,0 @@
----
-title: SAP
-slug: sap
----

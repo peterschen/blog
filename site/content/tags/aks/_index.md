@@ -1,4 +1,0 @@
----
-title: AKS
-slug: aks
----

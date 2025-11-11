@@ -1,0 +1,19 @@
+[[main]]
+ name = "Posts"
+ pageRef = "posts"
+ weight = 10
+
+[[main]]
+ name = "Tags"
+ pageRef = "tags"
+ weight = 30
+
+[[main]]
+  name = "Imprint"
+  pageRef = "imprint"
+  weight = 40
+
+[[main]]
+  name = "Privacy policy"
+  pageRef = "privacy-policy"
+  weight = 50

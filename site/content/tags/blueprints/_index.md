@@ -1,4 +1,0 @@
----
-title: Blueprints
-slug: blueprints
----

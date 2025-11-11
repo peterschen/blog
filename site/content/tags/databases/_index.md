@@ -1,4 +1,0 @@
----
-title: databases
-slug: databases
----

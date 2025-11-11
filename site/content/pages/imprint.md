@@ -1,6 +1,13 @@
 ---
 title: "Imprint"
 url: /imprint/
+showBreadcrumbs: false
+showDate: false
+showReadingTime: false
+showWordCount: false
+showAuthor: false
+showRelatedContent: false
+showPagination: false
 ---
 
 The opinions expressed herein are my own personal opinions and do not represent my employer’s view in any way.

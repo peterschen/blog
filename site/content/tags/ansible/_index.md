@@ -1,4 +1,0 @@
----
-title: Ansible
-slug: ansible
----

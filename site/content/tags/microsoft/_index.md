@@ -1,4 +1,0 @@
----
-title: microsoft
-slug: microsoft
----

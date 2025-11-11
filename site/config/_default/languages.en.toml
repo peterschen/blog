@@ -1,0 +1,28 @@
+disabled = false
+languageCode = "en"
+languageName = "English"
+weight = 1
+title = "peterschen.de"
+
+[params]
+  displayName = "EN"
+  isoCode = "en"
+  rtl = false
+  dateFormat = "2 January 2006"
+  # logo = "img/logo.png"
+  # secondaryLogo = "img/secondary-logo.png"
+  # description = "My awesome website"
+  # copyright = "Copy, _right?_ :thinking_face:"
+
+[params.author]
+  name = "Christoph Petersen"
+  email = "christoph@die-petersens.de"
+  image = "img/profile.jpg"
+#   imageQuality = 96
+  headline = "Ramblings about all things Cloud. Views expressed are my own."
+  bio = ""
+  links = [
+#     { email = "mailto:hello@your_domain.com" },
+    { github = "https://github.com/peterschen" },
+    { linkedin = "https://linkedin.com/in/peterschen" }
+  ]

@@ -1,4 +1,0 @@
----
-title: Function
-slug: function
----

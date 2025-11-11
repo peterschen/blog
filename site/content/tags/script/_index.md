@@ -1,4 +1,0 @@
----
-title: Script
-slug: script
----

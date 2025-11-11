@@ -1,4 +1,0 @@
----
-title: Hibernate
-slug: hibernate
----

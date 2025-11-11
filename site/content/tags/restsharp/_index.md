@@ -1,4 +1,0 @@
----
-title: RestSharp
-slug: restsharp
----

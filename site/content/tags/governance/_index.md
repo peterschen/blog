@@ -1,4 +1,0 @@
----
-title: Governance
-slug: governance
----

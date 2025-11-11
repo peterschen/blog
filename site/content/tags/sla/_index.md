@@ -1,4 +1,0 @@
----
-title: SLA
-slug: sla
----

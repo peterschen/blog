@@ -1,4 +1,0 @@
----
-title: RBAC
-slug: rbac
----
