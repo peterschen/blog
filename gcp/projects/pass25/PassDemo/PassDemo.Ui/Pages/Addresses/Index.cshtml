@@ -1,0 +1,53 @@
+﻿@page
+@model PassDemo.Ui.Pages.Addresses.IndexModel
+@{
+    ViewData["Title"] = "Addresses";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="display-4">Address List</h1>
+    <a asp-page="/Addresses/Create" class="btn btn-primary">Create New Address</a>
+</div>
+
+
+<table class="table table-striped">
+    <thead class="thead-dark">
+        <tr>
+            <th>Name</th>
+            <th>Surname</th>
+            <th>Street</th>
+            <th>City</th>
+            <th>State</th>
+            <th>Zip Code</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Addresses.Any())
+        {
+            @foreach (var item in Model.Addresses)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Surname</td>
+                    <td>@item.Street</td>
+                    <td>@item.City</td>
+                    <td>@item.State</td>
+                    <td>@item.ZipCode</td>
+                    <td>
+                        @* Update links to point to pages inside the Addresses folder *@
+                        <a asp-page="/Addresses/Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <a asp-page="/Addresses/Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">Details</a>
+                        <a asp-page="/Addresses/Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="7" class="text-center">No addresses found.</td>
+            </tr>
+        }
+    </tbody>
+</table>

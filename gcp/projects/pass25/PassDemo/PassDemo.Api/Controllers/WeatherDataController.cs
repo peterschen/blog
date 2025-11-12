@@ -60,5 +60,41 @@ namespace PassDemo.Api.Controllers
                 return StatusCode(500, $"Error: {ex.Message}");
             }
         }
+
+        [HttpPost("batch")]
+        public async Task<IActionResult> StoreWeatherDataBatch([FromBody] List<WeatherData> weatherDataList)
+        {
+            if (weatherDataList == null || !weatherDataList.Any())
+            {
+                return BadRequest("Batch submission list cannot be empty.");
+            }
+
+            try
+            {
+                _context.WeatherData.AddRange(weatherDataList);
+                await _context.SaveChangesAsync();
+                return Ok(new { message = $"{weatherDataList.Count} weather data records submitted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error: {ex.Message}");
+            }
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteAllWeatherData()
+        {
+            try
+            {
+                // ExecuteDeleteAsync() translates directly to a `DELETE FROM WeatherData` SQL command.
+                // It's extremely efficient as it doesn't load any data into memory.
+                await _context.WeatherData.ExecuteDeleteAsync();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error: {ex.Message}");
+            }
+        }
     }
 }

@@ -17,7 +17,7 @@ public class WeatherDataProducer : BackgroundService
         _logger = logger;
         _httpClientFactory = httpClientFactory;
 
-        // Initialize with realistic baseline values for Hamburg in November.
+        // Initialize with realiic baseline values for Hamburg in November.
         _lastTemperature = 5.0; 
         _lastHumidity = 85.0;
     }
@@ -61,7 +61,7 @@ public class WeatherDataProducer : BackgroundService
             }
 
             // --- Wait for a random interval ---
-            int delaySeconds = _random.Next(10, 121); // 10 to 120 seconds
+            int delaySeconds = _random.Next(1, 10);
             _logger.LogInformation("Next data submission in {Delay} seconds.", delaySeconds);
             await Task.Delay(TimeSpan.FromSeconds(delaySeconds), stoppingToken);
         }

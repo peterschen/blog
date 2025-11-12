@@ -1,26 +1,20 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using PassDemo.Common.Models;
 
 namespace PassDemo.Ui.Pages
 {
     public class IndexModel : PageModel
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-        public List<Address> Addresses { get; set; } = new();
+        [BindProperty(SupportsGet = true)]
+        public DateTime StartDate { get; set; } = DateTime.UtcNow.AddHours(-24);
 
-        public IndexModel(IHttpClientFactory httpClientFactory)
-        {
-            _httpClientFactory = httpClientFactory;
-        }
+        [BindProperty(SupportsGet = true)]
+        public DateTime EndDate { get; set; } = DateTime.UtcNow;
 
-        public async Task OnGetAsync()
+        public void OnGet()
         {
-            var client = _httpClientFactory.CreateClient("ApiClient");
-            var response = await client.GetAsync("/api/addresses");
-            if (response.IsSuccessStatusCode)
-            {
-                Addresses = await response.Content.ReadFromJsonAsync<List<Address>>() ?? new List<Address>();
-            }
+            // The default values are set in the property initializers.
+            // If the user provides startDate/endDate in the query string, they will be bound automatically.
         }
     }
 }
