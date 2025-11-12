@@ -4,5 +4,6 @@ namespace PassDemo.Common.Api.Models
     {
         public DatabaseConnectionState DatabaseState { get; set; }
         public string DatabaseServer { get; set; } = string.Empty;
+        public string ActiveConnectionName { get; set; } = string.Empty;
     }
 }

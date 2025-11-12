@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using PassDemo.Common.DTOs;
 
 namespace PassDemo.Ui.Controllers
 {
@@ -41,6 +42,26 @@ namespace PassDemo.Ui.Controllers
             {
                 // This catches network errors if the API is completely unreachable.
                 return StatusCode(503, "Backend API is unavailable."); // 503 Service Unavailable
+            }
+        }
+    
+        [HttpPost("connection")]
+        public async Task<IActionResult> UpdateActiveConnection([FromBody] ConnectionUpdateRequest request)
+        {
+            var client = _httpClientFactory.CreateClient("ApiClient");
+            try
+            {
+                var response = await client.PostAsJsonAsync("/api/status/connection", request);
+                if (response.IsSuccessStatusCode)
+                {
+                    var apiContent = await response.Content.ReadAsStringAsync();
+                    return Content(apiContent, "application/json");
+                }
+                return StatusCode((int)response.StatusCode, "Failed to update connection on the backend API.");
+            }
+            catch (HttpRequestException)
+            {
+                return StatusCode(503, "Backend API is unavailable.");
             }
         }
     }

@@ -486,3 +486,4 @@ $RECYCLE.BIN/
 address.db
 address.db-wal
 address.db-shm
+demo*_*.db*
