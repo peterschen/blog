@@ -63,6 +63,7 @@ module "project" {
 
   apis = [
     "compute.googleapis.com",
+    "run.googleapis.com"
   ]
 }
 
@@ -157,4 +158,109 @@ module "bastion" {
   enable_ssms = false
   enable_hammerdb = false
   enable_discoveryclient = false
+}
+
+resource "google_project_service_identity" "run" {
+  provider = google-beta
+  project = data.google_project.project.project_id
+  service = "run.googleapis.com"
+}
+
+resource "google_project_iam_member" "artifactregistry_reader" {
+  project = "cbpetersen-shared"
+  role = "roles/artifactregistry.reader"
+  member = google_project_service_identity.run.member
+}
+
+# resource "google_project_iam_binding" "cloudbuild_runadmin" {
+#   project = "cbpetersen-shared"
+
+#   role = "roles/run.admin"
+
+#   members = [
+#     "serviceAccount:${module.project.number}@cloudbuild.gserviceaccount.com",
+#   ]
+
+#   depends_on = [
+#     module.project
+#   ]
+# }
+
+resource "google_cloud_run_v2_service" "api" {
+  project = data.google_project.project.project_id
+  name = "pass-demo-api"
+  location = local.region_demo
+
+  template {
+      containers {
+        image = "europe-west4-docker.pkg.dev/cbpetersen-shared/pass/pass-demo-api:latest"
+        
+        ports {
+          container_port = 5000
+        }
+
+        env {
+          name = "HTTP_PORTS"
+          value = 5000
+        }
+      }
+  }
+
+  scaling {
+    scaling_mode = "MANUAL"
+    manual_instance_count = 1
+  }
+}
+
+resource "google_cloud_run_v2_service" "ui" {
+  project = data.google_project.project.project_id
+  name = "pass-demo-ui"
+  location = local.region_demo
+
+  template {
+      containers {
+        image = "europe-west4-docker.pkg.dev/cbpetersen-shared/pass/pass-demo-ui:latest"
+        
+        ports {
+          container_port = 5001
+        }
+
+        env {
+          name = "HTTP_PORTS"
+          value = 5001
+        }
+
+        env {
+          name = "ApiBaseUrl"
+          value = google_cloud_run_v2_service.api.uri
+        }
+      }
+  }
+
+  scaling {
+    scaling_mode = "MANUAL"
+    manual_instance_count = 1
+  }
+}
+
+resource "google_cloud_run_v2_service_iam_binding" "api" {
+  project = data.google_project.project.project_id
+  location = google_cloud_run_v2_service.api.location
+  name = google_cloud_run_v2_service.api.name
+
+  role = "roles/run.invoker"
+  members = [
+    "allUsers"
+  ]
+}
+
+resource "google_cloud_run_v2_service_iam_binding" "ui" {
+  project = data.google_project.project.project_id
+  location = google_cloud_run_v2_service.ui.location
+  name = google_cloud_run_v2_service.ui.name
+
+  role = "roles/run.invoker"
+  members = [
+    "allUsers"
+  ]
 }
