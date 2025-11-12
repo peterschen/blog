@@ -60,8 +60,7 @@ public class WeatherDataProducer : BackgroundService
                 _logger.LogError(ex, "An unexpected error occurred in the producer loop.");
             }
 
-            // --- Wait for a random interval ---
-            int delaySeconds = _random.Next(1, 10);
+            int delaySeconds = 10;
             _logger.LogInformation("Next data submission in {Delay} seconds.", delaySeconds);
             await Task.Delay(TimeSpan.FromSeconds(delaySeconds), stoppingToken);
         }
