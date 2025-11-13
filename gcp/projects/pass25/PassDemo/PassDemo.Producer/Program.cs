@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 public class Program
@@ -8,6 +9,16 @@ public class Program
         // Check for the presence of the command-line arguments.
         bool isBatchMode = args.Contains("--batch");
         bool isCleanMode = args.Contains("--clean");
+
+        string? targetEnvironment = null;
+
+        for (int i = 0; i < args.Length; i++)
+        {
+            if (args[i].ToLower() == "--env" && i + 1 < args.Length)
+            {
+                targetEnvironment = args[i + 1].ToUpper(); // Standardize to uppercase (DEMO1, etc.)
+            }
+        }
 
         var builder = Host.CreateDefaultBuilder(args);
 
@@ -26,27 +37,84 @@ public class Program
 
             services.AddTransient<BatchDataGenerator>();
             services.AddTransient<DatabaseCleaner>();
+            services.AddTransient<EnvironmentSetter>();
             services.AddHostedService<WeatherDataProducer>();
         });
 
         // Build and run the host. This will start the WeatherDataProducer service.
         var host = builder.Build();
-        if (isCleanMode)
+
+        var allDemos = new List<string> { "DEMO1", "DEMO2", "DEMO3", "DEMO4" };
+        var environmentsToProcess = new List<string>();
+
+        if ("ALL".Equals(targetEnvironment, StringComparison.OrdinalIgnoreCase))
         {
-            // For clean mode, resolve the cleaner and run its single operation.
-            var cleaner = host.Services.GetRequiredService<DatabaseCleaner>();
-            await cleaner.RunAsync();
+            environmentsToProcess.AddRange(allDemos);
         }
-        else if (isBatchMode)
+        else if (!string.IsNullOrEmpty(targetEnvironment))
         {
-            // For batch mode, we get the generator service from the DI container...
-            var batchGenerator = host.Services.GetRequiredService<BatchDataGenerator>();
-            await batchGenerator.RunAsync();
+            environmentsToProcess.Add(targetEnvironment);
         }
-        else
+
+        if (!isBatchMode && environmentsToProcess.Count > 1)
         {
-            // For continuous mode, we run the host, which starts the WeatherDataProducer
-            // and keeps the application alive.
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"Spawning separate producer processes for all {environmentsToProcess.Count} environments...");
+            Console.ResetColor();
+
+            foreach (var env in environmentsToProcess)
+            {
+                var processStartInfo = new ProcessStartInfo
+                {
+                    FileName = "dotnet",
+                    Arguments = $"run -- --env {env}" // Pass the specific environment flag
+                };
+                
+                // If --clean was also specified, add it to the arguments for the child process
+                if (isCleanMode)
+                {
+                    processStartInfo.Arguments += " --clean";
+                }
+                
+                Console.WriteLine($"Starting continuous producer for {env}...");
+                Process.Start(processStartInfo);
+            }
+            // The main process exits after launching the child processes.
+            return;
+        }
+
+        // --- Standard Logic for Single-Target or Batch/Clean Operations ---
+        var setter = host.Services.GetRequiredService<EnvironmentSetter>();
+        var cleaner = host.Services.GetRequiredService<DatabaseCleaner>();
+        var batchGenerator = host.Services.GetRequiredService<BatchDataGenerator>();
+
+        // If a specific environment is targeted (single or "all" for batch/clean), loop through.
+        if (environmentsToProcess.Any())
+        {
+            foreach (var env in environmentsToProcess)
+            {
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.WriteLine($"--- Acting on Environment: {env} ---");
+                Console.ResetColor();
+
+                await setter.RunAsync(env);
+                if (isCleanMode) await cleaner.RunAsync();
+                if (isBatchMode) await batchGenerator.RunAsync();
+            }
+
+            if (isBatchMode || isCleanMode) return; // Exit after batch/clean
+        }
+        // If no specific environment was targeted, run actions on the current environment.
+        else 
+        {
+            if (isCleanMode) await cleaner.RunAsync();
+            if (isBatchMode) await batchGenerator.RunAsync();
+        }
+        
+        // If neither batch nor clean mode was specified, or if only --env [single] was used,
+        // run the default continuous mode for the current/selected environment.
+        if (!isBatchMode && !isCleanMode)
+        {
             await host.RunAsync();
         }
     }
