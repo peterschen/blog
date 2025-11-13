@@ -26,12 +26,14 @@ locals {
   project_id_demo2 = var.project_id_demo2
   project_id_demo3 = var.project_id_demo3
   project_id_demo4 = var.project_id_demo4
+  project_id_demo5 = var.project_id_demo5
 
   region_demo = var.region_demo
   region_demo1 = var.region_demo1
   region_demo2 = var.region_demo2
   region_demo3 = var.region_demo3
   region_demo4 = var.region_demo4
+  region_demo5 = var.region_demo5
 
   region_secondary_demo3 = var.region_secondary_demo3
 
@@ -40,6 +42,7 @@ locals {
   zone_demo2 = var.zone_demo2
   zone_demo3 = var.zone_demo3
   zone_demo4 = var.zone_demo4
+  zone_demo5 = var.zone_demo5
 
   zone_secondary_demo2 = var.zone_secondary_demo2
   zone_secondary_demo3 = var.zone_secondary_demo3
@@ -50,6 +53,7 @@ locals {
   enable_demo2 = var.enable_demo2
   enable_demo3 = var.enable_demo3
   enable_demo4 = var.enable_demo4
+  enable_demo5 = var.enable_demo5
 }
 
 module "project" {
@@ -172,20 +176,6 @@ resource "google_project_iam_member" "artifactregistry_reader" {
   member = google_project_service_identity.run.member
 }
 
-# resource "google_project_iam_binding" "cloudbuild_runadmin" {
-#   project = "cbpetersen-shared"
-
-#   role = "roles/run.admin"
-
-#   members = [
-#     "serviceAccount:${module.project.number}@cloudbuild.gserviceaccount.com",
-#   ]
-
-#   depends_on = [
-#     module.project
-#   ]
-# }
-
 resource "google_cloud_run_v2_service" "api" {
   project = data.google_project.project.project_id
   name = "pass-demo-api"
@@ -203,6 +193,38 @@ resource "google_cloud_run_v2_service" "api" {
           name = "HTTP_PORTS"
           value = 5000
         }
+
+        dynamic "env" {
+          for_each = google_compute_instance_group.demo5
+          content {
+            name = "ConnectionStrings__DEMO1"
+            value = "Server=${one(google_compute_address.demo5).address};Database=pass;User=sa;Password=Admin123Admin123;TrustServerCertificate=True"
+          }
+        }
+
+        # dynamic "env" {
+        #   for_each = google_compute_instance_group.demo2
+        #   content {
+        #     name = "ConnectionStrings__DEMO2"
+        #     value = "Server=${one(google_compute_address.demo2).address};User=sa;Password=Admin123Admin123"
+        #   }
+        # }
+
+        # dynamic "env" {
+        #   for_each = google_compute_instance_group.demo3
+        #   content {
+        #     name = "ConnectionStrings__DEMO3"
+        #     value = "Server=${one(google_compute_address.demo3).address};User=sa;Password=Admin123Admin123"
+        #   }
+        # }
+
+        # dynamic "env" {
+        #   for_each = google_compute_instance_group.demo4
+        #   content {
+        #     name = "ConnectionStrings__DEMO4"
+        #     value = "Server=${one(google_compute_address.demo4).address};User=sa;Password=Admin123Admin123"
+        #   }
+        # }
       }
   }
 
@@ -210,6 +232,8 @@ resource "google_cloud_run_v2_service" "api" {
     scaling_mode = "MANUAL"
     manual_instance_count = 1
   }
+
+  deletion_protection=false
 }
 
 resource "google_cloud_run_v2_service" "ui" {
@@ -241,6 +265,8 @@ resource "google_cloud_run_v2_service" "ui" {
     scaling_mode = "MANUAL"
     manual_instance_count = 1
   }
+
+  deletion_protection=false
 }
 
 resource "google_cloud_run_v2_service_iam_binding" "api" {

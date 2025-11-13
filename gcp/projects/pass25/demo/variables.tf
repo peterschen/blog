@@ -63,6 +63,21 @@ variable "sql_image" {
   default = "windows-cloud/windows-2025"
 }
 
+variable "enable_bastion" {
+  type = bool
+  default = true
+}
+
+variable "enable_ad" {
+  type = bool
+  default = true
+}
+
+variable "enable_sql" {
+  type = bool
+  default = true
+}
+
 variable "enable_cluster" {
   type = bool
   default = false

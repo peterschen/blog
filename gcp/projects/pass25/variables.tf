@@ -40,6 +40,11 @@ variable "project_id_demo4" {
   default = null
 }
 
+variable "project_id_demo5" {
+  type = string
+  default = null
+}
+
 variable "region_demo" {
   type = string
   default = "europe-west4"
@@ -61,6 +66,11 @@ variable "region_demo3" {
 }
 
 variable "region_demo4" {
+  type = string
+  default = "europe-west4"
+}
+
+variable "region_demo5" {
   type = string
   default = "europe-west4"
 }
@@ -95,6 +105,11 @@ variable "zone_demo4" {
   default = "europe-west4-a"
 }
 
+variable "zone_demo5" {
+  type = string
+  default = "europe-west4-a"
+}
+
 variable "zone_secondary_demo2" {
   type = string
   default = "europe-west4-a"
@@ -121,6 +136,11 @@ variable "enable_demo3" {
 }
 
 variable "enable_demo4" {
+  type = bool
+  default = true
+}
+
+variable "enable_demo5" {
   type = bool
   default = true
 }

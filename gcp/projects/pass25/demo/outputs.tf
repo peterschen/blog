@@ -15,5 +15,5 @@ output "network_name" {
 }
 
 output "instances" {
-    value = module.sqlserver.instances
+  value = local.enable_sql ? one(module.sqlserver).instances : []
 }

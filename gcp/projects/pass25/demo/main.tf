@@ -26,6 +26,9 @@ locals {
   machine_type_bastion = var.machine_type_bastion
   machine_type_sql = var.machine_type_sql
 
+  enable_bastion = var.enable_bastion
+  enable_ad = var.enable_ad
+  enable_sql = var.enable_sql
   enable_cluster = var.enable_cluster
   enable_alwayson = var.enable_alwayson
 
@@ -120,6 +123,7 @@ module "nat" {
 }
 
 module "ad" {
+  count = local.enable_ad ? 1 : 0
   source = "../../../modules/ad"
   project = data.google_project.project.project_id
 
@@ -145,6 +149,7 @@ module "ad" {
 }
 
 module "bastion" {
+  count = local.enable_bastion ? 1 : 0
   source = "../../../modules/bastion_windows"
   project = data.google_project.project.project_id
 
@@ -162,7 +167,7 @@ module "bastion" {
   domain_name = local.domain_name
   password = local.password
 
-  enable_domain = true
+  enable_domain = local.enable_ad
   enable_ssms = true
   enable_hammerdb = true
   enable_discoveryclient = false
@@ -175,6 +180,7 @@ module "bastion" {
 }
 
 module "sqlserver" {
+  count = local.enable_sql ? 1 : 0
   source = "../../../modules/sqlserver"
   project = data.google_project.project.project_id
   region = local.region
