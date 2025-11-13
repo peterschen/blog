@@ -432,6 +432,7 @@ configuration ConfigurationWorkload
                 SourcePath = "C:\sql_server_install"
                 Features = "SQLENGINE,FULLTEXT"
                 InstanceName = "MSSQLSERVER"
+                SecurityMode = "SQL"
                 SQLSysAdminAccounts = "$($Parameters.domainName)\g-SqlAdministrators"
                 SQLSvcAccount = $engineCredential
                 AgtSvcAccount = $agentCredential
@@ -525,6 +526,20 @@ GO
                 InstanceName = "MSSQLSERVER"
                 Name = "$($Parameters.domainName.Split(".")[0])\$($engineCredential.UserName.Split("\")[1])"
                 LoginType = "WindowsUser"
+                PsDscRunAsCredential = $domainCredential
+            }
+
+            SqlLogin "SA"
+            {
+                ServerName = $Node.NodeName
+                InstanceName = "MSSQLSERVER"
+                Name = "sa"
+                LoginType = "SqlLogin"
+                LoginCredential = $domainCredential
+                LoginMustChangePassword = $false
+                LoginPasswordExpirationEnabled = $false
+                LoginPasswordPolicyEnforced = $false
+                Disabled = $false
                 PsDscRunAsCredential = $domainCredential
             }
         }
