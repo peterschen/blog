@@ -6,6 +6,7 @@ namespace PassDemo.Common.Api.Models
     public enum DatabaseConnectionState
     {
         Disconnected,
-        Connected
+        Connected,
+        Failed
     }
 }
