@@ -27,6 +27,22 @@ namespace PassDemo.Api.Migrations
                 {
                     table.PrimaryKey("PK_Addresses", x => x.Id);
                 });
+
+            migrationBuilder.CreateTable(
+                name: "WeatherData",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Location = table.Column<string>(type: "TEXT", nullable: false),
+                    Timestamp = table.Column<long>(type: "INTEGER", nullable: false),
+                    DataType = table.Column<int>(type: "INTEGER", nullable: false),
+                    Value = table.Column<double>(type: "REAL", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WeatherData", x => x.Id);
+                });
         }
 
         /// <inheritdoc />
@@ -34,6 +50,9 @@ namespace PassDemo.Api.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Addresses");
+
+            migrationBuilder.DropTable(
+                name: "WeatherData");
         }
     }
 }
