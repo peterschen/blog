@@ -1,3 +1,4 @@
 **/[b|B]in/
 **/[O|o]bj/
 address.db*
+demo?.db*

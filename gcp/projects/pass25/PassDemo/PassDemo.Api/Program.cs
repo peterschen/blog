@@ -58,6 +58,24 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        var context = services.GetRequiredService<AddressDbContext>();
+        
+        await context.Database.EnsureCreatedAsync();
+        
+        logger.LogInformation("Initial database check complete for the default connection.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred while ensuring the initial database was created.");
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
