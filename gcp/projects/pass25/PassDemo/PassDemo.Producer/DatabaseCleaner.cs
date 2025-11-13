@@ -16,7 +16,7 @@ public class DatabaseCleaner
     /// <summary>
     /// Calls the API to clear all weather data.
     /// </summary>
-    public async Task RunAsync()
+    public async Task RunAsync(string environment)
     {
         _logger.LogInformation("Attempting to clear all weather data via API...");
 
@@ -25,7 +25,7 @@ public class DatabaseCleaner
         try
         {
             // Make a DELETE request to the root of the weatherdata endpoint.
-            var response = await client.DeleteAsync("/api/weatherdata");
+            var response = await client.DeleteAsync($"/api/weatherdata/{environment}");
 
             if (response.IsSuccessStatusCode)
             {

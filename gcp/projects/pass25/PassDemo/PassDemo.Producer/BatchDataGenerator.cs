@@ -20,7 +20,7 @@ public class BatchDataGenerator
         _httpClientFactory = httpClientFactory;
     }
 
-    public async Task RunAsync()
+    public async Task RunAsync(string environment)
     {
         _logger.LogInformation("Starting batch data generation...");
 
@@ -56,14 +56,14 @@ public class BatchDataGenerator
             currentTime = currentTime.AddSeconds(10);
         }
 
-        _logger.LogInformation("Generated {Count} total data points. Posting to API in batches...", allGeneratedData.Count);
+        _logger.LogInformation("Posting {Count} total data points to environment '{Environment}'...", allGeneratedData.Count, environment);
 
         var client = _httpClientFactory.CreateClient("ApiClient");
 
         for (int i = 0; i < allGeneratedData.Count; i += BatchSize)
         {
             var batch = allGeneratedData.Skip(i).Take(BatchSize).ToList();
-            await SendBatchDataAsync(client, batch, CancellationToken.None);
+            await SendBatchDataAsync(client, batch, environment, CancellationToken.None);
         }
 
         _logger.LogInformation("Batch data generation complete.");
@@ -78,13 +78,13 @@ public class BatchDataGenerator
         return Math.Round(clampedValue, 1);
     }
 
-    private async Task SendBatchDataAsync(HttpClient client, List<WeatherData> dataList, CancellationToken token)
+    private async Task SendBatchDataAsync(HttpClient client, List<WeatherData> dataList, string environment, CancellationToken token)
     {
         if (!dataList.Any()) return;
 
         try
         {
-            var response = await client.PostAsJsonAsync("/api/weatherdata/batch", dataList, token);
+            var response = await client.PostAsJsonAsync($"/api/weatherdata/batch/{environment}", dataList, token);
 
             if (response.IsSuccessStatusCode)
             {

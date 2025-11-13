@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using PassDemo.Common.Models;
 using System.Net.Http.Json;
 
-public class WeatherDataProducer : BackgroundService
+public class WeatherDataProducer
 {
     private readonly ILogger<WeatherDataProducer> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
@@ -22,16 +22,14 @@ public class WeatherDataProducer : BackgroundService
         _lastHumidity = 85.0;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    public async Task ExecuteAsync(string environment, CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Weather Data Producer starting.");
+        _logger.LogInformation("Continuous producer starting for environment '{Environment}'.", environment);
 
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                var client = _httpClientFactory.CreateClient("ApiClient");
-
                 // --- Generate and Send Temperature Data ---
                 _lastTemperature = GenerateNextValue(_lastTemperature, 0.15, -5.0, 15.0); // Absolute min/max as a safety rail
                 var tempData = new WeatherData
@@ -41,7 +39,7 @@ public class WeatherDataProducer : BackgroundService
                     DataType = WeatherDataType.Temperature,
                     Value = _lastTemperature
                 };
-                await SendDataAsync(client, tempData, stoppingToken);
+                await SendDataAsync(tempData, environment,stoppingToken);
 
                 // --- Generate and Send Humidity Data ---
                 _lastHumidity = GenerateNextValue(_lastHumidity, 0.15, 65.0, 99.0); // Absolute min/max
@@ -52,7 +50,7 @@ public class WeatherDataProducer : BackgroundService
                     DataType = WeatherDataType.Humidity,
                     Value = _lastHumidity
                 };
-                await SendDataAsync(client, humidityData, stoppingToken);
+                await SendDataAsync(humidityData, environment, stoppingToken);
 
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
@@ -82,11 +80,13 @@ public class WeatherDataProducer : BackgroundService
         return Math.Round(clampedValue, 1);
     }
 
-    private async Task SendDataAsync(HttpClient client, WeatherData data, CancellationToken token)
+    private async Task SendDataAsync(WeatherData data, string environment, CancellationToken token)
     {
+        var client = _httpClientFactory.CreateClient("ApiClient");
+
         try
         {
-            var response = await client.PostAsJsonAsync("/api/weatherdata", data, token);
+            var response = await client.PostAsJsonAsync($"/api/weatherdata/{environment}", data, token);
 
             if (response.IsSuccessStatusCode)
             {

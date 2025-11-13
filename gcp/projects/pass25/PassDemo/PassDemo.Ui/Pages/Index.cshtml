@@ -153,34 +153,30 @@
          * Fetches weather data from the API and updates the chart.
          */
         async function fetchWeatherData() {
-            // Defensive check: Do nothing if the chart object doesn't exist for any reason.
-            if (!weatherChart) {
-                console.error("fetchWeatherData called before chart was initialized.");
-                return;
-            }
+            if (!weatherChart) return;
+
+            let startTs, endTs;
+            const selectedEnv = document.getElementById('connectionSelector').value; // Get current env
 
             if (isLiveMode) {
                 const now = new Date();
-                const start = new Date(now.getTime() - 15 * 60 * 1000);
-                startTs = start.getTime();
+                startTs = now.getTime() - (15 * 60 * 1000);
                 endTs = now.getTime();
-                
-                // Update the disabled inputs to reflect the live window
-                setDateInputs(start, now);
+                setDateInputs(new Date(startTs), now);
             } else {
-                // Manual mode: read the static values from the inputs
                 startTs = new Date(startDateInput.value).getTime();
                 endTs = new Date(endDateInput.value).getTime();
             }
-
+            
             weatherChart.options.scales.x.min = startTs;
             weatherChart.options.scales.x.max = endTs;
 
             try {
-                const [tempResponse, humidityResponse] = await Promise.all([
-                    fetch(`${apiEndpoint}?startTimestamp=${startTs}&endTimestamp=${endTs}&dataType=Temperature`),
-                    fetch(`${apiEndpoint}?startTimestamp=${startTs}&endTimestamp=${endTs}&dataType=Humidity`)
-                ]);
+                // Pass environment as a query parameter to the UI's proxy
+                const tempUrl = `/api/weatherdata?environment=${selectedEnv}&startTimestamp=${startTs}&endTimestamp=${endTs}&dataType=Temperature`;
+                const humidityUrl = `/api/weatherdata?environment=${selectedEnv}&startTimestamp=${startTs}&endTimestamp=${endTs}&dataType=Humidity`;
+
+                const [tempResponse, humidityResponse] = await Promise.all([ fetch(tempUrl), fetch(humidityUrl) ]);
 
                 const tempData = await tempResponse.json();
                 const humidityData = await humidityResponse.json();

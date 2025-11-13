@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 public class Program
@@ -7,38 +6,32 @@ public class Program
     public static async Task Main(string[] args)
     {
         // Check for the presence of the command-line arguments.
-        bool isBatchMode = args.Contains("--batch");
-        bool isCleanMode = args.Contains("--clean");
-
+        bool doBatch = args.Contains("--batch");
+        bool doClean = args.Contains("--clean");
+        bool doWait = args.Contains("--wait"); // The new flag for continuous mode
         string? targetEnvironment = null;
 
         for (int i = 0; i < args.Length; i++)
         {
             if (args[i].ToLower() == "--env" && i + 1 < args.Length)
             {
-                targetEnvironment = args[i + 1].ToUpper(); // Standardize to uppercase (DEMO1, etc.)
+                targetEnvironment = args[i + 1].ToUpper();
             }
         }
 
         var builder = Host.CreateDefaultBuilder(args);
-
         builder.ConfigureServices((hostContext, services) =>
         {
-            // Configure the HttpClient to communicate with our API
             services.AddHttpClient("ApiClient", client =>
             {
                 string? apiBaseUrl = hostContext.Configuration["ApiBaseUrl"];
-                if (string.IsNullOrEmpty(apiBaseUrl))
-                {
-                    throw new InvalidOperationException("ApiBaseUrl is not configured in appsettings.json");
-                }
+                if (string.IsNullOrEmpty(apiBaseUrl)) throw new InvalidOperationException("ApiBaseUrl is not configured");
                 client.BaseAddress = new Uri(apiBaseUrl);
             });
 
             services.AddTransient<BatchDataGenerator>();
             services.AddTransient<DatabaseCleaner>();
-            services.AddTransient<EnvironmentSetter>();
-            services.AddHostedService<WeatherDataProducer>();
+            services.AddTransient<WeatherDataProducer>();
         });
 
         // Build and run the host. This will start the WeatherDataProducer service.
@@ -46,7 +39,6 @@ public class Program
 
         var allDemos = new List<string> { "DEMO1", "DEMO2", "DEMO3", "DEMO4" };
         var environmentsToProcess = new List<string>();
-
         if ("ALL".Equals(targetEnvironment, StringComparison.OrdinalIgnoreCase))
         {
             environmentsToProcess.AddRange(allDemos);
@@ -55,67 +47,63 @@ public class Program
         {
             environmentsToProcess.Add(targetEnvironment);
         }
-
-        if (!isBatchMode && environmentsToProcess.Count > 1)
+        else if (doClean || doBatch || doWait) // Default to DEMO1 if an action is requested without --env
         {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"Spawning separate producer processes for all {environmentsToProcess.Count} environments...");
-            Console.ResetColor();
-
-            foreach (var env in environmentsToProcess)
-            {
-                var processStartInfo = new ProcessStartInfo
-                {
-                    FileName = "dotnet",
-                    Arguments = $"run -- --env {env}" // Pass the specific environment flag
-                };
-                
-                // If --clean was also specified, add it to the arguments for the child process
-                if (isCleanMode)
-                {
-                    processStartInfo.Arguments += " --clean";
-                }
-                
-                Console.WriteLine($"Starting continuous producer for {env}...");
-                Process.Start(processStartInfo);
-            }
-            // The main process exits after launching the child processes.
-            return;
+            environmentsToProcess.Add("DEMO1");
         }
 
-        // --- Standard Logic for Single-Target or Batch/Clean Operations ---
-        var setter = host.Services.GetRequiredService<EnvironmentSetter>();
+        // Get services from DI container
         var cleaner = host.Services.GetRequiredService<DatabaseCleaner>();
         var batchGenerator = host.Services.GetRequiredService<BatchDataGenerator>();
 
-        // If a specific environment is targeted (single or "all" for batch/clean), loop through.
-        if (environmentsToProcess.Any())
+        // Preparatory Action: Cleaning
+        if (doClean)
         {
             foreach (var env in environmentsToProcess)
             {
                 Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.WriteLine($"--- Acting on Environment: {env} ---");
+                Console.WriteLine($"--- Cleaning Environment: {env} ---");
                 Console.ResetColor();
+                await cleaner.RunAsync(env);
+            }
+        }
 
-                await setter.RunAsync(env);
-                if (isCleanMode) await cleaner.RunAsync();
-                if (isBatchMode) await batchGenerator.RunAsync();
+        // Main Execution Action
+        if (doBatch)
+        {
+            foreach (var env in environmentsToProcess)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"--- Running Batch For Environment: {env} ---");
+                Console.ResetColor();
+                await batchGenerator.RunAsync(env);
+            }
+            Console.WriteLine("Batch mode complete.");
+        }
+        else if (doWait) // Use --wait to trigger continuous mode
+        {
+            var tasks = new List<Task>();
+            var cts = new CancellationTokenSource();
+            Console.CancelKeyPress += (s, e) => { e.Cancel = true; cts.Cancel(); };
+
+            Console.WriteLine($"Starting continuous producer threads for: {string.Join(", ", environmentsToProcess)}");
+            
+            foreach (var env in environmentsToProcess)
+            {
+                var producer = host.Services.GetRequiredService<WeatherDataProducer>();
+                // The 'wait' parameter is removed from ExecuteAsync, it uses the default random delay.
+                tasks.Add(Task.Run(() => producer.ExecuteAsync(env, cts.Token)));
             }
 
-            if (isBatchMode || isCleanMode) return; // Exit after batch/clean
+            await Task.WhenAll(tasks);
+            Console.WriteLine("All producers have stopped. Application exiting.");
         }
-        // If no specific environment was targeted, run actions on the current environment.
-        else 
+        else if (!doClean)
         {
-            if (isCleanMode) await cleaner.RunAsync();
-            if (isBatchMode) await batchGenerator.RunAsync();
-        }
-        
-        // If neither batch nor clean mode was specified, or if only --env [single] was used,
-        // run the default continuous mode for the current/selected environment.
-        if (!isBatchMode && !isCleanMode)
-        {
-            await host.RunAsync();
+            // If no action flags were given at all, show help text.
+            Console.WriteLine("No action specified. Please use --clean, --batch, or --wait.");
+            Console.WriteLine("Optionally combine with --env [DEMO1|DEMO2|DEMO3|DEMO4|all].");
+            Console.WriteLine("Example: dotnet run -- --env all --clean --batch");
         }
     }
 }

@@ -1,14 +1,11 @@
 using PassDemo.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using PassDemo.Api.Options;
-using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<ConnectionStringsOptions>(
     builder.Configuration.GetSection(ConnectionStringsOptions.ConnectionStrings));
-
-builder.Services.AddSingleton<ActiveConnectionService>();
 
 // Define a CORS policy
 builder.Services.AddCors(options =>
@@ -21,60 +18,21 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add services to the container.
-builder.Services.AddDbContext<AddressDbContext>((serviceProvider, options) =>
+// We no longer register a DbContext here because it will be created manually in the controllers.
+// Instead, we ensure the options for creating it are available.
+builder.Services.AddDbContext<AddressDbContext>(options =>
 {
-    var csOptions = serviceProvider.GetRequiredService<IOptions<ConnectionStringsOptions>>().Value;
-    var activeConnectionService = serviceProvider.GetRequiredService<ActiveConnectionService>();
-    
-    // Get the current active connection name from the singleton service.
-    string activeConnectionName = activeConnectionService.ActiveConnectionName;
-
-    string connectionString = activeConnectionName switch
-    {
-        "DEMO2" => connectionString = csOptions.DEMO2,
-        "DEMO3" => connectionString = csOptions.DEMO3,
-        "DEMO4" => connectionString = csOptions.DEMO4,
-        _ => connectionString = csOptions.DEMO1
-    };
-
-    if (builder.Environment.IsDevelopment())
-    {
-        // Use SQLite in development
-        Console.WriteLine("Using SQLite for development.");
-        options.UseSqlite(connectionString);
-    }
-    else
-    {
-        // Use SQL Server in production or other environments
-        Console.WriteLine("Using SQL Server.");
-        options.UseSqlServer(connectionString);
-    }
+    // Provide a dummy default configuration to satisfy DI requirements.
+    // This context will NOT be used directly.
+    options.UseSqlite("Data Source=dummy.db");
 });
+
 builder.Services.AddControllers();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
-
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var logger = services.GetRequiredService<ILogger<Program>>();
-    try
-    {
-        var context = services.GetRequiredService<AddressDbContext>();
-        
-        await context.Database.EnsureCreatedAsync();
-        
-        logger.LogInformation("Initial database check complete for the default connection.");
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "An error occurred while ensuring the initial database was created.");
-    }
-}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
