@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using PassDemo.Api.Data;
@@ -13,14 +14,16 @@ namespace PassDemo.Api.Controllers
     {
         private readonly IOptions<ConnectionStringsOptions> _csOptions;
         private readonly IWebHostEnvironment _env;
+        private readonly ILogger<WeatherDataController> _logger;
 
-        public WeatherDataController(IOptions<ConnectionStringsOptions> csOptions, IWebHostEnvironment env)
+        public WeatherDataController(IOptions<ConnectionStringsOptions> csOptions, IWebHostEnvironment env, ILogger<WeatherDataController> logger)
         {
             _csOptions = csOptions;
             _env = env;
+            _logger = logger;
         }
 
-        private AddressDbContext CreateDbContextForEnvironment(string environment)
+        private async Task<AddressDbContext> CreateAndEnsureDbReadyAsync(string environment)
         {
             var optionsBuilder = new DbContextOptionsBuilder<AddressDbContext>();
             string connectionString = environment.ToUpper() switch 
@@ -31,15 +34,32 @@ namespace PassDemo.Api.Controllers
                 "DEMO4" => _csOptions.Value.DEMO4,
                 _ => _csOptions.Value.DEMO1
             };
+
             if (_env.IsDevelopment()) optionsBuilder.UseSqlite(connectionString);
             else optionsBuilder.UseSqlServer(connectionString);
-            return new AddressDbContext(optionsBuilder.Options);
+
+            var context = new AddressDbContext(optionsBuilder.Options);
+
+            try
+            {
+                // This is now the single place where this check is performed.
+                await context.Database.EnsureCreatedAsync();
+            }
+            catch (Exception ex)
+            {
+                // Log the error with the connection string, as requested.
+                _logger.LogError(ex, "Failed to ensure database was created for environment {Environment} with connection string: {ConnectionString}", environment, connectionString);
+                // Re-throw the exception so the calling method knows something went wrong.
+                throw; 
+            }
+
+            return context;
         }
 
         [HttpGet("{environment}")]
         public async Task<ActionResult<IEnumerable<WeatherData>>> GetWeatherData(string environment, [FromQuery] long? startTimestamp, [FromQuery] long? endTimestamp, [FromQuery] WeatherDataType? dataType)
         {
-            await using var context = CreateDbContextForEnvironment(environment);
+            await using var context = await CreateAndEnsureDbReadyAsync(environment);
             await context.Database.EnsureCreatedAsync();
 
             long effectiveStart = startTimestamp ?? DateTimeOffset.UtcNow.AddHours(-24).ToUnixTimeMilliseconds();
@@ -56,7 +76,7 @@ namespace PassDemo.Api.Controllers
         {
             try
             {
-                await using var context = CreateDbContextForEnvironment(environment);
+                await using var context = await CreateAndEnsureDbReadyAsync(environment);
                 await context.Database.EnsureCreatedAsync();
                 context.WeatherData.Add(weatherData);
                 await context.SaveChangesAsync();
@@ -72,7 +92,7 @@ namespace PassDemo.Api.Controllers
         public async Task<IActionResult> StoreWeatherDataBatch(string environment, [FromBody] List<WeatherData> weatherDataList)
         {
             if (weatherDataList == null || !weatherDataList.Any()) return BadRequest("Batch is empty.");
-            await using var context = CreateDbContextForEnvironment(environment);
+            await using var context = await CreateAndEnsureDbReadyAsync(environment);
             await context.Database.EnsureCreatedAsync();
             context.WeatherData.AddRange(weatherDataList);
             await context.SaveChangesAsync();
@@ -82,7 +102,7 @@ namespace PassDemo.Api.Controllers
         [HttpDelete("{environment}")]
         public async Task<IActionResult> DeleteAllWeatherData(string environment)
         {
-            await using var context = CreateDbContextForEnvironment(environment);
+            await using var context = await CreateAndEnsureDbReadyAsync(environment);
             await context.Database.EnsureCreatedAsync();
             await context.WeatherData.ExecuteDeleteAsync();
             return NoContent();

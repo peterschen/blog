@@ -5,8 +5,11 @@ namespace PassDemo.Api.Data
 {
     public class AddressDbContext : DbContext
     {
-        public AddressDbContext(DbContextOptions<AddressDbContext> options) : base(options)
+        private readonly ILogger<AddressDbContext>? _logger;
+
+        public AddressDbContext(DbContextOptions<AddressDbContext> options, ILogger<AddressDbContext>? logger = null) : base(options)
         {
+            _logger = logger;
         }
 
         public DbSet<Address> Addresses { get; set; }

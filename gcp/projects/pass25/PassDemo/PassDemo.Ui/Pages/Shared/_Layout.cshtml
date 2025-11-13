@@ -59,7 +59,8 @@
                 This application has been created with <a href="https://cloud.google.com/gemini-enterprise">Gemini Enterprise</a>!
             </div>
             <div id="db-status-container">
-                <span id="db-status-text">Status: Loading...</span>
+                <span><strong>Database:</strong></span>
+                <span id="db-status-text">Loading...</span>
             </div>
         </div>
     </footer>
@@ -77,11 +78,25 @@
                 try {
                     const response = await fetch(`/api/status/${selectedEnv}`);
                     if (!response.ok) throw new Error(`Status check failed: ${response.status}`);
+
                     const data = await response.json();
-                    statusTextElement.textContent = `Connection: ${data.databaseState} | Server: ${data.databaseServer}`;
-                    statusTextElement.className = data.databaseState.toLowerCase() === 'connected' ? 'text-success' : 'text-warning';
+                    statusTextElement.textContent = `${data.databaseState}`;
+
+                    if(data.databaseState.toLowerCase() === 'connected')
+                    {
+                        statusTextElement.textContent += ` (${data.databaseServer})`;
+                        statusTextElement.className = 'text-success';
+                    }
+                    else if(data.databaseState.toLowerCase() === 'disconnected')
+                    {
+                        statusTextElement.className = 'text-warning';
+                    }
+                    else
+                    {
+                        statusTextElement.className = 'text-danger';
+                    }
                 } catch (error) {
-                    statusTextElement.textContent = 'Error: API is unreachable.';
+                    statusTextElement.textContent = 'Failed to retrieve status';
                     statusTextElement.className = 'text-danger';
                 }
             }
