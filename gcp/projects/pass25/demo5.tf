@@ -135,6 +135,7 @@ resource "google_compute_region_backend_service" "demo5" {
   load_balancing_scheme = "EXTERNAL_MANAGED"
   ip_address_selection_policy = "IPV4_ONLY"
   protocol = "TCP"
+  port_name = "mssql"
 
   health_checks = [
     google_compute_region_health_check.demo5[count.index].id
