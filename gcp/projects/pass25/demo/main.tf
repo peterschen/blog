@@ -30,6 +30,7 @@ locals {
   enable_ad = var.enable_ad
   enable_sql = var.enable_sql
   enable_cluster = var.enable_cluster
+  enable_quorum = var.enable_quorum
   enable_alwayson = var.enable_alwayson
 
   enable_iam = var.enable_iam
@@ -198,6 +199,7 @@ module "sqlserver" {
   configuration_customizations = local.customizations_sql
 
   enable_cluster = local.enable_cluster
+  enable_quorum = local.enable_quorum
   depends_on = [module.ad]
 }
 

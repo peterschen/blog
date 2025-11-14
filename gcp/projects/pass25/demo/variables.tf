@@ -83,6 +83,11 @@ variable "enable_cluster" {
   default = false
 }
 
+variable "enable_quorum" {
+  type = bool
+  default = true
+}
+
 variable "enable_alwayson" {
   type = bool
   default = false
