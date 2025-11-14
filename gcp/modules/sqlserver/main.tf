@@ -258,6 +258,10 @@ resource "google_compute_region_backend_service" "wsfc" {
       balancing_mode = "CONNECTION"
     }
   }
+
+  depends_on = [
+    google_compute_instance_group.wsfc_sql
+  ]
 }
 
 resource "google_compute_region_backend_service" "wsfc_sql" {
@@ -277,6 +281,10 @@ resource "google_compute_region_backend_service" "wsfc_sql" {
       balancing_mode = "CONNECTION"
     }
   }
+
+  depends_on = [
+    google_compute_instance_group.wsfc_sql
+  ]
 }
 
 resource "google_compute_forwarding_rule" "wsfc" {
