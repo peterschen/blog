@@ -22,6 +22,7 @@ builder.Services.AddHttpClient("ApiClient", client =>
         throw new InvalidOperationException("ApiBaseUrl is not configured in appsettings.json");
     }
     client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(1); 
 });
 
 var app = builder.Build();
