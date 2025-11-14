@@ -88,27 +88,6 @@ resource "google_compute_firewall" "demo5_loadbalancer" {
     google_compute_subnetwork.demo5[count.index].ip_cidr_range
   ]
   target_tags = ["mssql"]
-
-  log_config {
-    metadata = "INCLUDE_ALL_METADATA"
-  }
-}
-
-resource "google_compute_disk" "demo5_data" {
-  count = local.enable_demo5 ? 1 : 0
-  project = module.demo5[count.index].project_id
-  zone = local.zone_demo5
-  name = "data"
-  type = "hyperdisk-balanced"
-  size = 50
-}
-
-resource "google_compute_attached_disk" "demo5_data" {
-  count = local.enable_demo5 ? 1 : 0
-  project = module.demo5[count.index].project_id
-  disk = google_compute_disk.demo5_data[count.index].id
-  instance = module.demo5[count.index].instances[0].id
-  device_name = google_compute_disk.demo5_data[count.index].name
 }
 
 resource "google_compute_instance_group" "demo5" {
@@ -171,10 +150,10 @@ resource "google_compute_region_backend_service" "demo5" {
     }
   }
 
-  log_config {
-    enable = true
-    optional_mode = "INCLUDE_ALL_OPTIONAL"
-  }
+  # log_config {
+  #   enable = true
+  #   optional_mode = "INCLUDE_ALL_OPTIONAL"
+  # }
 }
 
 resource "google_compute_region_target_tcp_proxy" "demo5" {
@@ -207,5 +186,25 @@ resource "google_compute_forwarding_rule" "demo5" {
   port_range = "1433-1433"
   target = google_compute_region_target_tcp_proxy.demo5[count.index].id
   network = data.google_compute_network.demo5[count.index].id
-  # subnetwork = google_compute_subnetwork.demo5[count.index].id
+
+  depends_on = [
+    google_compute_subnetwork.demo5
+  ]
+}
+
+resource "google_compute_disk" "demo5" {
+  count = local.enable_demo5 ? 1 : 0
+  project = module.demo5[count.index].project_id
+  zone = local.zone_demo5
+  name = "data"
+  type = "hyperdisk-balanced"
+  size = 50
+}
+
+resource "google_compute_attached_disk" "demo5" {
+  count = local.enable_demo5 ? 1 : 0
+  project = module.demo5[count.index].project_id
+  disk = google_compute_disk.demo5[count.index].id
+  instance = module.demo5[count.index].instances[0].id
+  device_name = google_compute_disk.demo5[count.index].name
 }
