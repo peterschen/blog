@@ -1,11 +1,11 @@
 terraform {
   required_providers {
     google = {
-      version = "~> 6.40"
+      version = "~> 7.11"
     }
 
     google-beta = {
-      version = "~> 6.40"
+      version = "~> 7.11"
     }
   }
 }
@@ -26,14 +26,12 @@ locals {
   project_id_demo2 = var.project_id_demo2
   project_id_demo3 = var.project_id_demo3
   project_id_demo4 = var.project_id_demo4
-  project_id_demo5 = var.project_id_demo5
 
   region_demo = var.region_demo
   region_demo1 = var.region_demo1
   region_demo2 = var.region_demo2
   region_demo3 = var.region_demo3
   region_demo4 = var.region_demo4
-  region_demo5 = var.region_demo5
 
   region_secondary_demo3 = var.region_secondary_demo3
 
@@ -42,7 +40,6 @@ locals {
   zone_demo2 = var.zone_demo2
   zone_demo3 = var.zone_demo3
   zone_demo4 = var.zone_demo4
-  zone_demo5 = var.zone_demo5
 
   zone_secondary_demo2 = var.zone_secondary_demo2
   zone_secondary_demo3 = var.zone_secondary_demo3
@@ -53,7 +50,6 @@ locals {
   enable_demo2 = var.enable_demo2
   enable_demo3 = var.enable_demo3
   enable_demo4 = var.enable_demo4
-  enable_demo5 = var.enable_demo5
 }
 
 module "project" {
@@ -195,36 +191,36 @@ resource "google_cloud_run_v2_service" "api" {
         }
 
         dynamic "env" {
-          for_each = google_compute_instance_group.demo5
+          for_each = google_compute_forwarding_rule.demo1
           content {
             name = "ConnectionStrings__DEMO1"
-            value = "Server=${one(google_compute_address.demo5).address};Database=pass;User=sa;Password=Admin123Admin123;TrustServerCertificate=True"
+            value = "Server=${env.value.ip_address};Database=pass;User=sa;Password=Admin123Admin123;TrustServerCertificate=True"
+          }
+        }
+
+        dynamic "env" {
+          for_each = google_compute_forwarding_rule.demo2
+          content {
+            name = "ConnectionStrings__DEMO2"
+            value = "Server=${env.value.ip_address};Database=pass;User=sa;Password=Admin123Admin123;TrustServerCertificate=True"
           }
         }
 
         # dynamic "env" {
-        #   for_each = google_compute_instance_group.demo2
-        #   content {
-        #     name = "ConnectionStrings__DEMO2"
-        #     value = "Server=${one(google_compute_address.demo2).address};User=sa;Password=Admin123Admin123"
-        #   }
-        # }
-
-        # dynamic "env" {
-        #   for_each = google_compute_instance_group.demo3
+        #   for_each = google_compute_forwarding_rule.demo3
         #   content {
         #     name = "ConnectionStrings__DEMO3"
-        #     value = "Server=${one(google_compute_address.demo3).address};User=sa;Password=Admin123Admin123"
+        #     value = "Server=${env.value.ip_address};Database=pass;User=sa;Password=Admin123Admin123;TrustServerCertificate=True"
         #   }
         # }
 
-        # dynamic "env" {
-        #   for_each = google_compute_instance_group.demo4
-        #   content {
-        #     name = "ConnectionStrings__DEMO4"
-        #     value = "Server=${one(google_compute_address.demo4).address};User=sa;Password=Admin123Admin123"
-        #   }
-        # }
+        dynamic "env" {
+          for_each = google_compute_forwarding_rule.demo4
+          content {
+            name = "ConnectionStrings__DEMO4"
+            value = "Server=${env.value.ip_address};Database=pass;User=sa;Password=Admin123Admin123;TrustServerCertificate=True"
+          }
+        }
       }
   }
 
