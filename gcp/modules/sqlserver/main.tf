@@ -19,6 +19,7 @@ locals {
   use_developer_edition = var.use_developer_edition
   enable_firewall = var.enable_firewall
   enable_cluster = var.enable_cluster
+  enable_quorum = var.enable_quorum
 
   configuration_customizations = var.configuration_customizations
 }
@@ -169,6 +170,7 @@ resource "google_compute_instance" "sql" {
           inlineConfigurationCustomization = try(base64encode(local.configuration_customizations[count.index]), null),
           useDeveloperEdition = local.use_developer_edition,
           enableCluster = local.enable_cluster,
+          enableQuorum = local.enable_quorum,
           modulesDsc = [
             {
               Name = "FailOverClusterDsc",
@@ -207,6 +209,11 @@ resource "google_compute_instance_group" "wsfc_sql" {
   name = "wsfc-${local.machine_prefix}-${count.index}"
   instances = [google_compute_instance.sql[count.index].self_link]
   network = data.google_compute_network.network.self_link
+
+  named_port {
+    name = "mssql" 
+    port = 1433
+  }
 }
 
 resource "google_compute_health_check" "wsfc" {

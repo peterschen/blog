@@ -68,6 +68,11 @@ variable "enable_cluster" {
   default = false
 }
 
+variable "enable_quorum" {
+  type = bool
+  default = true
+}
+
 variable "configuration_customizations" {
   type = list(string)
   default = []
