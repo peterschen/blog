@@ -92,20 +92,6 @@ resource "google_compute_firewall" "demo2_loadbalancer" {
   target_tags = ["mssql"]
 }
 
-# data "google_compute_instance_group" "demo2_primary" {
-#   count = local.enable_demo2 ? 1 : 0
-#   project = module.demo2[count.index].project_id
-#   zone = local.zone_demo2
-#   name = "wsfc-sql-0"
-# }
-
-# data "google_compute_instance_group" "demo2_secondary" {
-#   count = local.enable_demo2 ? 1 : 0
-#   project = module.demo2[count.index].project_id
-#   zone = local.zone_secondary_demo2
-#   name = "wsfc-sql-1"
-# }
-
 resource "google_compute_region_health_check" "demo2" {
   count = local.enable_demo2 ? 1 : 0
   project = module.demo2[count.index].project_id
