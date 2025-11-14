@@ -433,6 +433,7 @@ configuration ConfigurationWorkload
                 Features = "SQLENGINE,FULLTEXT"
                 InstanceName = "MSSQLSERVER"
                 SecurityMode = "SQL"
+                SAPwd = $domainCredential
                 SQLSysAdminAccounts = "$($Parameters.domainName)\g-SqlAdministrators"
                 SQLSvcAccount = $engineCredential
                 AgtSvcAccount = $agentCredential
@@ -535,10 +536,10 @@ GO
                 InstanceName = "MSSQLSERVER"
                 Name = "sa"
                 LoginType = "SqlLogin"
-                LoginCredential = $domainCredential
-                LoginMustChangePassword = $false
-                LoginPasswordExpirationEnabled = $false
-                LoginPasswordPolicyEnforced = $false
+                # LoginCredential = $domainCredential
+                # LoginMustChangePassword = $false
+                # LoginPasswordExpirationEnabled = $false
+                # LoginPasswordPolicyEnforced = $false
                 Disabled = $false
                 PsDscRunAsCredential = $domainCredential
             }
