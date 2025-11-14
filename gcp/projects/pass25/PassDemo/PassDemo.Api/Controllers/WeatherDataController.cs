@@ -22,10 +22,9 @@ namespace PassDemo.Api.Controllers
             _logger = logger;
         }
 
-        private async Task<PassDemoDbContext> CreateAndEnsureDbReadyAsync(string environment)
+        private async Task<DbContextBase> CreateAndEnsureDbReadyAsync(string environment)
         {
-            var optionsBuilder = new DbContextOptionsBuilder<PassDemoDbContext>();
-            string connectionString = environment.ToUpper() switch
+            string connectionString = environment.ToUpper() switch 
             {
                 "DEMO1" => _csOptions.Value.DEMO1,
                 "DEMO2" => _csOptions.Value.DEMO2,
@@ -34,21 +33,27 @@ namespace PassDemo.Api.Controllers
                 _ => _csOptions.Value.DEMO1
             };
 
-            if (_env.IsDevelopment()) optionsBuilder.UseSqlite(connectionString);
-            else optionsBuilder.UseSqlServer(connectionString);
+            DbContextBase context;
 
-            var context = new PassDemoDbContext(optionsBuilder.Options);
+            // Decide which DbContext to instantiate based on the environment
+            if (_env.IsDevelopment())
+            {
+                var optionsBuilder = new DbContextOptionsBuilder<SqliteDbContext>().UseSqlite(connectionString);
+                context = new SqliteDbContext(optionsBuilder.Options);
+            }
+            else
+            {
+                var optionsBuilder = new DbContextOptionsBuilder<SqlDbContext>().UseSqlServer(connectionString);
+                context = new SqlDbContext(optionsBuilder.Options);
+            }
 
             try
             {
-                // This is now the single place where this check is performed.
                 await context.Database.MigrateAsync();
             }
             catch (Exception ex)
             {
-                // Log the error with the connection string, as requested.
                 _logger.LogError(ex, "Failed to ensure database was created for environment {Environment} with connection string: {ConnectionString}", environment, connectionString);
-                // Re-throw the exception so the calling method knows something went wrong.
                 throw;
             }
 

@@ -22,9 +22,8 @@ namespace PassDemo.Api.Controllers
             _logger = logger;
         }
 
-        private async Task<PassDemoDbContext> CreateAndEnsureDbReadyAsync(string environment)
+        private async Task<DbContextBase> CreateAndEnsureDbReadyAsync(string environment)
         {
-            var optionsBuilder = new DbContextOptionsBuilder<PassDemoDbContext>();
             string connectionString = environment.ToUpper() switch 
             {
                 "DEMO1" => _csOptions.Value.DEMO1,
@@ -34,10 +33,19 @@ namespace PassDemo.Api.Controllers
                 _ => _csOptions.Value.DEMO1
             };
 
-            if (_env.IsDevelopment()) optionsBuilder.UseSqlite(connectionString);
-            else optionsBuilder.UseSqlServer(connectionString);
+            DbContextBase context;
 
-            var context = new PassDemoDbContext(optionsBuilder.Options);
+            // Decide which DbContext to instantiate based on the environment
+            if (_env.IsDevelopment())
+            {
+                var optionsBuilder = new DbContextOptionsBuilder<SqliteDbContext>().UseSqlite(connectionString);
+                context = new SqliteDbContext(optionsBuilder.Options);
+            }
+            else
+            {
+                var optionsBuilder = new DbContextOptionsBuilder<SqlDbContext>().UseSqlServer(connectionString);
+                context = new SqlDbContext(optionsBuilder.Options);
+            }
 
             try
             {

@@ -6,10 +6,10 @@ using PassDemo.Api.Data;
 
 #nullable disable
 
-namespace PassDemo.Api.Migrations
+namespace PassDemo.Api.Migrations.Sqlite
 {
-    [DbContext(typeof(PassDemoDbContext))]
-    partial class PassDemoDbContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(SqliteDbContext))]
+    partial class SqliteDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {

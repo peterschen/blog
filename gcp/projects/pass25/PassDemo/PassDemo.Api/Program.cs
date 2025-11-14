@@ -20,11 +20,14 @@ builder.Services.AddCors(options =>
 
 // We no longer register a DbContext here because it will be created manually in the controllers.
 // Instead, we ensure the options for creating it are available.
-builder.Services.AddDbContext<PassDemoDbContext>(options =>
+builder.Services.AddDbContext<SqliteDbContext>(options =>
 {
-    // Provide a dummy default configuration to satisfy DI requirements.
-    // This context will NOT be used directly.
-    options.UseSqlite("Data Source=dummy.db");
+    options.UseSqlite();
+});
+
+builder.Services.AddDbContext<SqlDbContext>(options =>
+{
+    options.UseSqlServer();
 });
 
 builder.Services.AddControllers();

@@ -4,8 +4,8 @@ WORKDIR /app
 
 ENV HTTP_PORTS=5000
 
-# # Copy project files and restore dependencies first
-# # This leverages Docker layer caching. The restore step will only re-run if the .csproj file changes.
+# Copy project files and restore dependencies first
+# This leverages Docker layer caching. The restore step will only re-run if the .csproj file changes.
 COPY PassDemo.Api/PassDemo.Api.csproj ./PassDemo.Api/
 COPY PassDemo.Common/PassDemo.Common.csproj ./PassDemo.Common/
 RUN dotnet restore PassDemo.Api/PassDemo.Api.csproj
