@@ -77,8 +77,12 @@ namespace PassDemo.Api.Controllers
                     if (provider.Contains("SqlServer"))
                     {
                         await context.Database.OpenConnectionAsync();
+                        response.DatabaseServer = $"{connection.DataSource} / {await context.Database.SqlQueryRaw<string>("SELECT SERVERPROPERTY('ComputerNamePhysicalNetBIOS') AS Value").FirstOrDefaultAsync()}";
                     }
-                    response.DatabaseServer = $"{connection.DataSource}";
+                    else
+                    {
+                        response.DatabaseServer = $"{connection.DataSource}";
+                    }
                 }
             }
             catch(Exception e)
