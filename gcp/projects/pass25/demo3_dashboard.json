@@ -1,7 +1,5 @@
 {
     "displayName": "PASS - Demo 3 - Replication",
-    "dashboardFilters": [],
-    "labels": {},
     "mosaicLayout": {
       "columns": 48,
       "tiles": [
@@ -12,7 +10,6 @@
             "title": "Async replication time since last replication [95TH PERCENTILE]",
             "xyChart": {
               "chartOptions": {
-                "displayHorizontal": false,
                 "mode": "COLOR"
               },
               "dataSets": [
@@ -35,7 +32,6 @@
                   }
                 }
               ],
-              "thresholds": [],
               "yAxis": {
                 "scale": "LINEAR"
               }
@@ -50,7 +46,6 @@
             "title": "Async replication sent bytes count [95TH PERCENTILE]",
             "xyChart": {
               "chartOptions": {
-                "displayHorizontal": false,
                 "mode": "COLOR"
               },
               "dataSets": [
@@ -73,7 +68,6 @@
                   }
                 }
               ],
-              "thresholds": [],
               "yAxis": {
                 "scale": "LINEAR"
               }
