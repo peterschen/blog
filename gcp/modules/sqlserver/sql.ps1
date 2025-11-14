@@ -371,11 +371,14 @@ configuration ConfigurationWorkload
                     PsDscRunAsCredential = $domainCredential
                 }
 
-                ClusterQuorum "Quorum"
+                if($Parameters.enableQuorum)
                 {
-                    Type = "NodeMajority"
-                    IsSingleInstance = "Yes"
-                    DependsOn = "[Cluster]CreateCluster"
+                    ClusterQuorum "Quorum"
+                    {
+                        Type = "NodeMajority"
+                        IsSingleInstance = "Yes"
+                        DependsOn = "[Cluster]CreateCluster"
+                    }
                 }
 
                 # Reference: https://learn.microsoft.com/en-us/azure/azure-sql/virtual-machines/windows/hadr-cluster-best-practices?view=azuresql&tabs=windows2012#heartbeat-and-threshold
@@ -536,10 +539,6 @@ GO
                 InstanceName = "MSSQLSERVER"
                 Name = "sa"
                 LoginType = "SqlLogin"
-                # LoginCredential = $domainCredential
-                # LoginMustChangePassword = $false
-                # LoginPasswordExpirationEnabled = $false
-                # LoginPasswordPolicyEnforced = $false
                 Disabled = $false
                 PsDscRunAsCredential = $domainCredential
             }
