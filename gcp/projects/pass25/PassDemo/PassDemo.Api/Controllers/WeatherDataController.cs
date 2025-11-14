@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using PassDemo.Api.Data;
@@ -23,10 +22,10 @@ namespace PassDemo.Api.Controllers
             _logger = logger;
         }
 
-        private async Task<AddressDbContext> CreateAndEnsureDbReadyAsync(string environment)
+        private async Task<PassDemoDbContext> CreateAndEnsureDbReadyAsync(string environment)
         {
-            var optionsBuilder = new DbContextOptionsBuilder<AddressDbContext>();
-            string connectionString = environment.ToUpper() switch 
+            var optionsBuilder = new DbContextOptionsBuilder<PassDemoDbContext>();
+            string connectionString = environment.ToUpper() switch
             {
                 "DEMO1" => _csOptions.Value.DEMO1,
                 "DEMO2" => _csOptions.Value.DEMO2,
@@ -38,19 +37,19 @@ namespace PassDemo.Api.Controllers
             if (_env.IsDevelopment()) optionsBuilder.UseSqlite(connectionString);
             else optionsBuilder.UseSqlServer(connectionString);
 
-            var context = new AddressDbContext(optionsBuilder.Options);
+            var context = new PassDemoDbContext(optionsBuilder.Options);
 
             try
             {
                 // This is now the single place where this check is performed.
-                await context.Database.EnsureCreatedAsync();
+                await context.Database.MigrateAsync();
             }
             catch (Exception ex)
             {
                 // Log the error with the connection string, as requested.
                 _logger.LogError(ex, "Failed to ensure database was created for environment {Environment} with connection string: {ConnectionString}", environment, connectionString);
                 // Re-throw the exception so the calling method knows something went wrong.
-                throw; 
+                throw;
             }
 
             return context;
@@ -64,10 +63,10 @@ namespace PassDemo.Api.Controllers
 
             long effectiveStart = startTimestamp ?? DateTimeOffset.UtcNow.AddHours(-24).ToUnixTimeMilliseconds();
             long effectiveEnd = endTimestamp ?? DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            
+
             var query = context.WeatherData.Where(wd => wd.Timestamp >= effectiveStart && wd.Timestamp <= effectiveEnd);
             if (dataType.HasValue) query = query.Where(wd => wd.DataType == dataType.Value);
-            
+
             return await query.OrderBy(wd => wd.Timestamp).ToListAsync();
         }
 

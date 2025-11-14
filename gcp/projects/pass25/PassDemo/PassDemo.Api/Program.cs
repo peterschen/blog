@@ -20,7 +20,7 @@ builder.Services.AddCors(options =>
 
 // We no longer register a DbContext here because it will be created manually in the controllers.
 // Instead, we ensure the options for creating it are available.
-builder.Services.AddDbContext<AddressDbContext>(options =>
+builder.Services.AddDbContext<PassDemoDbContext>(options =>
 {
     // Provide a dummy default configuration to satisfy DI requirements.
     // This context will NOT be used directly.
