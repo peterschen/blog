@@ -357,6 +357,10 @@ data "google_compute_address" "demo3" {
   project = module.demo3[count.index].project_id
   region = local.region_demo3
   name = "sql-0"
+
+  depends_on = [ 
+    module.demo3
+  ]
 }
 
 data "google_compute_address" "demo3_secondary" {
@@ -364,6 +368,10 @@ data "google_compute_address" "demo3_secondary" {
   project = module.demo3[count.index].project_id
   region = local.region_secondary_demo3
   name = "sql-recovery-0"
+
+  depends_on = [ 
+    module.sqlserver_demo3
+  ]
 }
 
 resource "google_compute_network_endpoint" "demo3" {
@@ -423,7 +431,7 @@ resource "google_compute_backend_service" "demo3" {
       capacity_scaler = 0
       group = backend.value.id
       max_connections_per_endpoint = 10000
-    }
+   }
   }
 
   log_config {
