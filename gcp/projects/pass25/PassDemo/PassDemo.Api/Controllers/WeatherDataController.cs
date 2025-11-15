@@ -47,15 +47,6 @@ namespace PassDemo.Api.Controllers
                 context = new SqlDbContext(optionsBuilder.Options);
             }
 
-            try
-            {
-                await context.Database.MigrateAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Failed to ensure database was created for environment {Environment} with connection string {ConnectionString}: {Error}", environment, connectionString, ex.Message);
-            }
-
             return context;
         }
 
@@ -66,7 +57,6 @@ namespace PassDemo.Api.Controllers
             {
                 await using var context = await CreateAndEnsureDbReadyAsync(environment);
                 if(context == null) return Problem();
-                await context.Database.EnsureCreatedAsync();
 
                 long effectiveStart = startTimestamp ?? DateTimeOffset.UtcNow.AddHours(-24).ToUnixTimeMilliseconds();
                 long effectiveEnd = endTimestamp ?? DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -89,7 +79,6 @@ namespace PassDemo.Api.Controllers
             {
                 await using var context = await CreateAndEnsureDbReadyAsync(environment);
                 if(context == null) return Problem();
-                await context.Database.EnsureCreatedAsync();
                 context.WeatherData.Add(weatherData);
                 await context.SaveChangesAsync();
                 return CreatedAtAction(nameof(StoreWeatherData), new { id = weatherData.Id }, weatherData);
@@ -106,7 +95,6 @@ namespace PassDemo.Api.Controllers
             if (weatherDataList == null || !weatherDataList.Any()) return BadRequest("Batch is empty.");
             await using var context = await CreateAndEnsureDbReadyAsync(environment);
             if(context == null) return Problem();
-            await context.Database.EnsureCreatedAsync();
             context.WeatherData.AddRange(weatherDataList);
             await context.SaveChangesAsync();
             return Ok(new { message = $"{weatherDataList.Count} records submitted to {environment}." });
@@ -117,7 +105,6 @@ namespace PassDemo.Api.Controllers
         {
             await using var context = await CreateAndEnsureDbReadyAsync(environment);
             if(context == null) return Problem();
-            await context.Database.EnsureCreatedAsync();
             await context.WeatherData.ExecuteDeleteAsync();
             return NoContent();
         }

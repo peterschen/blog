@@ -47,15 +47,6 @@ namespace PassDemo.Api.Controllers
                 context = new SqlDbContext(optionsBuilder.Options);
             }
 
-            try
-            {
-                await context.Database.MigrateAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Failed to ensure database was created for environment {Environment} with connection string {ConnectionString}: {Error}", environment, connectionString, ex.Message);
-            }
-
             return context;
         }
 
