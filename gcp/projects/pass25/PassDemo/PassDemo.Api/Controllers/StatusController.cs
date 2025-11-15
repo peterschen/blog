@@ -53,8 +53,7 @@ namespace PassDemo.Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to ensure database was created for environment {Environment} with connection string: {ConnectionString}", environment, connectionString);
-                throw;
+                _logger.LogError("Failed to ensure database was created for environment {Environment} with connection string {ConnectionString}: {Error}", environment, connectionString, ex.Message);
             }
 
             return context;
@@ -65,7 +64,8 @@ namespace PassDemo.Api.Controllers
         {
             var response = new Status { ActiveConnectionName = environment, DatabaseState = DatabaseConnectionState.Disconnected, DatabaseServer = string.Empty};
             await using var context = await CreateAndEnsureDbReadyAsync(environment);
-
+            if(context == null) return Problem();
+            
             try
             {
                 if (await context.Database.CanConnectAsync())
@@ -87,7 +87,7 @@ namespace PassDemo.Api.Controllers
             }
             catch(Exception e)
             {
-                _logger.LogError(e, "Error getting status for environment {Environment}", environment);
+                _logger.LogError("Error getting status for environment {Environment}: {Exception}", environment, e.Message);
                 response.DatabaseState = DatabaseConnectionState.Failed;
                 response.DatabaseServer = string.Empty;
             }
@@ -95,6 +95,7 @@ namespace PassDemo.Api.Controllers
             {
                 await context.Database.CloseConnectionAsync();        
             }
+            
             return Ok(response);
         }
     }

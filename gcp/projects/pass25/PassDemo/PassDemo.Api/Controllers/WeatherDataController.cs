@@ -53,8 +53,7 @@ namespace PassDemo.Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to ensure database was created for environment {Environment} with connection string: {ConnectionString}", environment, connectionString);
-                throw;
+                _logger.LogError("Failed to ensure database was created for environment {Environment} with connection string {ConnectionString}: {Error}", environment, connectionString, ex.Message);
             }
 
             return context;
@@ -63,16 +62,24 @@ namespace PassDemo.Api.Controllers
         [HttpGet("{environment}")]
         public async Task<ActionResult<IEnumerable<WeatherData>>> GetWeatherData(string environment, [FromQuery] long? startTimestamp, [FromQuery] long? endTimestamp, [FromQuery] WeatherDataType? dataType)
         {
-            await using var context = await CreateAndEnsureDbReadyAsync(environment);
-            await context.Database.EnsureCreatedAsync();
+            try
+            {
+                await using var context = await CreateAndEnsureDbReadyAsync(environment);
+                if(context == null) return Problem();
+                await context.Database.EnsureCreatedAsync();
 
-            long effectiveStart = startTimestamp ?? DateTimeOffset.UtcNow.AddHours(-24).ToUnixTimeMilliseconds();
-            long effectiveEnd = endTimestamp ?? DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                long effectiveStart = startTimestamp ?? DateTimeOffset.UtcNow.AddHours(-24).ToUnixTimeMilliseconds();
+                long effectiveEnd = endTimestamp ?? DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-            var query = context.WeatherData.Where(wd => wd.Timestamp >= effectiveStart && wd.Timestamp <= effectiveEnd);
-            if (dataType.HasValue) query = query.Where(wd => wd.DataType == dataType.Value);
+                var query = context.WeatherData.Where(wd => wd.Timestamp >= effectiveStart && wd.Timestamp <= effectiveEnd);
+                if (dataType.HasValue) query = query.Where(wd => wd.DataType == dataType.Value);
 
-            return await query.OrderBy(wd => wd.Timestamp).ToListAsync();
+                return await query.OrderBy(wd => wd.Timestamp).ToListAsync();
+            }
+            catch(Exception e)
+            {
+                return Problem(e.Message);
+            }
         }
 
         [HttpPost("{environment}")]
@@ -81,14 +88,15 @@ namespace PassDemo.Api.Controllers
             try
             {
                 await using var context = await CreateAndEnsureDbReadyAsync(environment);
+                if(context == null) return Problem();
                 await context.Database.EnsureCreatedAsync();
                 context.WeatherData.Add(weatherData);
                 await context.SaveChangesAsync();
                 return CreatedAtAction(nameof(StoreWeatherData), new { id = weatherData.Id }, weatherData);
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                return StatusCode(500, $"Error: {ex.Message}");
+                return Problem(e.Message);
             }
         }
 
@@ -97,6 +105,7 @@ namespace PassDemo.Api.Controllers
         {
             if (weatherDataList == null || !weatherDataList.Any()) return BadRequest("Batch is empty.");
             await using var context = await CreateAndEnsureDbReadyAsync(environment);
+            if(context == null) return Problem();
             await context.Database.EnsureCreatedAsync();
             context.WeatherData.AddRange(weatherDataList);
             await context.SaveChangesAsync();
@@ -107,6 +116,7 @@ namespace PassDemo.Api.Controllers
         public async Task<IActionResult> DeleteAllWeatherData(string environment)
         {
             await using var context = await CreateAndEnsureDbReadyAsync(environment);
+            if(context == null) return Problem();
             await context.Database.EnsureCreatedAsync();
             await context.WeatherData.ExecuteDeleteAsync();
             return NoContent();
