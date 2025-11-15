@@ -61,80 +61,36 @@ configuration Customization
         }
     }
 
-    Script "CreateCredential"
+    SqlScriptQuery "CreateDatabase"
     {
-        GetScript = {
-            $result = Invoke-Sqlcmd -Query "SELECT name FROM sys.credentials WHERE credential_identity = 'S3 Access Key'" -ServerInstance "sql-0";
-            if($result -ne $null)
-            {
-                $result = "Present";
-            }
-            else
-            {
-                $result = "Absent";
-            }
-            
-            return @{Ensure = $result};
-        }
-
-        TestScript = {
-            $state = [scriptblock]::Create($GetScript).Invoke();
-            return $state.Ensure -eq "Present";
-        }
-
-        SetScript = {
-            $secret = gcloud secrets versions access 1 --secret pass-demo-gcs --project cbpetersen-shared;
-            $query = @"
--- Configure credential for GCS
-IF NOT EXISTS (SELECT * FROM sys.credentials WHERE credential_identity = 'S3 Access Key')
-    CREATE CREDENTIAL [cbpetersen-demos]
-    WITH
-        IDENTITY = 'S3 Access Key',
-        SECRET = '${secret}';
-"@;
-            Invoke-Sqlcmd -Query $query -ServerInstance "sql-0";
-        }
-    }
-
-    SqlScriptQuery "RestoreDatabase"
-    {
-        Id = "RestoreDatabase"
+        Id = "CreateDatabase"
         ServerName = "sql-0"
         InstanceName = "MSSQLSERVER"
 
         TestQuery = @"
-IF (SELECT COUNT(name) FROM sys.databases WHERE name = 'AdventureWorks2022') = 0
+IF (SELECT COUNT(name) FROM sys.databases WHERE name = 'pass') = 0
 BEGIN
-    RAISERROR ('Did not find database [AdventureWorks2022]', 16, 1)
+    RAISERROR ('Did not find database [pass]', 16, 1)
 END
 ELSE
 BEGIN
-    PRINT 'Found database [AdventureWorks2022]'
+    PRINT 'Found database [pass]'
 END
 "@
-        GetQuery = "SELECT name FROM sys.databases WHERE name = 'AdventureWorks2022'"
+        GetQuery = "SELECT name FROM sys.databases WHERE name = 'pass'"
         SetQuery = @"
--- Restore database
-RESTORE DATABASE [AdventureWorks2022]
-FROM
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_01.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_02.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_03.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_04.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_05.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_06.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_07.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_08.bak'
-WITH
-    CREDENTIAL = 'cbpetersen-demos',
-    MOVE 'AdventureWorks2022' TO 'T:\AdventureWorks2022.mdf',
-    MOVE 'AdventureWorks2022_log' TO 'L:\AdventureWorks2022_log.ldf',
-    STATS = 10, 
-    RECOVERY,
-    REPLACE;
+CREATE DATABASE [pass]
+ON (
+    NAME = pass,
+    FILENAME = 'T:\pass.mdf'
+)
+LOG ON (
+    NAME = pass_log,
+    FILENAME = 'L:\pass.ldf'
+);
 GO
 "@;
-        DependsOn = "[Script]CreateCredential"
+        DependsOn = "[Script]InitDisk"
         PsDscRunAsCredential = $Credential
     }
 }
