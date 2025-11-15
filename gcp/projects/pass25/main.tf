@@ -152,10 +152,10 @@ module "bastion" {
   machine_name = "bastion"
 
   domain_name = local.domain_name
-  password = "Admin123Admin123"
+  password = var.password
 
   enable_domain = false
-  enable_ssms = false
+  enable_ssms = true
   enable_hammerdb = false
   enable_discoveryclient = false
 }
@@ -206,13 +206,13 @@ resource "google_cloud_run_v2_service" "api" {
           }
         }
 
-        # dynamic "env" {
-        #   for_each = google_compute_forwarding_rule.demo3
-        #   content {
-        #     name = "ConnectionStrings__DEMO3"
-        #     value = "Server=${env.value.ip_address};Database=pass;User=sa;Password=Admin123Admin123;TrustServerCertificate=True"
-        #   }
-        # }
+        dynamic "env" {
+          for_each = google_compute_global_forwarding_rule.demo3
+          content {
+            name = "ConnectionStrings__DEMO3"
+            value = "Server=${env.value.ip_address};Database=pass;User=sa;Password=Admin123Admin123;TrustServerCertificate=True"
+          }
+        }
 
         dynamic "env" {
           for_each = google_compute_forwarding_rule.demo4
