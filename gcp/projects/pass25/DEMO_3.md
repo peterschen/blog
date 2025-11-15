@@ -159,7 +159,7 @@ gcloud compute disks bulk create \
 # Attach disks
 disks=`gcloud compute disks list --project $project --filter "name~data- OR name~log-" --format "value(name)" | sort`
 for disk in $disks; do
-    gcloud compute instances attach-disk sql-clone-0 \
+    gcloud compute instances attach-disk sql-recovery-0 \
         --disk $disk \
         --device-name $disk \
         --project $project \
@@ -172,21 +172,33 @@ done
 
 ## Attach database
 
-1. Attach database and run query
+1. Attach database
 ```sql
-CREATE DATABASE AdventureWorks2022
+CREATE DATABASE [pass]
 ON 
-	(FILENAME = N'D:\AdventureWorks2022.mdf'),
-	(FILENAME = N'E:\AdventureWorks2022_log.ldf')
+	(FILENAME = N'D:\pass.mdf'),
+	(FILENAME = N'E:\pass.ldf')
 FOR ATTACH
 GO
-
-USE AdventureWorks2022;
-SELECT
-	*
-FROM 
-	Person.Person
-WHERE FirstName = 'Christoph'
-AND LastName = 'Petersen'
-GO
 ```
+
+## Reconfigure Load Balancer
+
+```sh
+project=`terraform output -raw project_id_demo3`
+zone=`terraform output -raw zone_demo3`
+zone_secondary=`terraform output -raw zone_secondary_demo3`
+
+gcloud compute backend-services update-backend sql \
+    --project $project \
+    --global \
+    --network-endpoint-group sql \
+    --network-endpoint-group-zone $zone_secondary \
+    --capacity-scaler 1
+
+gcloud compute backend-services update-backend sql \
+    --project $project \
+    --global \
+    --network-endpoint-group sql \
+    --network-endpoint-group-zone $zone \
+    --capacity-scaler 0
