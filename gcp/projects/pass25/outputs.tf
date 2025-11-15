@@ -57,32 +57,48 @@ output "rdp_demo" {
   ]
 }
 
-output "rdp_demo1" {
-  value = local.enable_demo1 ? [
-    "rdp bastion --project ${module.demo1[0].project_id} --zone ${local.zone_demo1} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
-    "rdp sql-0 --project ${module.demo1[0].project_id} --zone ${local.zone_demo1} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
-  ] : null
+# output "rdp_demo1" {
+#   value = local.enable_demo1 ? [
+#     "rdp bastion --project ${module.demo1[0].project_id} --zone ${local.zone_demo1} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
+#     "rdp sql-0 --project ${module.demo1[0].project_id} --zone ${local.zone_demo1} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
+#   ] : null
+# }
+
+# output "rdp_demo2" {
+#   value = local.enable_demo2 ? [
+#     "rdp bastion --project ${module.demo2[0].project_id} --zone ${local.zone_demo2} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
+#     "rdp sql-0 --project ${module.demo2[0].project_id} --zone ${local.zone_demo2} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
+#     "rdp sql-1 --project ${module.demo2[0].project_id} --zone ${local.zone_secondary_demo2} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
+#   ] : null
+# }
+
+# output "rdp_demo3" {
+#   value = local.enable_demo3 ? [
+#     "rdp bastion --project ${module.demo3[0].project_id} --zone ${local.zone_demo3} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
+#     "rdp sql-0 --project ${module.demo3[0].project_id} --zone ${local.zone_demo3} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
+#     "rdp sql-clone-0 --project ${module.demo3[0].project_id} --zone ${local.zone_secondary_demo3} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
+#   ] : null
+# }
+
+# output "rdp_demo4" {
+#   value = local.enable_demo4 ? [
+#     "rdp bastion --project ${module.demo4[0].project_id} --zone ${local.zone_demo4} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
+#     "rdp sql-0 --project ${module.demo4[0].project_id} --zone ${local.zone_demo4} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
+#   ] : null
+# }
+
+output "sql_demo1" {
+  value = local.enable_demo1 ? one(google_compute_address.demo1).address : null
 }
 
-output "rdp_demo2" {
-  value = local.enable_demo2 ? [
-    "rdp bastion --project ${module.demo2[0].project_id} --zone ${local.zone_demo2} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
-    "rdp sql-0 --project ${module.demo2[0].project_id} --zone ${local.zone_demo2} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
-    "rdp sql-1 --project ${module.demo2[0].project_id} --zone ${local.zone_secondary_demo2} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
-  ] : null
+output "sql_demo2" {
+  value = local.enable_demo2 ? one(google_compute_address.demo2).address : null
 }
 
-output "rdp_demo3" {
-  value = local.enable_demo3 ? [
-    "rdp bastion --project ${module.demo3[0].project_id} --zone ${local.zone_demo3} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
-    "rdp sql-0 --project ${module.demo3[0].project_id} --zone ${local.zone_demo3} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
-    "rdp sql-clone-0 --project ${module.demo3[0].project_id} --zone ${local.zone_secondary_demo3} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
-  ] : null
+output "sql_demo3" {
+  value = local.enable_demo3 ? one(google_compute_global_address.demo3).address : null
 }
 
-output "rdp_demo4" {
-  value = local.enable_demo4 ? [
-    "rdp bastion --project ${module.demo4[0].project_id} --zone ${local.zone_demo4} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
-    "rdp sql-0 --project ${module.demo4[0].project_id} --zone ${local.zone_demo4} -- /d:${local.domain_name} /u:Administrator /p:$TF_VAR_password /cert:ignore",
-  ] : null
+output "sql_demo4" {
+  value = local.enable_demo4 ? one(google_compute_address.demo4).address : null
 }
