@@ -41,41 +41,36 @@ configuration Customization
         DependsOn = "[WaitForAll]SqlServerSetup"
     }
 
-    Script "CreateCredential"
+    SqlScriptQuery "CreateDatabase"
     {
-        GetScript = {
-            $result = Invoke-Sqlcmd -Query "SELECT name FROM sys.credentials WHERE credential_identity = 'S3 Access Key'" -ServerInstance "sql";
-            if($result -ne $null)
-            {
-                $result = "Present";
-            }
-            else
-            {
-                $result = "Absent";
-            }
-            
-            return @{Ensure = $result};
-        }
+        Id = "CreateDatabase"
+        ServerName = "sql"
+        InstanceName = "MSSQLSERVER"
 
-        TestScript = {
-            $state = [scriptblock]::Create($GetScript).Invoke();
-            return $state.Ensure -eq "Present";
-        }
-
-        SetScript = {
-            $secret = gcloud secrets versions access 1 --secret pass-demo-gcs --project cbpetersen-shared;
-            $query = @"
--- Configure credential for GCS
-IF NOT EXISTS (SELECT * FROM sys.credentials WHERE credential_identity = 'S3 Access Key')
-    CREATE CREDENTIAL [cbpetersen-demos]
-    WITH
-        IDENTITY = 'S3 Access Key',
-        SECRET = '${secret}';
+        TestQuery = @"
+IF (SELECT COUNT(name) FROM sys.databases WHERE name = 'pass') = 0
+BEGIN
+    RAISERROR ('Did not find database [pass]', 16, 1)
+END
+ELSE
+BEGIN
+    PRINT 'Found database [pass]'
+END
+"@
+        GetQuery = "SELECT name FROM sys.databases WHERE name = 'pass'"
+        SetQuery = @"
+CREATE DATABASE [pass]
+ON (
+    NAME = pass,
+    FILENAME = 'C:\ClusterStorage\Volume1\MSSQL16.MSSQLSERVER\pass.mdf'
+)
+LOG ON (
+    NAME = pass_log,
+    FILENAME = 'C:\ClusterStorage\Volume1\MSSQL16.MSSQLSERVER\pass.ldf'
+);
+GO
 "@;
-            Invoke-Sqlcmd -Query $query -ServerInstance "sql";
-        }
-
-        PsDscRunAsCredential = $Credential
         DependsOn = "[SqlSetup]SqlServerSetup"
+        PsDscRunAsCredential = $Credential
     }
 }
