@@ -141,6 +141,30 @@ GO
 
 1. Open dashboard and show replication metrics
 
+## Reconfigure Load Balancer
+
+1. Explain failover and use the time to go through the UI to explain the async replication configuration
+
+```sh
+project=`terraform output -raw project_id_demo3`
+zone=`terraform output -raw zone_demo3`
+zone_secondary=`terraform output -raw zone_secondary_demo3`
+
+gcloud compute backend-services update-backend sql \
+    --project $project \
+    --global \
+    --network-endpoint-group sql \
+    --network-endpoint-group-zone $zone_secondary \
+    --capacity-scaler 1
+
+gcloud compute backend-services update-backend sql \
+    --project $project \
+    --global \
+    --network-endpoint-group sql \
+    --network-endpoint-group-zone $zone \
+    --capacity-scaler 0
+```
+
 ## Clone replicated disks
 
 1. Create clone from secondary disk and attach it to a VM in that region
@@ -181,24 +205,3 @@ ON
 FOR ATTACH
 GO
 ```
-
-## Reconfigure Load Balancer
-
-```sh
-project=`terraform output -raw project_id_demo3`
-zone=`terraform output -raw zone_demo3`
-zone_secondary=`terraform output -raw zone_secondary_demo3`
-
-gcloud compute backend-services update-backend sql \
-    --project $project \
-    --global \
-    --network-endpoint-group sql \
-    --network-endpoint-group-zone $zone_secondary \
-    --capacity-scaler 1
-
-gcloud compute backend-services update-backend sql \
-    --project $project \
-    --global \
-    --network-endpoint-group sql \
-    --network-endpoint-group-zone $zone \
-    --capacity-scaler 0
