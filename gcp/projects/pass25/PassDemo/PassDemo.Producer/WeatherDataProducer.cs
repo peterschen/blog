@@ -99,7 +99,7 @@ public class WeatherDataProducer
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "HTTP request failed while sending {DataType} data. Is the API running?", data.DataType);
+            _logger.LogError("HTTP request failed while sending {DataType} data: {Message}", data.DataType, ex.Message);
         }
     }
 }

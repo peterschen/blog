@@ -98,7 +98,7 @@ public class BatchDataGenerator
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Batch: HTTP request failed while sending {Count} records. Is the API running?", dataList.Count);
+            _logger.LogError("Batch: HTTP request failed while sending {Count} data: {Message}", dataList.Count, ex.Message);
         }
         catch (Exception ex)
         {

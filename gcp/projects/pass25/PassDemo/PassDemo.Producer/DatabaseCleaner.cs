@@ -38,7 +38,7 @@ public class DatabaseCleaner
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "HTTP request to clear data failed. Is the API running?");
+            _logger.LogError("HTTP request failed data: {Message}", ex.Message);
         }
     }
 }
