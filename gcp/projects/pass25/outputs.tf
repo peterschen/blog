@@ -102,3 +102,11 @@ output "sql_demo3" {
 output "sql_demo4" {
   value = local.enable_demo4 ? one(google_compute_address.demo4).address : null
 }
+
+output "uri_api" {
+  value = google_cloud_run_v2_service.api.uri
+}
+
+output "uri_ui" {
+  value = google_cloud_run_v2_service.ui.uri
+}
