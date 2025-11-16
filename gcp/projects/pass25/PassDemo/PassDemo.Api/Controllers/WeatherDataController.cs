@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Options;
 using PassDemo.Api.Data;
 using PassDemo.Api.Options;
@@ -45,6 +47,23 @@ namespace PassDemo.Api.Controllers
             {
                 var optionsBuilder = new DbContextOptionsBuilder<SqlDbContext>().UseSqlServer(connectionString);
                 context = new SqlDbContext(optionsBuilder.Options);
+            }
+
+            try
+            {
+                var exists = context.Database.GetService<IRelationalDatabaseCreator>().Exists();
+                if(_env.IsDevelopment() || exists)
+                {
+                    await context.Database.MigrateAsync();
+                }
+                else
+                {
+                    _logger.LogInformation("Not applying migrations (IsDevelopment={Environment}; Database.Exists={exists})", _env.IsDevelopment(), exists);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Failed to create tables for environment {Environment} with connection string: {ConnectionString}: {Exception}", environment, connectionString, ex.Message);
             }
 
             return context;
