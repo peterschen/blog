@@ -58,7 +58,7 @@ namespace PassDemo.Api.Controllers
                 }
                 else
                 {
-                    _logger.LogInformation("Not applying migrations (IsDevelopment={Environment}; Database.Exists={exists})", _env.IsDevelopment(), exists);
+                    _logger.LogInformation("Not applying migrations for {Environment} (IsDevelopment={IsDevelopment}; Database.Exists={exists})", environment, _env.IsDevelopment(), exists);
                 }
             }
             catch (Exception ex)
