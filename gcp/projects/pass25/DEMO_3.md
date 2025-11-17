@@ -75,72 +75,6 @@ sqlcmd -S "tcp:sql-0" -Q @"
 "@;
 ```
 
-## Setting the scene
-
-1. Show disks in Cloud Console
-    * [Disks](https://console.cloud.google.com/compute/disks)
-1. Show Asynchronous replication configuration
-    * [Asynchronous replication](https://console.cloud.google.com/compute/asynchronousReplication)
-1. Write order consistency ensured through consistency groups
-1. Show storage configuration on sql-0
-    * Disk configuration
-    * Explain two separate drives for data and log and impact on consistency
-
-## Show primary database
-
-1. Show database and create sample record
-
-```sql
-USE AdventureWorks2022;
-
-INSERT INTO Person.BusinessEntity (
-    ModifiedDate
-)
-VALUES (
-    CURRENT_TIMESTAMP
-)
-
-INSERT INTO Person.Person (
-    BusinessEntityID,
-    PersonType,
-    NameStyle,
-    Title,
-    FirstName,
-    MiddleName,
-    LastName,
-    Suffix,
-    EmailPromotion,
-    AdditionalContactInfo,
-    Demographics
-)
-VALUES (
-    IDENT_CURRENT('Person.BusinessEntity'),
-    'EM',
-    0,
-    'Mr.',
-    'Christoph',
-    'B',
-    'Petersen',
-    NULL,
-    0, 
-    null, 
-    '<IndividualSurvey xmlns="http://schemas.microsoft.com/sqlserver/2004/07/adventure-works/IndividualSurvey"><TotalPurchaseYTD>0</TotalPurchaseYTD></IndividualSurvey>'
-);
-GO
-
-SELECT
-	*
-FROM 
-	Person.Person
-WHERE FirstName = 'Christoph'
-AND LastName = 'Petersen'
-GO
-```
-
-## Show replication metrics
-
-1. Open dashboard and show replication metrics
-
 ## Reconfigure Load Balancer
 
 1. Explain failover and use the time to go through the UI to explain the async replication configuration
@@ -164,6 +98,23 @@ gcloud compute backend-services update-backend sql \
     --network-endpoint-group-zone $zone \
     --capacity-scaler 0
 ```
+
+## Setting the scene
+
+1. Show UI with data streaming in
+    * Highlight SQL Server connection and server name
+1. Show disks in Cloud Console
+    * [Disks](https://console.cloud.google.com/compute/disks)
+1. Show Asynchronous replication configuration
+    * [Asynchronous replication](https://console.cloud.google.com/compute/asynchronousReplication)
+1. Write order consistency ensured through consistency groups
+1. Show storage configuration on sql-0
+    * Disk configuration
+    * Explain two separate drives for data and log and impact on consistency
+
+## Show replication metrics
+
+1. Open dashboard and show replication metrics
 
 ## Clone replicated disks
 
@@ -205,3 +156,4 @@ ON
 FOR ATTACH
 GO
 ```
+2. Show UI with streaming data
