@@ -15,6 +15,8 @@ module "demo2" {
 
   domain_name = local.domain_name
   password = var.password
+
+  enable_bastion = true
   enable_cluster = true
   enable_quorum = false
   enable_iam = false
