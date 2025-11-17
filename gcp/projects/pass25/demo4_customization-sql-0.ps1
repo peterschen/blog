@@ -204,4 +204,37 @@ ALTER DATABASE [demo4_${i}] SET TARGET_RECOVERY_TIME = 15 MINUTES;
 
         $letter++;
     }
+
+    SqlScriptQuery "CreateDatabase"
+    {
+        Id = "CreateDatabase"
+        ServerName = "sql-0"
+        InstanceName = "MSSQLSERVER"
+
+        TestQuery = @"
+IF (SELECT COUNT(name) FROM sys.databases WHERE name = 'pass') = 0
+BEGIN
+    RAISERROR ('Did not find database [pass]', 16, 1)
+END
+ELSE
+BEGIN
+    PRINT 'Found database [pass]'
+END
+"@
+        GetQuery = "SELECT name FROM sys.databases WHERE name = 'pass'"
+        SetQuery = @"
+CREATE DATABASE [pass]
+ON (
+    NAME = pass,
+    FILENAME = 'T:\pass.mdf'
+)
+LOG ON (
+    NAME = pass_log,
+    FILENAME = 'T:\pass.ldf'
+);
+GO
+"@;
+        DependsOn = "[Script]ConfigureDatabase"
+        PsDscRunAsCredential = $Credential
+    }
 }
