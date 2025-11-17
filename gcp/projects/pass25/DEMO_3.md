@@ -16,65 +16,6 @@ terraform import google_compute_disk_async_replication.demo3_data[0] projects/$p
 terraform import google_compute_disk_async_replication.demo3_log[0] projects/$project/zones/$zone/disks/log
 ```
 
-### Initialize disk on sql-0
-
-```powershell
-Invoke-Command -ComputerName "sql-0" -ScriptBlock {
-    $disks = Get-PhysicalDisk -CanPool $true | Sort-Object -Descending -Property Size;
-    $driveletters = ("T", "L")
-
-    $index = 0;
-    foreach($disk in $disks)
-    {
-        $driveletter = $driveletters[$index];
-
-        # Initialize disks
-        Initialize-Disk -UniqueId $disk.UniqueId -PassThru | 
-            New-Partition -DriveLetter $driveletter -UseMaximumSize | 
-            Format-Volume;
-
-        # Add access for s-SqlEngine
-        icacls ${driveletter}:\ /grant "PASS\s-SqlEngine:(OI)(CI)(F)"
-
-        $index++;
-    }
-}
-```
-
-### Restore database
-
-```powershell
-$secret = gcloud secrets versions access 1 --secret pass-demo-gcs --project cbpetersen-shared;
-sqlcmd -S "tcp:sql-0" -Q @"
-    -- Configure credential for GCS
-	IF NOT EXISTS (SELECT * FROM sys.credentials WHERE credential_identity = 'S3 Access Key')
-		CREATE CREDENTIAL [cbpetersen-demos]
-		WITH
-			IDENTITY = 'S3 Access Key',
-			SECRET = '${secret}';
-
-    -- Restore database
-    RESTORE DATABASE [AdventureWorks2022]
-    FROM
-        URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_01.bak',
-        URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_02.bak',
-        URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_03.bak',
-        URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_04.bak',
-        URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_05.bak',
-        URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_06.bak',
-        URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_07.bak',
-        URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo2_08.bak'
-    WITH 
-        CREDENTIAL = 'cbpetersen-demos',
-        MOVE 'AdventureWorks2022' TO 'T:\AdventureWorks2022.mdf',
-        MOVE 'AdventureWorks2022_log' TO 'L:\AdventureWorks2022_log.ldf',
-        STATS = 10, 
-        RECOVERY,
-        REPLACE;
-    GO
-"@;
-```
-
 ## Reconfigure Load Balancer
 
 1. Explain failover and use the time to go through the UI to explain the async replication configuration
