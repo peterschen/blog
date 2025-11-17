@@ -15,7 +15,7 @@ module "demo1" {
   domain_name = local.domain_name
   password = var.password
 
-  enable_bastion = true
+  enable_bastion = false
   enable_ad = true
   enable_sql = true
 
