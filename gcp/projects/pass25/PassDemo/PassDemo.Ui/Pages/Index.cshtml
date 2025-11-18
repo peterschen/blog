@@ -178,19 +178,33 @@
 
                 const [tempResponse, humidityResponse] = await Promise.all([ fetch(tempUrl), fetch(humidityUrl) ]);
 
+                // Check if both API calls were successful
+                if (!tempResponse.ok || !humidityResponse.ok) {
+                    console.warn("One or more API requests failed. Chart will not be updated.");
+                    return;
+                }
+
                 const tempData = await tempResponse.json();
                 const humidityData = await humidityResponse.json();
 
-                // Convert Unix timestamp (long) from API back to JavaScript Date objects for the chart.
-                const tempPoints = tempData.map(item => ({ x: new Date(item.timestamp), y: item.value }));
-                const humidityPoints = humidityData.map(item => ({ x: new Date(item.timestamp), y: item.value }));
+                if (tempData && tempData.length > 0 && humidityData && humidityData.length > 0) 
+                {
+                    // Convert Unix timestamp (long) from API back to JavaScript Date objects for the chart.
+                    const tempPoints = tempData.map(item => ({ x: new Date(item.timestamp), y: item.value }));
+                    const humidityPoints = humidityData.map(item => ({ x: new Date(item.timestamp), y: item.value }));
 
-                // Update the chart's data properties.
-                weatherChart.data.datasets[0].data = tempPoints;
-                weatherChart.data.datasets[1].data = humidityPoints;
+                    // Update the chart's data properties.
+                    weatherChart.data.datasets[0].data = tempPoints;
+                    weatherChart.data.datasets[1].data = humidityPoints;
 
-                // Tell Chart.js to re-render.
-                weatherChart.update('none'); 
+                    // Tell Chart.js to re-render.
+                    weatherChart.update('none');
+                }
+                else 
+                {
+                    // If the API returns empty arrays, we do nothing, leaving the old data visible.
+                    console.log("No new data points received from API. Chart will not be cleared or updated.");
+                }
             } catch (error) {
                 console.error("Error fetching or processing weather data:", error);
             }
