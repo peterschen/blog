@@ -71,7 +71,7 @@ public class WeatherDataProducer
         // Calculate the change factor, e.g., a random number between -0.15 and +0.15
         double changeFactor = (_random.NextDouble() * (maxChangePercent * 2)) - maxChangePercent;
 
-        // Calculate the new value
+        // Calculate the new value 
         double nextValue = previousValue * (1 + changeFactor);
 
         // Clamp the value to ensure it stays within the absolute realistic bounds and round it.

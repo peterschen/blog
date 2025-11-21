@@ -1,10 +1,10 @@
 @page
 @model PassDemo.Ui.Pages.IndexModel
 @{
-    ViewData["Title"] = "Weather Dashboard";
+    ViewData["Title"] = "Environmental data for Container 1923A8391";
 }
 
-<h1>Weather Dashboard</h1>
+<h1>Environmental data for Container 1923A8391</h1>
 
 <div class="row mb-4" style="display: none;">
     <div class="col-md-3">
@@ -34,15 +34,15 @@
 </div>
 
 <div class="card">
-    <div class="card-header">Weather Data</div>
+    <div class="card-header">Environmental data</div>
     <div class="card-body" style="height: 400px;">
         <canvas id="weatherChart"></canvas>
     </div>
 </div>
 
-<div class="alert alert-info mt-3" role="alert">
+@* <div class="alert alert-info mt-3" role="alert">
     <strong>Note:</strong> Data is for Hamburg. All times are UTC.
-</div>
+</div> *@
 
 @section Scripts {
     <script>
