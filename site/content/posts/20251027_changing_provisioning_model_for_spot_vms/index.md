@@ -24,7 +24,7 @@ But what happens if the nature of your workload changes over time? Or you need t
 
 You may have started looking at the options to change the VM configuration using Cloud Console but unfortunately it won't let you change the provisioning model, even claiming it is not possible to do so:
 
-![Chaning the provisioning model of a VM in Cloud Console](images/provisioning_model.png)
+![Changing the provisioning model of a VM in Cloud Console](images/provisioning_model.png)
 
 ## Changing the provisioning model using `gcloud`
 
