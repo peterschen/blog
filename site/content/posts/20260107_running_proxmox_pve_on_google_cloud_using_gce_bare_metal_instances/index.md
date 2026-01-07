@@ -109,28 +109,28 @@ During the installation process you'll be asked to configure Postfix:
 Make sure to follow the PVE best practices to ensure email delivery. For testing purposes you select **Local only**, which will only requires the mail name:
 
 {{< figure 
-    src="images/pve-postfix-configuration.png"
+    src="images/pve-postfix-config.png"
     alt="Postfix mail name configuration for local only delivery"
     caption="Postfix mail name configuration for local only delivery" >}}
 
 When GRUB is configured during the installation process you may be asked whether you want to override the current configuration. As we will remove GRUB later it is safe to install the package maintainers version of the GRUB configuration:
 
 {{< figure 
-    src="images/pve-gub-config.png"
+    src="images/pve-grub-config.png"
     alt="Installing the package maintainers version of GRUB configuration"
     caption="Installing the package maintainers version of GRUB configuration" >}}
 
 Then you will be prompted where to install GRUB boot data. Continue **without installing GRUB**:
 
 {{< figure 
-    src="images/pve-gub-install.png"
+    src="images/pve-grub-install.png"
     alt="GRUB installation location"
     caption="GRUB installation location" >}}
 
 Confirm when the installation confirms that you don't want to have GRUB installed. 
 
 {{< figure 
-    src="images/pve-gub-confirmation.png"
+    src="images/pve-grub-confirmation.png"
     alt="Confirmation screen for not installing GRUB to disk"
     caption="Confirmation screen for not installing GRUB to disk" >}}
 
