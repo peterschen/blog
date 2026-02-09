@@ -129,9 +129,9 @@
             const date_modified = p.date_modified ? new Date(p.date_modified * 1000).toLocaleString() : date_created;
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                        <td>${p.email || '-'}</td>
-                        <td>${p.project || '-'}</td>
-                        <td>${p.nickname || '<i>No nickname</i>'}</td>
+                        <td>${p.email || ''}</td>
+                        <td>${p.project || ''}</td>
+                        <td>${p.nickname || ''}</td>
                         <td>${date_created}</td>
                         <td>${date_modified}</td>
                         <td>
