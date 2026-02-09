@@ -6,11 +6,13 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from google.cloud import firestore
+from typing import Optional
 
 from pydantic import BaseModel
 
 class PrincipalRequest(BaseModel):
     project: str
+    nickname: Optional[str] = None
 
 class PrincipalUpdateRequest(BaseModel):
     nickname: str
@@ -71,12 +73,16 @@ def add_principal(request: PrincipalRequest, token_info: dict = Depends(verify_g
     # Store request details in Firestore
     try:
         doc_ref = db.collection("principals").document()
-        doc_ref.set({
+        doc_data = {
             "email": email,
             "project": request.project,
             "date_created": int(datetime.now(timezone.utc).timestamp()),
             "date_modified": int(datetime.now(timezone.utc).timestamp())
-        })
+        }
+        if request.nickname is not None:
+            doc_data["nickname"] = request.nickname
+
+        doc_ref.set(doc_data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to write to DB: {e}")
 
@@ -86,6 +92,7 @@ def add_principal(request: PrincipalRequest, token_info: dict = Depends(verify_g
         "data": {
             "email": email,
             "project": request.project,
+            "nickname": request.nickname,
             "doc_id": doc_ref.id
         }
     }

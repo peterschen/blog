@@ -33,13 +33,14 @@
             <th>Email</th>
             <th>Project</th>
             <th>Nickname</th>
-            <th>Date Added</th>
+            <th>Added</th>
+            <th>Modified</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody id="principalsTableBody">
           <tr>
-            <td colspan="5" class="text-center">Loading principals...</td>
+            <td colspan="6" class="text-center">Loading principals...</td>
           </tr>
         </tbody>
       </table>
@@ -75,10 +76,13 @@
   <script>
     const API_BASE = '/api/principals';
     let currentModal = null;
+      let lastDataString = ""; // Store stringified data to avoid re-rendering layout
+      let pollInterval = null;
 
     document.addEventListener("DOMContentLoaded", () => {
       currentModal = new bootstrap.Modal(document.getElementById('editModal'));
       loadPrincipals();
+      pollInterval = setInterval(loadPrincipals, 5000); // Poll every 5 seconds
 
       document.getElementById('editForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -111,16 +115,25 @@
         const response = await fetch(API_BASE);
         const json = await response.json();
 
+        // Check if data actually changed to avoid flickering
+        const newDataString = JSON.stringify(json.data || []);
+        if (newDataString === lastDataString) {
+          return; // No changes, don't update DOM
+        }
+        lastDataString = newDataString;
+
         if (json.status === "success" && json.data.length > 0) {
           tbody.innerHTML = '';
           json.data.forEach(p => {
             const date_created = new Date(p.date_created * 1000).toLocaleString();
+            const date_modified = p.date_modified ? new Date(p.date_modified * 1000).toLocaleString() : date_created;
             const tr = document.createElement('tr');
             tr.innerHTML = `
                         <td>${p.email || '-'}</td>
                         <td>${p.project || '-'}</td>
                         <td>${p.nickname || '<i>No nickname</i>'}</td>
                         <td>${date_created}</td>
+                        <td>${date_modified}</td>
                         <td>
                             <button class="btn btn-sm btn-outline-primary" onclick="openEdit('${p.id}', '${p.nickname || ''}')">
                                 Edit
@@ -133,10 +146,10 @@
             tbody.appendChild(tr);
           });
         } else {
-          tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No principals found.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No principals found.</td></tr>';
         }
       } catch (error) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Failed to load data.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Failed to load data.</td></tr>';
       }
     }
 
