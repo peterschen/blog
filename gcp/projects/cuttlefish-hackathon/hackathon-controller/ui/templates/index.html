@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Principals Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      padding-top: 2rem;
+      background-color: #f8f9fa;
+    }
+
+    .table-container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h2 class="mb-4">Principals Dashboard</h2>
+
+    <div class="table-container">
+      <table class="table table-hover">
+        <thead class="table-dark">
+          <tr>
+            <th>Email</th>
+            <th>Project</th>
+            <th>Nickname</th>
+            <th>Date Added</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="principalsTableBody">
+          <tr>
+            <td colspan="5" class="text-center">Loading principals...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="editForm">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editModalLabel">Edit Nickname</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="editDocId">
+            <div class="mb-3">
+              <label for="nicknameInput" class="form-label">Nickname</label>
+              <input type="text" class="form-control" id="nicknameInput" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Save changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const API_BASE = '/api/principals';
+    let currentModal = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      currentModal = new bootstrap.Modal(document.getElementById('editModal'));
+      loadPrincipals();
+
+      document.getElementById('editForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const docId = document.getElementById('editDocId').value;
+        const nickname = document.getElementById('nicknameInput').value;
+
+        try {
+          const response = await fetch(`${API_BASE}/${docId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nickname })
+          });
+
+          if (response.ok) {
+            currentModal.hide();
+            loadPrincipals();
+          } else {
+            const error = await response.json();
+            alert("Failed to update: " + (error.error || "Unknown error"));
+          }
+        } catch (err) {
+          alert("Error connecting to server.");
+        }
+      });
+    });
+
+    async function loadPrincipals() {
+      const tbody = document.getElementById('principalsTableBody');
+      try {
+        const response = await fetch(API_BASE);
+        const json = await response.json();
+
+        if (json.status === "success" && json.data.length > 0) {
+          tbody.innerHTML = '';
+          json.data.forEach(p => {
+            const date_created = new Date(p.date_created * 1000).toLocaleString();
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                        <td>${p.email || '-'}</td>
+                        <td>${p.project || '-'}</td>
+                        <td>${p.nickname || '<i>No nickname</i>'}</td>
+                        <td>${date_created}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="openEdit('${p.id}', '${p.nickname || ''}')">
+                                Edit
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger ms-1" onclick="deletePrincipal('${p.id}')">
+                                Delete
+                            </button>
+                        </td>
+                    `;
+            tbody.appendChild(tr);
+          });
+        } else {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No principals found.</td></tr>';
+        }
+      } catch (error) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Failed to load data.</td></tr>';
+      }
+    }
+
+    function openEdit(docId, currentNickname) {
+      document.getElementById('editDocId').value = docId;
+      document.getElementById('nicknameInput').value = currentNickname;
+      currentModal.show();
+    }
+
+    async function deletePrincipal(docId) {
+      if (!confirm('Are you sure you want to delete this principal?')) {
+        return;
+      }
+      try {
+        const response = await fetch(`${API_BASE}/${docId}`, {
+          method: 'DELETE'
+        });
+
+        if (response.ok) {
+          loadPrincipals();
+        } else {
+          const error = await response.json();
+          alert("Failed to delete: " + (error.error || "Unknown error"));
+        }
+      } catch (err) {
+        alert("Error connecting to server.");
+      }
+    }
+  </script>
+
+</body>
+
+</html>
