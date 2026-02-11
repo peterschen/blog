@@ -1,0 +1,52 @@
+schema_version: 2
+default_locale: en
+title:
+  locales:
+    en: Zero to Cuttlefish Hybrid Device in a day
+description:
+  locales:
+    en: Zero to Cuttlefish Hybrid Device in a day
+duration: 600
+max_duration: 20160
+credits: 0
+level: expert
+tags:
+- c4a-metal
+- Compute Engine
+- bare-metal
+- Axion
+- Arm
+- Google Cloud
+- Android
+- Cuttlefish
+instruction:
+  type: md
+  uri:
+    locales:
+      en: instructions/en.md
+environment:
+  resources:
+  - type: gcp_project
+    id: project_0
+    variant: gcpd
+    ssh_key_user: user_0
+    allowed_locations:
+      - us-central1
+    startup_script:
+      type: qwiklabs
+      path: ./terraform
+  - type: gcp_user
+    id: user_0
+    permissions:
+    - project: project_0
+      roles:
+      - roles/editor
+  student_visible_outputs:
+  - label: Open Google Cloud console
+    reference: project_0.console_url
+  - label: Username
+    reference: user_0.username
+  - label: Password
+    reference: user_0.password
+  - label: Project ID
+    reference: project_0.project_id
