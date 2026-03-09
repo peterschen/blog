@@ -9,8 +9,13 @@ from google.cloud import firestore
 from google.cloud import resourcemanager_v3
 from google.cloud import storage
 from typing import Optional
+import logging
 
 from pydantic import BaseModel
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 class PrincipalRequest(BaseModel):
     project: str
@@ -36,7 +41,7 @@ try:
     db_name = os.environ.get("DB_NAME", "(default)")
     db = firestore.Client(database=db_name)
 except Exception as e:
-    print(f"Warning: Failed to initialize Firestore (Normal if testing locally without ADC): {e}")
+    logger.warning(f"Failed to initialize Firestore (Normal if testing locally without ADC): {e}")
     db = None
 
 security = HTTPBearer()
@@ -55,6 +60,7 @@ def verify_gcp_token(cred: HTTPAuthorizationCredentials = Depends(security)):
         token_info = id_token.verify_oauth2_token(token, req)
         return token_info
     except ValueError as e:
+        logger.error(f"Token validation failed: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid Token: {str(e)}",
@@ -68,6 +74,7 @@ def add_principal(request: PrincipalRequest, token_info: dict = Depends(verify_g
     Stores the metadata in a lightweight Firebase (Firestore) database.
     """
     if db is None:
+        logger.error("Database not initialized during add_principal")
         raise HTTPException(status_code=500, detail="Database not initialized. Check server configurations.")
         
     email = token_info.get("email", "unknown_email")
@@ -86,6 +93,7 @@ def add_principal(request: PrincipalRequest, token_info: dict = Depends(verify_g
 
         doc_ref.set(doc_data)
     except Exception as e:
+        logger.error(f"Failed to write to DB during add_principal: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to write to DB: {e}")
 
     return {
@@ -105,6 +113,7 @@ def list_principals():
     Lists out the registered principals from the database.
     """
     if db is None:
+        logger.error("Database not initialized during list_principals")
         raise HTTPException(status_code=500, detail="Database not initialized. Check server configurations.")
 
     try:
@@ -127,6 +136,7 @@ def list_principals():
             
         return {"status": "success", "data": principals}
     except Exception as e:
+        logger.error(f"Failed to fetch from DB during list_principals: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch from DB: {e}")
 
 @app.post("/api/principals/{doc_id}/grant_permissions")
@@ -136,16 +146,19 @@ def grant_permissions(doc_id: str, token_info: dict = Depends(verify_gcp_token))
     Requires a valid GCP token.
     """
     if db is None:
+        logger.error("Database not initialized during grant_permissions")
         raise HTTPException(status_code=500, detail="Database not initialized. Check server configurations.")
 
     doc_ref = db.collection("principals").document(doc_id)
     doc = doc_ref.get()
     if not doc.exists:
+        logger.error(f"Principal {doc_id} not found during grant_permissions")
         raise HTTPException(status_code=404, detail="Principal not found")
 
     principal_data = doc.to_dict()
     project_id = principal_data.get("project")
     if not project_id:
+        logger.error(f"Principal {doc_id} is missing a project ID during grant_permissions")
         raise HTTPException(status_code=400, detail="Principal record is missing a project ID")
 
     try:
@@ -199,6 +212,7 @@ def grant_permissions(doc_id: str, token_info: dict = Depends(verify_gcp_token))
         }
 
     except Exception as e:
+        logger.error(f"Failed to grant permissions for {doc_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to grant permissions: {e}")
 
 @app.patch("/api/principals/{doc_id}")
@@ -208,10 +222,12 @@ def update_principal(doc_id: str, request: PrincipalUpdateRequest, token_info: d
     Requires a valid GCP token.
     """
     if db is None:
+        logger.error("Database not initialized during update_principal")
         raise HTTPException(status_code=500, detail="Database not initialized. Check server configurations.")
 
     doc_ref = db.collection("principals").document(doc_id)
     if not doc_ref.get().exists:
+        logger.error(f"Principal {doc_id} not found during update_principal")
         raise HTTPException(status_code=404, detail="Principal not found")
 
     try:
@@ -221,6 +237,7 @@ def update_principal(doc_id: str, request: PrincipalUpdateRequest, token_info: d
             "date_modified": current_time
         })
     except Exception as e:
+        logger.error(f"Failed to update DB for {doc_id} during update_principal: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to update DB: {e}")
 
     return {
@@ -240,15 +257,18 @@ def delete_principal(doc_id: str, token_info: dict = Depends(verify_gcp_token)):
     Requires a valid GCP token.
     """
     if db is None:
+        logger.error("Database not initialized during delete_principal")
         raise HTTPException(status_code=500, detail="Database not initialized. Check server configurations.")
 
     doc_ref = db.collection("principals").document(doc_id)
     if not doc_ref.get().exists:
+        logger.error(f"Principal {doc_id} not found during delete_principal")
         raise HTTPException(status_code=404, detail="Principal not found")
 
     try:
         doc_ref.delete()
     except Exception as e:
+        logger.error(f"Failed to delete DB record for {doc_id} during delete_principal: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to delete DB: {e}")
 
     return {
