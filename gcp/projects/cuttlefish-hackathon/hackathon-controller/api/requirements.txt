@@ -1,6 +1,6 @@
 fastapi>=0.135.1
 uvicorn>=0.41.0
-google-auth>=2.49.3
+google-auth>=2.49.0
 google-cloud-firestore>=2.23.9
 google-cloud-resourcemanager>=1.15.0
 google-cloud-storage>=3.9.0
