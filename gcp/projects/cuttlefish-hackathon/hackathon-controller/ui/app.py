@@ -103,6 +103,28 @@ def delete_principal(doc_id):
         logger.error(f"Error deleting principal {doc_id}: {e}")
         return jsonify({"error": str(e), "details": resp.text if 'resp' in locals() and hasattr(resp, 'text') else ""}), 500
 
+@app.route("/api/principals/<doc_id>/grant_permissions", methods=["POST"])
+def grant_permissions(doc_id):
+    """Proxy POST request to backend API. Must attach GCP token."""
+    logger.info(f"Handling request to grant permissions for principal {doc_id}")
+    try:
+        # Get token. In production Cloud Run, the audience is typically the backend service URL
+        token = get_auth_token(audience=API_URI)
+        
+        headers = {}
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+            
+        resp = requests.post(
+            f"{API_URI}/api/principals/{doc_id}/grant_permissions",
+            headers=headers
+        )
+        resp.raise_for_status()
+        return jsonify(resp.json())
+    except Exception as e:
+        logger.error(f"Error granting permissions for principal {doc_id}: {e}")
+        return jsonify({"error": str(e), "details": resp.text if 'resp' in locals() and hasattr(resp, 'text') else ""}), 500
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8081))
     app.run(host="0.0.0.0", port=port, debug=True)

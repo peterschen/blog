@@ -6,6 +6,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from google.cloud import firestore
+from google.cloud import resourcemanager_v3
+from google.cloud import storage
 from typing import Optional
 
 from pydantic import BaseModel
@@ -107,8 +109,8 @@ def list_principals():
 
     try:
         # Fetching records from Firestore
-        # This gets all documents in the 'principals' collection
-        docs = db.collection("principals").stream()
+        # This gets all documents in the 'principals' collection ordered by creation date
+        docs = db.collection("principals").order_by("date_created", direction=firestore.Query.DESCENDING).stream()
         
         principals = []
         for doc in docs:
@@ -126,6 +128,78 @@ def list_principals():
         return {"status": "success", "data": principals}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch from DB: {e}")
+
+@app.post("/api/principals/{doc_id}/grant_permissions")
+def grant_permissions(doc_id: str, token_info: dict = Depends(verify_gcp_token)):
+    """
+    Grants the Compute Engine default service account object viewer permissions to the bucket.
+    Requires a valid GCP token.
+    """
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not initialized. Check server configurations.")
+
+    doc_ref = db.collection("principals").document(doc_id)
+    doc = doc_ref.get()
+    if not doc.exists:
+        raise HTTPException(status_code=404, detail="Principal not found")
+
+    principal_data = doc.to_dict()
+    project_id = principal_data.get("project")
+    if not project_id:
+        raise HTTPException(status_code=400, detail="Principal record is missing a project ID")
+
+    try:
+        # 1. Fetch project number using Resource Manager API
+        rm_client = resourcemanager_v3.ProjectsClient()
+        project_name = f"projects/{project_id}"
+        project_obj = rm_client.get_project(name=project_name)
+        
+        # In the resourcemanager_v3 API, the `name` field returned from get_project is actually `projects/{project_number}`
+        # The documentation is a bit tricky, but this is the standard way to extract it.
+        # Alternatively, `project_obj.name.split("/")[1]`
+        project_number = project_obj.name.split("/")[1]
+
+        # 2. Construct default compute service account
+        sa_email = f"{project_number}-compute@developer.gserviceaccount.com"
+        
+        # 3. Modify bucket IAM policy
+        storage_client = storage.Client()
+        bucket_name = "axion-hakaton-3298"
+        bucket = storage_client.bucket(bucket_name)
+
+        policy = bucket.get_iam_policy(requested_policy_version=3)
+        
+        # Add the role
+        role = "roles/storage.objectViewer"
+        member = f"serviceAccount:{sa_email}"
+        
+        # It's an array of bindings. Best edge-case handling is to avoid duplicating
+        # Though the python client resolves duplicates, we should use the bindings helper.
+        policy.bindings.append(
+            {"role": role, "members": {member}}
+        )
+        
+        bucket.set_iam_policy(policy)
+
+        # 4. Update the Firestore document
+        current_time = int(datetime.now(timezone.utc).timestamp())
+        doc_ref.update({
+            "permissions_granted": True,
+            "date_modified": current_time
+        })
+
+        return {
+            "status": "success",
+            "message": f"Granted Object Viewer permissions to {sa_email}",
+            "data": {
+                "doc_id": doc_id,
+                "permissions_granted": True,
+                "date_modified": current_time
+            }
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to grant permissions: {e}")
 
 @app.patch("/api/principals/{doc_id}")
 def update_principal(doc_id: str, request: PrincipalUpdateRequest, token_info: dict = Depends(verify_gcp_token)):

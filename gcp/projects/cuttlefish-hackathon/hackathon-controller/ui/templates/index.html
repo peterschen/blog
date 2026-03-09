@@ -127,17 +127,26 @@
           json.data.forEach(p => {
             const date_created = new Date(p.date_created * 1000).toLocaleString();
             const date_modified = p.date_modified ? new Date(p.date_modified * 1000).toLocaleString() : date_created;
+
+            let grantButton = '';
+            if (p.permissions_granted) {
+              grantButton = `<button class="btn btn-sm btn-secondary ms-1" disabled>Granted</button>`;
+            } else {
+              grantButton = `<button class="btn btn-sm btn-outline-success ms-1" onclick="grantPermissions('${p.id}')">Grant Permissions</button>`;
+            }
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                        <td>${p.email || ''}</td>
-                        <td>${p.project || ''}</td>
-                        <td>${p.nickname || ''}</td>
+                        <td>${p.email || '-'}</td>
+                        <td>${p.project || '-'}</td>
+                        <td>${p.nickname || '-'}</td>
                         <td>${date_created}</td>
                         <td>${date_modified}</td>
                         <td>
                             <button class="btn btn-sm btn-outline-primary" onclick="openEdit('${p.id}', '${p.nickname || ''}')">
                                 Edit
                             </button>
+                            ${grantButton}
                             <button class="btn btn-sm btn-outline-danger ms-1" onclick="deletePrincipal('${p.id}')">
                                 Delete
                             </button>
@@ -178,6 +187,28 @@
         alert("Error connecting to server.");
       }
     }
+
+  async function grantPermissions(docId) {
+    if (!confirm('Are you sure you want to grant GCS object viewer permissions for this project?')) {
+      return;
+    }
+    try {
+      const response = await fetch(`${API_BASE}/${docId}/grant_permissions`, {
+        method: 'POST'
+      });
+
+      if (response.ok) {
+        // Reset lastDataString to force re-render since we know we just mutated state
+        lastDataString = "";
+        loadPrincipals();
+      } else {
+        const error = await response.json();
+        alert("Failed to grant permissions: " + (error.error || "Unknown error"));
+      }
+    } catch (err) {
+      alert("Error connecting to server.");
+    }
+  }
   </script>
 
 </body>
