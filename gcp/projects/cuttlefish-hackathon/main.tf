@@ -121,6 +121,15 @@ resource "google_firestore_database" "database" {
   deletion_policy = "DELETE"
 }
 
+resource "google_storage_bucket" "bucket" {
+  project = data.google_project.project.project_id
+  name = data.google_project.project.project_id
+  location = local.region
+  uniform_bucket_level_access = true
+  public_access_prevention = "enforced"
+  force_destroy = false
+}
+
 module "project_sandbox" {
   source = "../../modules/project"
   count = local.project_id != null ? 0 : 1

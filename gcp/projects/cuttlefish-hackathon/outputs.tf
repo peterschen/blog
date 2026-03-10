@@ -14,6 +14,10 @@ output "database" {
     value = google_firestore_database.database.name
 }
 
+output "bucket" {
+    value = google_storage_bucket.bucket.name
+}
+
 output "service_account" {
     value = google_service_account.hackathon_controller.email
 }
