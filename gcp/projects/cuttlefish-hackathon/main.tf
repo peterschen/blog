@@ -61,6 +61,24 @@ resource "google_service_account" "hackathon_controller" {
   account_id = "hackathon-controller"
 }
 
+resource "google_project_iam_member" "controller_artifactregistry_reader" {
+  project = data.google_project.project.project_id
+  role = "roles/artifactregistry.reader"
+  member = "serviceAccount:${google_service_account.hackathon_controller.email}"
+}
+
+resource "google_project_iam_member" "controller_logging_logwriter" {
+  project = data.google_project.project.project_id
+  role = "roles/logging.logWriter"
+  member = "serviceAccount:${google_service_account.hackathon_controller.email}"
+}
+
+resource "google_project_iam_member" "controller_firestore_user" {
+  project = data.google_project.project.project_id
+  role = "roles/datastore.user"
+  member = "serviceAccount:${google_service_account.hackathon_controller.email}"
+}
+
 resource "google_project_iam_member" "storage_user" {
   project = data.google_project.project.project_id
   role = "roles/storage.objectUser"
@@ -101,4 +119,42 @@ resource "google_firestore_database" "database" {
   point_in_time_recovery_enablement = "POINT_IN_TIME_RECOVERY_DISABLED"
   delete_protection_state = "DELETE_PROTECTION_DISABLED"
   deletion_policy = "DELETE"
+}
+
+module "project_sandbox" {
+  source = "../../modules/project"
+  count = local.project_id != null ? 0 : 1
+
+  org_id = var.org_id
+  billing_account = var.billing_account
+
+  name = "${local.project_name}-${resource.random_integer.project[0].id}-sandbox"
+
+  apis = [
+    "compute.googleapis.com",
+    "logging.googleapis.com",
+    "monitoring.googleapis.com"
+  ]
+}
+
+data "google_compute_default_service_account" "default_sandbox" {
+  project = module.project_sandbox[0].id
+}
+
+resource "google_project_iam_member" "logging_logwriter_sandbox" {
+  project = module.project_sandbox[0].id
+  role = "roles/logging.logWriter"
+  member = "serviceAccount:${data.google_compute_default_service_account.default_sandbox.email}"
+}
+
+resource "google_project_iam_member" "logging_metricwriter_sandbox" {
+  project = module.project_sandbox[0].id
+  role = "roles/monitoring.metricWriter"
+  member = "serviceAccount:${data.google_compute_default_service_account.default_sandbox.email}"
+}
+
+resource "google_project_iam_member" "storage_user_sandbox" {
+  project = module.project[0].id
+  role = "roles/storage.objectUser"
+  member = "serviceAccount:${data.google_compute_default_service_account.default_sandbox.email}"
 }
