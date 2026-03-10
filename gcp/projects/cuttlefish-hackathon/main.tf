@@ -61,6 +61,7 @@ resource "google_service_account" "hackathon_controller" {
   account_id = "hackathon-controller"
 }
 
+# TODO (Christoph): Apply on the AR not projet
 resource "google_project_iam_member" "controller_artifactregistry_reader" {
   project = data.google_project.project.project_id
   role = "roles/artifactregistry.reader"
@@ -73,9 +74,17 @@ resource "google_project_iam_member" "controller_logging_logwriter" {
   member = "serviceAccount:${google_service_account.hackathon_controller.email}"
 }
 
+# TODO (Christoph): Apply on the database not projet
 resource "google_project_iam_member" "controller_firestore_user" {
   project = data.google_project.project.project_id
   role = "roles/datastore.user"
+  member = "serviceAccount:${google_service_account.hackathon_controller.email}"
+}
+
+# TODO (Christoph): Apply on the bucket not project
+resource "google_project_iam_member" "controller_storage_admin" {
+  project = data.google_project.project.project_id
+  role = "roles/storage.admin"
   member = "serviceAccount:${google_service_account.hackathon_controller.email}"
 }
 
