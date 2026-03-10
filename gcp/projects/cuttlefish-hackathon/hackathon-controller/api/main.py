@@ -48,8 +48,12 @@ bucket_name = os.environ.get("BUCKET_NAME", "axion-hackaton-3298")
 
 security = HTTPBearer()
 
-def to_principal(doc):
-    data = doc.to_dict()
+def to_principal(doc, retrieve: True):
+    if retrieve:
+        data = doc.get().to_dict()
+    else:
+        data = doc.to_dict()
+
     return {
         "id": doc.id,
         "email": data.get("email"),
@@ -133,7 +137,7 @@ def list_principals():
         
         principals = []
         for doc in docs:
-            principals.append(to_principal(doc))
+            principals.append(to_principal(doc, False))
             
         return {"status": "success", "data": principals}
     except Exception as e:
