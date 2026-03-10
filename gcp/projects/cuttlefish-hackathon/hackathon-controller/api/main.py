@@ -48,7 +48,7 @@ bucket_name = os.environ.get("BUCKET_NAME", "axion-hackaton-3298")
 
 security = HTTPBearer()
 
-def to_principal(doc, retrieve: True):
+def to_principal(doc, retrieve = True):
     if retrieve:
         data = doc.get().to_dict()
     else:
@@ -61,7 +61,7 @@ def to_principal(doc, retrieve: True):
         "nickname": data.get("nickname"),
         "date_created": data.get("date_created"),
         "date_modified": data.get("date_modified"),
-        "permission_granted": data.get("permission_granted", False)
+        "permissions_granted": data.get("permissions_granted", False)
     }
 
 def verify_gcp_token(cred: HTTPAuthorizationCredentials = Depends(security)):
