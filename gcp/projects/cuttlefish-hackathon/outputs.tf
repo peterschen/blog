@@ -13,3 +13,7 @@ output "zone" {
 output "database" {
     value = google_firestore_database.database.name
 }
+
+output "bucket" {
+    value = google_storage_bucket.bucket.name
+}

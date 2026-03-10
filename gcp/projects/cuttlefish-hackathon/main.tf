@@ -102,3 +102,12 @@ resource "google_firestore_database" "database" {
   delete_protection_state = "DELETE_PROTECTION_DISABLED"
   deletion_policy = "DELETE"
 }
+
+resource "google_storage_bucket" "bucket" {
+  project = data.google_project.project.project_id
+  name = data.google_project.project.project_id
+  location = local.region
+  uniform_bucket_level_access = true
+  public_access_prevention = "enforced"
+  force_destroy = true
+}

@@ -44,6 +44,8 @@ except Exception as e:
     logger.warning(f"Failed to initialize Firestore (Normal if testing locally without ADC): {e}")
     db = None
 
+bucket_name = os.environ.get("BUCKET_NAME", "axion-hackaton-3298")
+
 security = HTTPBearer()
 
 def verify_gcp_token(cred: HTTPAuthorizationCredentials = Depends(security)):
@@ -177,9 +179,7 @@ def grant_permissions(doc_id: str, token_info: dict = Depends(verify_gcp_token))
         
         # 3. Modify bucket IAM policy
         storage_client = storage.Client()
-        bucket_name = "axion-hakaton-3298"
         bucket = storage_client.bucket(bucket_name)
-
         policy = bucket.get_iam_policy(requested_policy_version=3)
         
         # Add the role
