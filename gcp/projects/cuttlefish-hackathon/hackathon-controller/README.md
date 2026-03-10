@@ -21,12 +21,14 @@ gcloud builds submit api/ \
 ```bash
 export PROJECT=`terraform -chdir=../ output -raw project`
 export REGION=`terraform -chdir=../ output -raw region`
+export SERVICE_ACCOUNT=`terraform -chdir=../ output -raw service_account`
 export COMMIT_SHA=`git show --pretty=format:"%H" --no-patch`
 export DATABASE=`terraform -chdir=../ output -raw database`
 
 gcloud run deploy hackathon-controller-api \
     --project $PROJECT \
     --region $REGION \
+    --service-account $SERVICE_ACCOUNT \
     --image gcr.io/$PROJECT/hackathon-controller-api:$COMMIT_SHA \
     --set-env-vars DB_NAME=$DATABASE \
     --allow-unauthenticated
@@ -53,6 +55,7 @@ gcloud builds submit ui/ \
 ```bash
 export PROJECT=`terraform -chdir=../ output -raw project`
 export REGION=`terraform -chdir=../ output -raw region`
+
 export COMMIT_SHA=`git show --pretty=format:"%H" --no-patch`
 export URI=`gcloud run services describe hackathon-controller-api \
     --project $PROJECT \
@@ -70,6 +73,7 @@ gcloud run deploy hackathon-controller-ui \
 ```shell
 export PROJECT=`terraform -chdir=../ output -raw project`
 export REGION=`terraform -chdir=../ output -raw region`
+export SERVICE_ACCOUNT=`terraform -chdir=../ output -raw service_account`
 export COMMIT_SHA=`git show --pretty=format:"%H" --no-patch`
 export DATABASE=`terraform -chdir=../ output -raw database`
 
@@ -89,6 +93,7 @@ gcloud builds submit ui/ \
 gcloud run deploy hackathon-controller-api \
     --project $PROJECT \
     --region $REGION \
+    --service-account $SERVICE_ACCOUNT \
     --image gcr.io/$PROJECT/hackathon-controller-api:$COMMIT_SHA \
     --set-env-vars DB_NAME=$DATABASE \
     --allow-unauthenticated
