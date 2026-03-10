@@ -48,6 +48,18 @@ bucket_name = os.environ.get("BUCKET_NAME", "axion-hackaton-3298")
 
 security = HTTPBearer()
 
+def to_principal(doc):
+    data = doc.to_dict()
+    return {
+        "id": doc.id,
+        "email": data.get("email"),
+        "project": data.get("project"),
+        "nickname": data.get("nickname"),
+        "date_created": data.get("date_created"),
+        "date_modified": data.get("date_modified"),
+        "permission_granted": data.get("permission_granted", False)
+    }
+
 def verify_gcp_token(cred: HTTPAuthorizationCredentials = Depends(security)):
     """
     Validates the bearer token as an OIDC token from a Google Cloud service (e.g., GCE, Cloud Run, Cloud Functions).
@@ -88,7 +100,8 @@ def add_principal(request: PrincipalRequest, token_info: dict = Depends(verify_g
             "email": email,
             "project": request.project,
             "date_created": int(datetime.now(timezone.utc).timestamp()),
-            "date_modified": int(datetime.now(timezone.utc).timestamp())
+            "date_modified": int(datetime.now(timezone.utc).timestamp()),
+            "permissions_granted": False
         }
         if request.nickname is not None:
             doc_data["nickname"] = request.nickname
@@ -101,12 +114,7 @@ def add_principal(request: PrincipalRequest, token_info: dict = Depends(verify_g
     return {
         "status": "success",
         "message": "Request authenticated and stored",
-        "data": {
-            "email": email,
-            "project": request.project,
-            "nickname": request.nickname,
-            "doc_id": doc_ref.id
-        }
+        "data": to_principal(doc_ref)
     }
 
 @app.get("/api/principals")
@@ -125,16 +133,7 @@ def list_principals():
         
         principals = []
         for doc in docs:
-            data = doc.to_dict()
-            principal = {
-                "id": doc.id,
-                "email": data.get("email"),
-                "project": data.get("project"),
-                "nickname": data.get("nickname"),
-                "date_created": data.get("date_created"),
-                "date_modified": data.get("date_modified")
-            }
-            principals.append(principal)
+            principals.append(to_principal(doc))
             
         return {"status": "success", "data": principals}
     except Exception as e:
@@ -204,11 +203,7 @@ def grant_permissions(doc_id: str, token_info: dict = Depends(verify_gcp_token))
         return {
             "status": "success",
             "message": f"Granted Object Viewer permissions to {sa_email}",
-            "data": {
-                "doc_id": doc_id,
-                "permissions_granted": True,
-                "date_modified": current_time
-            }
+            "data": to_principal(doc_ref)
         }
 
     except Exception as e:
@@ -243,11 +238,7 @@ def update_principal(doc_id: str, request: PrincipalUpdateRequest, token_info: d
     return {
         "status": "success",
         "message": "Nickname updated successfully",
-        "data": {
-            "doc_id": doc_id,
-            "nickname": request.nickname,
-            "date_modified": current_time
-        }
+        "data": to_principal(doc_ref)
     }
 
 @app.delete("/api/principals/{doc_id}")

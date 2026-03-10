@@ -188,10 +188,7 @@
       }
     }
 
-  async function grantPermissions(docId) {
-    if (!confirm('Are you sure you want to grant GCS object viewer permissions for this project?')) {
-      return;
-    }
+    async function grantPermissions(docId) {
     try {
       const response = await fetch(`${API_BASE}/${docId}/grant_permissions`, {
         method: 'POST'
