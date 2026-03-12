@@ -1,10 +1,7 @@
 import os
 from datetime import datetime, timezone
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from google.oauth2 import id_token
-from google.auth.transport import requests as google_requests
 from google.cloud import firestore
 from google.cloud import resourcemanager_v3
 from google.cloud import storage
@@ -46,8 +43,6 @@ except Exception as e:
 
 bucket_name = os.environ.get("BUCKET_NAME", "axion-hackaton-3298")
 
-security = HTTPBearer()
-
 def to_principal(doc, retrieve = True):
     if retrieve:
         data = doc.get().to_dict()
@@ -64,38 +59,19 @@ def to_principal(doc, retrieve = True):
         "permissions_granted": data.get("permissions_granted", False)
     }
 
-def verify_gcp_token(cred: HTTPAuthorizationCredentials = Depends(security)):
-    """
-    Validates the bearer token as an OIDC token from a Google Cloud service (e.g., GCE, Cloud Run, Cloud Functions).
-    """
-    token = cred.credentials
-    try:
-        # Verify token. The audience is usually the URL of this service.
-        req = google_requests.Request()
-        
-        # In a real environment, provide `audience="https://your-cloud-run-url"` 
-        # to ensure the token was minted specifically for this API.
-        token_info = id_token.verify_oauth2_token(token, req)
-        return token_info
-    except ValueError as e:
-        logger.error(f"Token validation failed: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid Token: {str(e)}",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
 @app.post("/api/principals")
-def add_principal(request: PrincipalRequest, token_info: dict = Depends(verify_gcp_token)):
+def add_principal(req: Request, request: PrincipalRequest):
     """
-    Endpoint that requires a valid GCP token.
     Stores the metadata in a lightweight Firebase (Firestore) database.
+    IAP handles authentication securely.
     """
     if db is None:
         logger.error("Database not initialized during add_principal")
         raise HTTPException(status_code=500, detail="Database not initialized. Check server configurations.")
         
-    email = token_info.get("email", "unknown_email")
+    email = req.headers.get("X-Goog-Authenticated-User-Email", "unknown_email")
+    if email.startswith("accounts.google.com:"):
+        email = email.split(":", 1)[1]
 
     # Store request details in Firestore
     try:
@@ -145,10 +121,10 @@ def list_principals():
         raise HTTPException(status_code=500, detail=f"Failed to fetch from DB: {e}")
 
 @app.post("/api/principals/{doc_id}/grant_permissions")
-def grant_permissions(doc_id: str, token_info: dict = Depends(verify_gcp_token)):
+def grant_permissions(doc_id: str):
     """
     Grants the Compute Engine default service account object viewer permissions to the bucket.
-    Requires a valid GCP token.
+    IAP handles authentication securely.
     """
     if db is None:
         logger.error("Database not initialized during grant_permissions")
@@ -215,10 +191,10 @@ def grant_permissions(doc_id: str, token_info: dict = Depends(verify_gcp_token))
         raise HTTPException(status_code=500, detail=f"Failed to grant permissions: {e}")
 
 @app.patch("/api/principals/{doc_id}")
-def update_principal(doc_id: str, request: PrincipalUpdateRequest, token_info: dict = Depends(verify_gcp_token)):
+def update_principal(doc_id: str, request: PrincipalUpdateRequest):
     """
     Updates an existing principal to set their nickname.
-    Requires a valid GCP token.
+    IAP handles authentication securely.
     """
     if db is None:
         logger.error("Database not initialized during update_principal")
@@ -246,10 +222,10 @@ def update_principal(doc_id: str, request: PrincipalUpdateRequest, token_info: d
     }
 
 @app.delete("/api/principals/{doc_id}")
-def delete_principal(doc_id: str, token_info: dict = Depends(verify_gcp_token)):
+def delete_principal(doc_id: str):
     """
     Deletes an existing principal.
-    Requires a valid GCP token.
+    IAP handles authentication securely.
     """
     if db is None:
         logger.error("Database not initialized during delete_principal")
