@@ -2,7 +2,9 @@ import os
 import requests
 from flask import Flask, render_template, request, jsonify
 from google.auth.transport.requests import Request
-from google.oauth2 import id_token
+from google.cloud.iam_credentials_v1 import IAMCredentialsClient
+import json
+import datetime
 import google.auth
 import logging
 
@@ -15,31 +17,56 @@ app = Flask(__name__)
 API_URI = os.environ.get("API_URI", "http://localhost:8080")
 
 def get_auth_token(audience: str) -> str:
-    """
-    Obtains an OIDC token for the given audience using default Google credentials.
-    Suitable for calling another Cloud Run service.
-    """
-    credentials, _ = google.auth.default()
-    
-    # If using ADC locally (e.g. gcloud auth application-default login),
-    # there is no guaranteed OIDC token available for arbitrary audiences
-    # But in Cloud Run, this will fetch the identity token from the metadata server.
+    try:
+        return sign_jwt(audience)
+    except Exception as e:
+        logger.warning(f"Failed to retrieve auth token: {e}")
+        return ""
+
+def generate_jwt_payload(service_account_email: str, audience: str) -> str:
+    # Create current time and expiration time (1 hour later) in UTC
+    iat = datetime.datetime.now(tz=datetime.timezone.utc)
+    exp = iat + datetime.timedelta(seconds=3600)
+
+    # Convert datetime objects to numeric timestamps (seconds since epoch)
+    # as required by JWT standard (RFC 7519)
+    payload = {
+        "iss": service_account_email,
+        "sub": service_account_email,
+        "aud": audience,
+        "iat": int(iat.timestamp()),
+        "exp": int(exp.timestamp()),
+    }
+
+    return json.dumps(payload)
+
+def sign_jwt(audience: str) -> str:
+    # Get default credentials from environment or application credentials
+    credentials, project_id = google.auth.default()
+
+    # Initialize IAM credentials client with source credentials
+    iam_client = IAMCredentialsClient(credentials=credentials)
+
+    # In a Cloud Run environment, the credentials need to be refreshed to fetch 
+    # the service account email from the metadata server.
     req = Request()
     credentials.refresh(req)
-    # The identity token is available if the credentials support it
-    if hasattr(credentials, 'id_token'):
-        return credentials.id_token
-        
-    # Attempt to fetch directly for Cloud Run environment
-    try:
-        url = f"http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience={audience}"
-        headers = {"Metadata-Flavor": "Google"}
-        r = requests.get(url, headers=headers, timeout=2)
-        r.raise_for_status()
-        return r.text
-    except Exception as e:
-        logger.warning(f"Failed to fetch metadata token (normal locally): {e}")
-        return ""
+
+    # Retrieve service account from Cloud Run
+    service_account = credentials.service_account_email
+
+    # Generate the service account resource name.
+    # Project should always be "-".
+    # Replacing the wildcard character with a project ID is invalid.
+    name = iam_client.service_account_path("-", service_account)
+
+    # Create and sign the JWT payload
+    payload = generate_jwt_payload(service_account, audience)
+
+    # Sign the JWT using the IAM credentials API
+    response = iam_client.sign_jwt(name=name, payload=payload)
+
+    return response.signed_jwt
 
 @app.route("/")
 def index():
@@ -47,10 +74,19 @@ def index():
 
 @app.route("/api/principals", methods=["GET"])
 def list_principals():
-    """Proxy GET request to the backend API. Unauthenticated."""
+    """Proxy GET request to the backend API."""
     logger.info("Handling request to list principals")
     try:
-        resp = requests.get(f"{API_URI}/api/principals")
+        token = get_auth_token(audience=f"{API_URI}/api/principals")
+        
+        headers = {}
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+
+        resp = requests.get(
+            f"{API_URI}/api/principals",
+            headers=headers
+        )
         resp.raise_for_status()
         return jsonify(resp.json())
     except Exception as e:
@@ -59,12 +95,12 @@ def list_principals():
 
 @app.route("/api/principals/<doc_id>", methods=["PATCH"])
 def update_principal(doc_id):
-    """Proxy PATCH request to backend API. Must attach GCP token."""
+    """Proxy PATCH request to backend API."""
     logger.info(f"Handling request to update principal {doc_id}")
     data = request.json
     try:
         # Get token. In production Cloud Run, the audience is typically the backend service URL
-        token = get_auth_token(audience=API_URI)
+        token = get_auth_token(audience=f"{API_URI}/api/principals/{doc_id}")
         
         headers = {"Content-Type": "application/json"}
         if token:
@@ -83,11 +119,11 @@ def update_principal(doc_id):
 
 @app.route("/api/principals/<doc_id>", methods=["DELETE"])
 def delete_principal(doc_id):
-    """Proxy DELETE request to backend API. Must attach GCP token."""
+    """Proxy DELETE request to backend API."""
     logger.info(f"Handling request to delete principal {doc_id}")
     try:
         # Get token. In production Cloud Run, the audience is typically the backend service URL
-        token = get_auth_token(audience=API_URI)
+        token = get_auth_token(audience=f"{API_URI}/api/principals/{doc_id}")
         
         headers = {}
         if token:
@@ -105,11 +141,11 @@ def delete_principal(doc_id):
 
 @app.route("/api/principals/<doc_id>/grant_permissions", methods=["POST"])
 def grant_permissions(doc_id):
-    """Proxy POST request to backend API. Must attach GCP token."""
+    """Proxy POST request to backend API."""
     logger.info(f"Handling request to grant permissions for principal {doc_id}")
     try:
         # Get token. In production Cloud Run, the audience is typically the backend service URL
-        token = get_auth_token(audience=API_URI)
+        token = get_auth_token(audience=f"{API_URI}/api/principals/{doc_id}/grant_permissions")
         
         headers = {}
         if token:
