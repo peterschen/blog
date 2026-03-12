@@ -35,7 +35,7 @@ app.add_middleware(
 # Cloud Run natively provides default credentials which give access to Firestore
 # if the underlying Service Account has the required Datastore/Firestore permissions.
 try:
-    db_name = os.environ.get("DB_NAME", "(default)")
+    db_name = os.environ.get("DATABASE_NAME", "(default)")
     db = firestore.Client(database=db_name)
 except Exception as e:
     logger.warning(f"Failed to initialize Firestore (Normal if testing locally without ADC): {e}")

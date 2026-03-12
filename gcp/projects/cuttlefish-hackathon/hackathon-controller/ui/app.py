@@ -68,6 +68,14 @@ def sign_jwt(audience: str) -> str:
 
     return response.signed_jwt
 
+def get_auth_headers(audience: str, additional_headers: dict = None) -> dict:
+    """Helper to construct authentication and additional headers."""
+    headers = additional_headers or {}
+    token = get_auth_token(audience=audience)
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -77,15 +85,9 @@ def list_principals():
     """Proxy GET request to the backend API."""
     logger.info("Handling request to list principals")
     try:
-        token = get_auth_token(audience=f"{API_URI}/api/principals")
-        
-        headers = {}
-        if token:
-            headers["Authorization"] = f"Bearer {token}"
-
         resp = requests.get(
             f"{API_URI}/api/principals",
-            headers=headers
+            headers=get_auth_headers(audience=f"{API_URI}/api/principals")
         )
         resp.raise_for_status()
         return jsonify(resp.json())
@@ -100,12 +102,11 @@ def update_principal(doc_id):
     data = request.json
     try:
         # Get token. In production Cloud Run, the audience is typically the backend service URL
-        token = get_auth_token(audience=f"{API_URI}/api/principals/{doc_id}")
+        headers = get_auth_headers(
+            audience=f"{API_URI}/api/principals/{doc_id}",
+            additional_headers={"Content-Type": "application/json"}
+        )
         
-        headers = {"Content-Type": "application/json"}
-        if token:
-            headers["Authorization"] = f"Bearer {token}"
-            
         resp = requests.patch(
             f"{API_URI}/api/principals/{doc_id}",
             json=data,
@@ -122,16 +123,9 @@ def delete_principal(doc_id):
     """Proxy DELETE request to backend API."""
     logger.info(f"Handling request to delete principal {doc_id}")
     try:
-        # Get token. In production Cloud Run, the audience is typically the backend service URL
-        token = get_auth_token(audience=f"{API_URI}/api/principals/{doc_id}")
-        
-        headers = {}
-        if token:
-            headers["Authorization"] = f"Bearer {token}"
-            
         resp = requests.delete(
             f"{API_URI}/api/principals/{doc_id}",
-            headers=headers
+            headers=get_auth_headers(audience=f"{API_URI}/api/principals/{doc_id}")
         )
         resp.raise_for_status()
         return jsonify(resp.json())
@@ -144,16 +138,9 @@ def grant_permissions(doc_id):
     """Proxy POST request to backend API."""
     logger.info(f"Handling request to grant permissions for principal {doc_id}")
     try:
-        # Get token. In production Cloud Run, the audience is typically the backend service URL
-        token = get_auth_token(audience=f"{API_URI}/api/principals/{doc_id}/grant_permissions")
-        
-        headers = {}
-        if token:
-            headers["Authorization"] = f"Bearer {token}"
-            
         resp = requests.post(
             f"{API_URI}/api/principals/{doc_id}/grant_permissions",
-            headers=headers
+            headers=get_auth_headers(audience=f"{API_URI}/api/principals/{doc_id}/grant_permissions")
         )
         resp.raise_for_status()
         return jsonify(resp.json())
