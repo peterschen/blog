@@ -88,35 +88,37 @@ resource "google_project_iam_member" "controller_storage_admin" {
   member = "serviceAccount:${google_service_account.hackathon_controller.email}"
 }
 
+# Required for Cloud Build to access its storage bucket
 resource "google_project_iam_member" "storage_user" {
   project = data.google_project.project.project_id
   role = "roles/storage.objectUser"
   member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
 }
 
+# Required for Cloud Build to push images to Artifact Registry
 resource "google_project_iam_member" "artifactregistry_createonpushwriter" {
   project = data.google_project.project.project_id
   role = "roles/artifactregistry.createOnPushWriter"
   member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
 }
 
-resource "google_project_iam_member" "logging_logwriter" {
-  project = data.google_project.project.project_id
-  role = "roles/logging.logWriter"
-  member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
-}
+# resource "google_project_iam_member" "logging_logwriter" {
+#   project = data.google_project.project.project_id
+#   role = "roles/logging.logWriter"
+#   member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
+# }
 
-resource "google_project_iam_member" "run_developer" {
-  project = data.google_project.project.project_id
-  role = "roles/run.developer"
-  member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
-}
+# resource "google_project_iam_member" "run_developer" {
+#   project = data.google_project.project.project_id
+#   role = "roles/run.developer"
+#   member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
+# }
 
-resource "google_project_iam_member" "firestore_user" {
-  project = data.google_project.project.project_id
-  role = "roles/datastore.user"
-  member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
-}
+# resource "google_project_iam_member" "firestore_user" {
+#   project = data.google_project.project.project_id
+#   role = "roles/datastore.user"
+#   member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
+# }
 
 resource "google_firestore_database" "database" {
   project = data.google_project.project.project_id
@@ -137,6 +139,129 @@ resource "google_storage_bucket" "bucket" {
   uniform_bucket_level_access = true
   public_access_prevention = "enforced"
   force_destroy = false
+}
+
+resource "google_artifact_registry_repository" "repository" {
+  project = data.google_project.project.project_id
+  repository_id = data.google_project.project.project_id
+  location = local.region
+  format = "DOCKER"
+}
+
+resource "google_cloud_run_v2_service" "api" {
+  provider = google-beta
+  project = data.google_project.project.project_id
+  location = local.region
+  name = "hackathon-controller-api"
+  deletion_protection = false
+  invoker_iam_disabled = true
+  ingress = "INGRESS_TRAFFIC_ALL"
+  iap_enabled = true
+
+  template {
+    containers {
+      image = "${google_artifact_registry_repository.repository.registry_uri}/api:latest"
+      env {
+        name = "DATABASE_NAME"
+        value = "${google_firestore_database.database.name}"
+      }
+      env {
+        name = "BUCKET_NAME"
+        value = "${google_storage_bucket.bucket.name}"
+      }
+    }
+    service_account = google_service_account.hackathon_controller.email
+  }
+}
+
+resource "google_cloud_run_v2_service" "ui" {
+  provider = google-beta
+  project = data.google_project.project.project_id
+  location = local.region
+  name = "hackathon-controller-ui"
+  deletion_protection = false
+  invoker_iam_disabled = true
+  ingress = "INGRESS_TRAFFIC_ALL"
+  iap_enabled = true
+
+  template {
+    containers {
+      image = "${google_artifact_registry_repository.repository.registry_uri}/ui:latest"
+      env {
+        name = "API_URI"
+        value = "${slice(google_cloud_run_v2_service.api.urls, 0, 1)}"
+      }
+    }
+    service_account = google_service_account.hackathon_controller.email
+  }
+}
+
+resource "google_cloud_run_v2_service_iam_member" "api" {
+  provider = google-beta
+  project = data.google_project.project.project_id
+  location = local.region
+  name = google_cloud_run_v2_service.api.name
+  role   = "roles/run.invoker"
+  member = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-iap.iam.gserviceaccount.com"
+}
+
+resource "google_cloud_run_v2_service_iam_member" "ui" {
+  provider = google-beta
+  project = data.google_project.project.project_id
+  location = local.region
+  name = google_cloud_run_v2_service.ui.name
+  role   = "roles/run.invoker"
+  member = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-iap.iam.gserviceaccount.com"
+}
+
+resource "google_iap_settings" "api" {
+  name = "projects/${data.google_project.project.number}/iap_web/cloud_run-${google_cloud_run_v2_service.api.location}/services/${google_cloud_run_v2_service.api.name}"
+  
+  access_settings {
+    allowed_domains_settings {
+      enable  = false
+    }
+  }
+  application_settings {
+    attribute_propagation_settings {
+      enable = false
+    }
+  }
+}
+
+resource "google_iap_settings" "ui" {
+  name = "projects/${data.google_project.project.number}/iap_web/cloud_run-${google_cloud_run_v2_service.ui.location}/services/${google_cloud_run_v2_service.ui.name}"
+  
+  access_settings {
+    allowed_domains_settings {
+      enable  = false
+    }
+  }
+  application_settings {
+    attribute_propagation_settings {
+      enable = false
+    }
+  }
+}
+
+resource "google_iap_web_cloud_run_service_iam_binding" "api" {
+  project = data.google_project.project.project_id
+  location = local.region
+  cloud_run_service_name = google_cloud_run_v2_service.api.name
+  role = "roles/iap.httpsResourceAccessor"
+  members = [
+    "allAuthenticatedUsers"
+  ]  
+}
+
+resource "google_iap_web_cloud_run_service_iam_binding" "ui" {
+  project = data.google_project.project.project_id
+  location = local.region
+  cloud_run_service_name = google_cloud_run_v2_service.ui.name
+  role = "roles/iap.httpsResourceAccessor"
+  members = [
+    "user:christoph@cbpetersen.altostrat.com"
+  ]  
 }
 
 module "project_sandbox" {
