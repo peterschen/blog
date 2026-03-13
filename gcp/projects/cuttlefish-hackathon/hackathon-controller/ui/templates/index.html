@@ -33,6 +33,7 @@
             <th>Email</th>
             <th>Project</th>
             <th>Nickname</th>
+            <th>Stages</th>
             <th>Added</th>
             <th>Modified</th>
             <th>Actions</th>
@@ -40,7 +41,7 @@
         </thead>
         <tbody id="principalsTableBody">
           <tr>
-            <td colspan="6" class="text-center">Loading principals...</td>
+            <td colspan="7" class="text-center">Loading principals...</td>
           </tr>
         </tbody>
       </table>
@@ -61,6 +62,10 @@
             <div class="mb-3">
               <label for="nicknameInput" class="form-label">Nickname</label>
               <input type="text" class="form-control" id="nicknameInput" required>
+            </div>
+            <div class="mb-3">
+              <label for="stageInput" class="form-label">Add Stage Completed (Optional)</label>
+              <input type="number" class="form-control" id="stageInput" min="1" placeholder="e.g. 1">
             </div>
           </div>
           <div class="modal-footer">
@@ -88,23 +93,43 @@
         e.preventDefault();
         const docId = document.getElementById('editDocId').value;
         const nickname = document.getElementById('nicknameInput').value;
+        const stageStr = document.getElementById('stageInput').value;
 
         try {
-          const response = await fetch(`${API_BASE}/${docId}`, {
+          // Update nickname
+          const nicknamePromise = fetch(`${API_BASE}/${docId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nickname })
           });
+          
+          let promises = [nicknamePromise];
+          
+          // Optionally update stage
+          if (stageStr && stageStr.trim() !== '') {
+            const stage = parseInt(stageStr, 10);
+            const stagePromise = fetch(`${API_BASE}/${docId}/progress`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ stage })
+            });
+            promises.push(stagePromise);
+          }
 
-          if (response.ok) {
-            currentModal.hide();
-            loadPrincipals();
+          const responses = await Promise.all(promises);
+          
+          const failed = responses.find(r => !r.ok);
+          if (failed) {
+              const error = await failed.json();
+              alert("Failed to update: " + (error.error || "Unknown error"));
           } else {
-            const error = await response.json();
-            alert("Failed to update: " + (error.error || "Unknown error"));
+             // force UI refresh
+             lastDataString = "";
+             currentModal.hide();
+             loadPrincipals();
           }
         } catch (err) {
-          alert("Error connecting to server.");
+          alert("Error connecting to server: " + err);
         }
       });
     });
@@ -135,11 +160,22 @@
               grantButton = `<button class="btn btn-sm btn-outline-success ms-1" onclick="grantPermissions('${p.id}')">Grant Permissions</button>`;
             }
 
+            // Render stages badges
+            let stagesHtml = '';
+            if (p.stages && p.stages.length > 0) {
+              // deduplicate and sort numerical array
+              const sortedStages = [...new Set(p.stages)].sort((a,b) => a - b);
+              stagesHtml = sortedStages.map(s => `<span class="badge bg-info text-dark me-1">Stage ${s}</span>`).join('');
+            } else {
+              stagesHtml = `<span class="text-muted small">None</span>`;
+            }
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
                         <td>${p.email || '-'}</td>
                         <td>${p.project || '-'}</td>
                         <td>${p.nickname || '-'}</td>
+                        <td>${stagesHtml}</td>
                         <td>${date_created}</td>
                         <td>${date_modified}</td>
                         <td>
@@ -155,16 +191,17 @@
             tbody.appendChild(tr);
           });
         } else {
-          tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No principals found.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No principals found.</td></tr>';
         }
       } catch (error) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Failed to load data.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Failed to load data.</td></tr>';
       }
     }
 
     function openEdit(docId, currentNickname) {
       document.getElementById('editDocId').value = docId;
       document.getElementById('nicknameInput').value = currentNickname;
+      document.getElementById('stageInput').value = ''; // Reset stage input
       currentModal.show();
     }
 

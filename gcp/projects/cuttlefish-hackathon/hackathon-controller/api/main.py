@@ -21,6 +21,9 @@ class PrincipalRequest(BaseModel):
 class PrincipalUpdateRequest(BaseModel):
     nickname: str
 
+class ProgressRequest(BaseModel):
+    stage: int
+
 app = FastAPI(title="Hackathon Controller", description="API that validates Google Cloud Tokens and stores requests in Firestore")
 
 app.add_middleware(
@@ -56,7 +59,8 @@ def to_principal(doc, retrieve = True):
         "nickname": data.get("nickname"),
         "date_created": data.get("date_created"),
         "date_modified": data.get("date_modified"),
-        "permissions_granted": data.get("permissions_granted", False)
+        "permissions_granted": data.get("permissions_granted", False),
+        "stages": data.get("stages", [])
     }
 
 @app.post("/api/principals")
@@ -248,4 +252,45 @@ def delete_principal(doc_id: str):
         "data": {
             "doc_id": doc_id
         }
+    }
+
+@app.post("/api/principals/{doc_id}/progress")
+def record_progress(doc_id: str, request: ProgressRequest):
+    """
+    Records a participant's progress on a task stage.
+    IAP handles authentication securely.
+    """
+    if db is None:
+        logger.error("Database not initialized during record_progress")
+        raise HTTPException(status_code=500, detail="Database not initialized. Check server configurations.")
+
+    doc_ref = db.collection("principals").document(doc_id)
+    doc = doc_ref.get()
+    if not doc.exists:
+        logger.error(f"Principal {doc_id} not found during record_progress")
+        raise HTTPException(status_code=404, detail="Principal not found")
+
+    try:
+        current_time = int(datetime.now(timezone.utc).timestamp())
+        
+        # 1. Add progress record to subcollection
+        progress_ref = doc_ref.collection("progress").document()
+        progress_ref.set({
+            "stage": request.stage,
+            "timestamp": current_time
+        })
+        
+        # 2. Append stage to main principal document and update date_modified
+        doc_ref.update({
+            "stages": firestore.ArrayUnion([request.stage]),
+            "date_modified": current_time
+        })
+    except Exception as e:
+        logger.error(f"Failed to record progress for {doc_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to record progress: {e}")
+
+    return {
+        "status": "success",
+        "message": f"Recorded completion of stage {request.stage}",
+        "data": to_principal(doc_ref)
     }

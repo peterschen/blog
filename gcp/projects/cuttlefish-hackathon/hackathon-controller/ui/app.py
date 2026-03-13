@@ -148,6 +148,28 @@ def grant_permissions(doc_id):
         logger.error(f"Error granting permissions for principal {doc_id}: {e}")
         return jsonify({"error": str(e), "details": resp.text if 'resp' in locals() and hasattr(resp, 'text') else ""}), 500
 
+@app.route("/api/principals/<doc_id>/progress", methods=["POST"])
+def record_progress(doc_id):
+    """Proxy POST request to backend API to record stage progress."""
+    logger.info(f"Handling request to record progress for principal {doc_id}")
+    data = request.json
+    try:
+        headers = get_auth_headers(
+            audience=f"{API_URI}/api/principals/{doc_id}/progress",
+            additional_headers={"Content-Type": "application/json"}
+        )
+        
+        resp = requests.post(
+            f"{API_URI}/api/principals/{doc_id}/progress",
+            json=data,
+            headers=headers
+        )
+        resp.raise_for_status()
+        return jsonify(resp.json())
+    except Exception as e:
+        logger.error(f"Error recording progress for {doc_id}: {e}")
+        return jsonify({"error": str(e), "details": resp.text if 'resp' in locals() and hasattr(resp, 'text') else ""}), 500
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8081))
     app.run(host="0.0.0.0", port=port, debug=True)
