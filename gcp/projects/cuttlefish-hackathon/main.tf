@@ -180,6 +180,28 @@ resource "google_cloud_run_v2_service" "api" {
   }
 }
 
+resource "google_cloud_run_v2_service" "proxy" {
+  provider = google-beta
+  project = data.google_project.project.project_id
+  location = local.region
+  name = "hackathon-controller-proxy"
+  deletion_protection = false
+  invoker_iam_disabled = true
+  ingress = "INGRESS_TRAFFIC_ALL"
+  iap_enabled = false
+
+  template {
+    containers {
+      image = "${google_artifact_registry_repository.repository.registry_uri}/proxy:latest"
+      env {
+        name = "API_URI"
+        value = "${google_cloud_run_v2_service.api.urls[0]}"
+      }
+    }
+    service_account = google_service_account.hackathon_controller.email
+  }
+}
+
 resource "google_cloud_run_v2_service" "ui" {
   provider = google-beta
   project = data.google_project.project.project_id
@@ -207,6 +229,15 @@ resource "google_cloud_run_v2_service_iam_member" "api" {
   project = data.google_project.project.project_id
   location = local.region
   name = google_cloud_run_v2_service.api.name
+  role   = "roles/run.invoker"
+  member = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-iap.iam.gserviceaccount.com"
+}
+
+resource "google_cloud_run_v2_service_iam_member" "proxy" {
+  provider = google-beta
+  project = data.google_project.project.project_id
+  location = local.region
+  name = google_cloud_run_v2_service.proxy.name
   role   = "roles/run.invoker"
   member = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-iap.iam.gserviceaccount.com"
 }
