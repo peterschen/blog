@@ -64,6 +64,7 @@ def record_progress(doc_id):
     """Proxy POST request to backend API to record participant progress."""
     logger.info(f"Handling request to record progress for principal {doc_id}")
     data = request.json
+    
     try:
         headers = get_auth_headers(
             audience=f"{API_URI}/api/principals/{doc_id}/progress",
