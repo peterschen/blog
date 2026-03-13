@@ -109,18 +109,15 @@ gcloud run deploy hackathon-controller-api \
     --region $REGION \
     --service-account $SERVICE_ACCOUNT \
     --image us-central1-docker.pkg.dev/$PROJECT/$PROJECT/api:latest \
-    --async
 
 gcloud run deploy hackathon-controller-proxy \
     --project $PROJECT \
     --region $REGION \
     --service-account $SERVICE_ACCOUNT \
     --image us-central1-docker.pkg.dev/$PROJECT/$PROJECT/proxy:latest \
-    --async
 
 gcloud run deploy hackathon-controller-ui \
     --project $PROJECT \
     --region $REGION \
-    --image us-central1-docker.pkg.dev/$PROJECT/$PROJECT/ui:latest \
-    --async
+    --image us-central1-docker.pkg.dev/$PROJECT/$PROJECT/ui:latest
 ```
