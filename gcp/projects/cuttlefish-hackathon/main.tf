@@ -88,6 +88,12 @@ resource "google_project_iam_member" "controller_storage_admin" {
   member = "serviceAccount:${google_service_account.hackathon_controller.email}"
 }
 
+resource "google_service_account_iam_member" "controler_serviceaccounttokencreator" {
+  service_account_id = google_service_account.hackathon_controller.id
+  role = "roles/iam.serviceAccountTokenCreator"
+  member = "serviceAccount:${google_service_account.hackathon_controller.email}"
+}
+
 # Required for Cloud Build to access its storage bucket
 resource "google_project_iam_member" "storage_user" {
   project = data.google_project.project.project_id
@@ -189,7 +195,7 @@ resource "google_cloud_run_v2_service" "ui" {
       image = "${google_artifact_registry_repository.repository.registry_uri}/ui:latest"
       env {
         name = "API_URI"
-        value = "${slice(google_cloud_run_v2_service.api.urls, 0, 1)}"
+        value = "${google_cloud_run_v2_service.api.urls[0]}"
       }
     }
     service_account = google_service_account.hackathon_controller.email
@@ -212,36 +218,6 @@ resource "google_cloud_run_v2_service_iam_member" "ui" {
   name = google_cloud_run_v2_service.ui.name
   role   = "roles/run.invoker"
   member = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-iap.iam.gserviceaccount.com"
-}
-
-resource "google_iap_settings" "api" {
-  name = "projects/${data.google_project.project.number}/iap_web/cloud_run-${google_cloud_run_v2_service.api.location}/services/${google_cloud_run_v2_service.api.name}"
-  
-  access_settings {
-    allowed_domains_settings {
-      enable  = false
-    }
-  }
-  application_settings {
-    attribute_propagation_settings {
-      enable = false
-    }
-  }
-}
-
-resource "google_iap_settings" "ui" {
-  name = "projects/${data.google_project.project.number}/iap_web/cloud_run-${google_cloud_run_v2_service.ui.location}/services/${google_cloud_run_v2_service.ui.name}"
-  
-  access_settings {
-    allowed_domains_settings {
-      enable  = false
-    }
-  }
-  application_settings {
-    attribute_propagation_settings {
-      enable = false
-    }
-  }
 }
 
 resource "google_iap_web_cloud_run_service_iam_binding" "api" {
