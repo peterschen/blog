@@ -52,6 +52,18 @@ def to_principal(doc, retrieve = True):
     else:
         data = doc.to_dict()
 
+    stages = data.get("stages", [])
+    highest_consecutive_stage = 0
+    if stages:
+        sorted_unique_stages = sorted(list(set(stages)))
+        expected_stage = 1
+        for stage in sorted_unique_stages:
+            if stage == expected_stage:
+                highest_consecutive_stage = expected_stage
+                expected_stage += 1
+            else:
+                break
+
     return {
         "id": doc.id,
         "email": data.get("email"),
@@ -60,7 +72,8 @@ def to_principal(doc, retrieve = True):
         "date_created": data.get("date_created"),
         "date_modified": data.get("date_modified"),
         "permissions_granted": data.get("permissions_granted", False),
-        "stages": data.get("stages", [])
+        "stages": stages,
+        "highest_consecutive_stage": highest_consecutive_stage
     }
 
 @app.post("/api/principals")

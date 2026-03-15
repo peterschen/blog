@@ -1,6 +1,6 @@
 import os
 import requests
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 from google.auth.transport.requests import Request
 from google.cloud.iam_credentials_v1 import IAMCredentialsClient
 import json
@@ -79,6 +79,11 @@ def get_auth_headers(audience: str, additional_headers: dict = None) -> dict:
 @app.route("/")
 def index():
     return render_template("index.html")
+
+@app.route("/images/<path:filename>")
+def serve_image(filename):
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    return send_from_directory(os.path.join(base_dir, 'images'), filename)
 
 @app.route("/api/principals", methods=["GET"])
 def list_principals():

@@ -18,6 +18,27 @@
       border-radius: 8px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
+
+    .sprite-panel {
+      width: 114px;
+      height: 119.5px;
+      background-image: url('/images/android.svg');
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-position: center;
+      display: inline-block;
+      margin: 0 auto;
+    }
+    
+    /* Example sprite offsets - assume the image is a vertical sprite sheet */
+    /* Update these positions as needed once the real image is provided */
+    .stage-0 { background-position: 0 0px; height: 100.4px; }
+    .stage-1 { background-position: 0 0px; height: 100.4px; } /* Assuming stage 1 is same as 0, as not specified */
+    .stage-2 { background-position: 0 -105.5px; height: 100.5px; }
+    .stage-3 { background-position: 0 -210.9px; height: 119.5px; }
+    .stage-4 { background-position: 0 -335.4px; height: 119.5px; }
+    .stage-5 { background-position: 0 -459.9px; height: 119.5px; }
+    .stage-6 { background-position: 0 -584.4px; height: 119.5px; }
   </style>
 </head>
 
@@ -25,6 +46,25 @@
 
   <div class="container">
     <h2 class="mb-4">Principals Dashboard</h2>
+
+    <div class="accordion mb-4" id="stagesAccordion">
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingOne">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+            data-bs-target="#collapseStages" aria-expanded="false" aria-controls="collapseStages">
+            Principal Stages View
+          </button>
+        </h2>
+        <div id="collapseStages" class="accordion-collapse collapse" aria-labelledby="headingOne"
+          data-bs-parent="#stagesAccordion">
+          <div class="accordion-body">
+            <div id="stagesContainer" class="d-flex flex-wrap gap-3">
+              <span class="text-muted">Loading stages...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div class="table-container">
       <table class="table table-hover">
@@ -136,6 +176,7 @@
 
     async function loadPrincipals() {
       const tbody = document.getElementById('principalsTableBody');
+      const stagesContainer = document.getElementById('stagesContainer');
       try {
         const response = await fetch(API_BASE);
         const json = await response.json();
@@ -149,6 +190,7 @@
 
         if (json.status === "success" && json.data.length > 0) {
           tbody.innerHTML = '';
+          stagesContainer.innerHTML = '';
           json.data.forEach(p => {
             const date_created = new Date(p.date_created * 1000).toLocaleString();
             const date_modified = p.date_modified ? new Date(p.date_modified * 1000).toLocaleString() : date_created;
@@ -189,12 +231,25 @@
                         </td>
                     `;
             tbody.appendChild(tr);
+
+            // Create Stage visualization
+            const highestStage = p.highest_consecutive_stage || 0;
+            const stageElement = document.createElement('div');
+            stageElement.className = 'card text-center p-3 shadow-sm';
+            stageElement.style.width = '150px';
+            stageElement.innerHTML = `
+              <div class="fw-bold mb-2">${p.nickname || p.email.split('@')[0]}</div>
+              <div class="sprite-panel stage-${highestStage}"></div>
+            `;
+            stagesContainer.appendChild(stageElement);
           });
         } else {
           tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No principals found.</td></tr>';
+          stagesContainer.innerHTML = '<span class="text-muted">No principals found.</span>';
         }
       } catch (error) {
         tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Failed to load data.</td></tr>';
+        stagesContainer.innerHTML = '<span class="text-danger">Failed to load stages data.</span>';
       }
     }
 
