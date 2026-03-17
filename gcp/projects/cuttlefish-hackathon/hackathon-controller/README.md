@@ -101,8 +101,7 @@ gcloud builds submit proxy/ \
 gcloud builds submit ui/ \
     --project $PROJECT \
     --region $REGION \
-    --config ui/cloudbuild.yaml \
-    --async
+    --config ui/cloudbuild.yaml
 
 gcloud run deploy hackathon-controller-api \
     --project $PROJECT \
