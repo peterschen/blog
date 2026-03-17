@@ -23,13 +23,12 @@
       position: fixed;
       top: 0;
       left: 0;
-      width: 100vw;
-      height: 100vh;
-      background-color: rgba(248, 249, 250, 0.95);
+      right: 0;
+      bottom: 0;
+      background-color: #f8f9fa;
       z-index: 1050;
       display: none;
       overflow-y: auto;
-      padding: 2rem;
     }
 
     .sprite-panel {
@@ -60,19 +59,19 @@
   <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h2 class="mb-0">Principals Dashboard</h2>
-      <button class="btn btn-primary" type="button" onclick="document.getElementById('stagesOverlay').style.display='block'">
+      <button class="btn btn-primary" type="button" onclick="openProgressView()">
         View Progress Tracking
       </button>
     </div>
 
     <div class="overlay-container" id="stagesOverlay">
-      <div class="container bg-white p-4 rounded shadow">
+      <div class="container-fluid bg-white p-5 min-vh-100 d-flex flex-column">
         <div class="d-flex justify-content-between align-items-center mb-4">
           <h2 class="mb-0">Principal Stages View</h2>
           <button type="button" class="btn-close fs-4" aria-label="Close"
             onclick="document.getElementById('stagesOverlay').style.display='none'"></button>
         </div>
-        <div id="stagesContainer" class="d-flex flex-wrap gap-4 justify-content-center">
+        <div id="stagesContainer" class="d-flex flex-wrap gap-4 justify-content-center flex-grow-1">
           <span class="text-muted">Loading stages...</span>
         </div>
       </div>
@@ -134,12 +133,16 @@
     const API_BASE = '/api/principals';
     let currentModal = null;
       let lastDataString = ""; // Store stringified data to avoid re-rendering layout
+      let lastProgressString = "";
       let pollInterval = null;
 
     document.addEventListener("DOMContentLoaded", () => {
       currentModal = new bootstrap.Modal(document.getElementById('editModal'));
       loadPrincipals();
-      pollInterval = setInterval(loadPrincipals, 5000); // Poll every 5 seconds
+      pollInterval = setInterval(() => {
+        loadPrincipals();
+        loadProgress();
+      }, 5000); // Poll every 5 seconds
 
       document.getElementById('editForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -177,8 +180,10 @@
           } else {
              // force UI refresh
              lastDataString = "";
+             lastProgressString = "";
              currentModal.hide();
              loadPrincipals();
+             loadProgress();
           }
         } catch (err) {
           alert("Error connecting to server: " + err);
@@ -188,7 +193,6 @@
 
     async function loadPrincipals() {
       const tbody = document.getElementById('principalsTableBody');
-      const stagesContainer = document.getElementById('stagesContainer');
       try {
         const response = await fetch(API_BASE);
         const json = await response.json();
@@ -202,7 +206,6 @@
 
         if (json.status === "success" && json.data.length > 0) {
           tbody.innerHTML = '';
-          stagesContainer.innerHTML = '';
           json.data.forEach(p => {
             const date_created = new Date(p.date_created * 1000).toLocaleString();
             const date_modified = p.date_modified ? new Date(p.date_modified * 1000).toLocaleString() : date_created;
@@ -244,7 +247,37 @@
                     `;
             tbody.appendChild(tr);
 
-            // Create Stage visualization
+          });
+        } else {
+          tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No principals found.</td></tr>';
+        }
+      } catch (error) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Failed to load data.</td></tr>';
+      }
+    }
+
+    function openProgressView() {
+      document.getElementById('stagesOverlay').style.display='block';
+      loadProgress();
+    }
+
+    async function loadProgress() {
+      if (document.getElementById('stagesOverlay').style.display !== 'block') {
+         return;
+      }
+      const stagesContainer = document.getElementById('stagesContainer');
+      try {
+        const response = await fetch(API_BASE + "?sort=nickname");
+        const json = await response.json();
+        const newDataString = JSON.stringify(json.data || []);
+        if (newDataString === lastProgressString) {
+          return;
+        }
+        lastProgressString = newDataString;
+
+        if (json.status === "success" && json.data.length > 0) {
+          stagesContainer.innerHTML = '';
+          json.data.forEach(p => {
             const highestStage = p.highest_consecutive_stage || 0;
             const displayName = p.nickname ? p.nickname : p.email.split('@')[0];
             const stageElement = document.createElement('div');
@@ -259,11 +292,9 @@
             stagesContainer.appendChild(stageElement);
           });
         } else {
-          tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No principals found.</td></tr>';
           stagesContainer.innerHTML = '<span class="text-muted">No principals found.</span>';
         }
       } catch (error) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Failed to load data.</td></tr>';
         stagesContainer.innerHTML = '<span class="text-danger">Failed to load stages data.</span>';
       }
     }
@@ -285,7 +316,10 @@
         });
 
         if (response.ok) {
+          lastDataString = "";
+          lastProgressString = "";
           loadPrincipals();
+          loadProgress();
         } else {
           const error = await response.json();
           alert("Failed to delete: " + (error.error || "Unknown error"));
@@ -304,7 +338,9 @@
       if (response.ok) {
         // Reset lastDataString to force re-render since we know we just mutated state
         lastDataString = "";
+        lastProgressString = "";
         loadPrincipals();
+        loadProgress();
       } else {
         const error = await response.json();
         alert("Failed to grant permissions: " + (error.error || "Unknown error"));

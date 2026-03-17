@@ -115,7 +115,7 @@ def add_principal(req: Request, request: PrincipalRequest):
     }
 
 @app.get("/api/principals")
-def list_principals():
+def list_principals(sort: Optional[str] = ""):
     """
     Lists out the registered principals from the database.
     """
@@ -131,6 +131,9 @@ def list_principals():
         principals = []
         for doc in docs:
             principals.append(to_principal(doc, False))
+            
+        if sort == "nickname":
+            principals.sort(key=lambda x: (x.get("nickname") or x.get("email", "")).lower())
             
         return {"status": "success", "data": principals}
     except Exception as e:

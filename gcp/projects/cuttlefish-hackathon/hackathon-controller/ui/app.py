@@ -90,8 +90,12 @@ def list_principals():
     """Proxy GET request to the backend API."""
     logger.info("Handling request to list principals")
     try:
+        url = f"{API_URI}/api/principals"
+        if request.query_string:
+            url += f"?{request.query_string.decode('utf-8')}"
+            
         resp = requests.get(
-            f"{API_URI}/api/principals",
+            url,
             headers=get_auth_headers(audience=f"{API_URI}/api/principals")
         )
         resp.raise_for_status()
