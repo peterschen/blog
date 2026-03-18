@@ -1,29 +1,27 @@
 #!/usr/bin/env bash
 
+. ./common.sh
+
 DOC_ID="${1}"
 STAGE="${2}"
-BASE_URI="${3:-http://localhost:8080}"
+SERVICE_ACCOUNT="${3}"
+BASE_URI="${4:-http://localhost:8080}"
+API_URI="$BASE_URI/api/principals/$DOC_ID/progress"
 
 if [ -z "$DOC_ID" ] || [ -z "$STAGE" ]; then
-    echo "Usage: $0 <doc_id> <stage> [base_uri]"
-    echo "Example: $0 my-doc-id-12345 1"
+    echo "Usage: $0 <doc_id> <stage> <service account> [base_uri]"
+    echo "Example: $0 my-doc-id-12345 service@account.name 1"
     exit 1
 fi
 
-API_URI="$BASE_URI/api/principals/$DOC_ID/progress"
-
-echo "Fetching Google Cloud identity token..."
-# Get the OIDC token for the currently authenticated gcloud user
-TOKEN=$(gcloud auth print-identity-token)
+TOKEN=$(sign_jwt $SERVICE_ACCOUNT $API_URI)
 
 if [ -z "$TOKEN" ]; then
-    echo "Error: Failed to obtain identity token. Please try running 'gcloud auth login'."
+    echo "Error: Failed to obtain identity token."
     exit 1
 fi
 
 echo "Sending POST request to $API_URI..."
-
-# Make the authenticated POST request
 curl -X POST "$API_URI" \
     -H "Authorization: Bearer $TOKEN" \
     -H "Content-Type: application/json" \

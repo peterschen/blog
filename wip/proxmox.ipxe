@@ -1,0 +1,6 @@
+  #!ipxe
+  set base http://tinycorelinux.net/12.x/x86/release/distribution_files/
+  kernel ${base}/vmlinuz64 initrd=rootfs.gz initrd=modules64.gz
+  initrd ${base}/rootfs.gz
+  initrd ${base}/modules64.gz
+  boot
