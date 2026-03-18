@@ -23,10 +23,10 @@ fi
 
 echo "Sending POST request to $API_URI..."
 
-# Make the authenticated PATCH request
+# Make the authenticated POST request
 curl -X POST "$API_URI" \
     -H "Authorization: Bearer $TOKEN" \
     -H "Content-Type: application/json" \
-    -d "{ \"stage\": \"$STAGE\" }"
+    -d "{ \"stage\": $STAGE }"
 
 echo ""
