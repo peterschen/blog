@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  namespace: pass-standalone
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      terminationGracePeriodSeconds: 30
+      hostname: app
+      containers:
+        - name: app
+          image: europe-west4-docker.pkg.dev/pass-tomcat-9920/pass/contosouniversity:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DatabaseMode
+              value: standalone
+            - name: DatabasePassword
+              valueFrom:
+                secretKeyRef:
+                  name: mssql
+                  key: MSSQL_SA_PASSWORD
+      initContainers:
+      - name: wait-for
+        image: ghcr.io/patrickdappollonio/wait-for:latest
+        command:
+          - /wait-for
+        args:
+          - --host="database:1433"
+          - --timeout=20s
+          - --verbose
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app
+  namespace: pass-standalone
+spec:
+  selector:
+    app: app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: LoadBalancer

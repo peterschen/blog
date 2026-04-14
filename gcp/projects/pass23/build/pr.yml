@@ -1,0 +1,42 @@
+substitutions:
+  _AF_REGION: 
+  _AF_REPOSITORY: 
+  _IMAGE_NAME: "contosouniversity"
+
+  _GKE_LOCATION: 
+  _GKE_CLUSTER: 
+
+steps:
+- name: '${_AF_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AF_REPOSITORY}/cloud-sdk'
+  args: ["build/pr.sh"]
+  env:
+    - 'PROJECT_ID=${PROJECT_ID}'
+    - 'ENVIRONMENT_NAME=${BRANCH_NAME}'
+    - 'AF_REGION=${_AF_REGION}'
+    - 'AF_REPOSITORY=${_AF_REPOSITORY}'
+    - 'IMAGE_NAME=${_IMAGE_NAME}'
+    - 'IMAGE_TAG=${BRANCH_NAME}'
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', '${_AF_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AF_REPOSITORY}/${_IMAGE_NAME}:${BRANCH_NAME}', 'app/']
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', '${_AF_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AF_REPOSITORY}/${_IMAGE_NAME}:${BRANCH_NAME}']
+
+- name: '${_AF_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AF_REPOSITORY}/cloud-sdk'
+  entrypoint: 'gcloud'
+  args: ['container', 'clusters', 'get-credentials', '${_GKE_CLUSTER}', '--location', '${_GKE_LOCATION}']
+  env:
+    - 'KUBECONFIG=/workspace/kubeconfig'
+
+- name: '${_AF_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AF_REPOSITORY}/cloud-sdk'
+  entrypoint: 'kubectl'
+  args: ['apply', '-f', '/workspace/pr-inline.yml']
+  env:
+  - 'KUBECONFIG=/workspace/kubeconfig'
+
+- name: '${_AF_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AF_REPOSITORY}/cloud-sdk'
+  entrypoint: 'kubectl'
+  args: ['rollout', 'restart', 'deployment.apps/app', '--namespace=${BRANCH_NAME}']
+  env:
+  - 'KUBECONFIG=/workspace/kubeconfig'

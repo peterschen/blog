@@ -1,0 +1,11 @@
+.gcloudignore
+.git
+.gitignore
+
+# Terraform
+terraform/
+
+# Dotnet
+app/ContosoUniversity/bin
+app/ContosoUniversity/obj
+app/ContosoUniversity/deploy

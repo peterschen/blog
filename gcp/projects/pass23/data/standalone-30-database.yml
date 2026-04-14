@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: database
+  namespace: pass-standalone
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      terminationGracePeriodSeconds: 30
+      hostname: database
+      securityContext:
+        fsGroup: 10001
+      containers:
+        - name: database
+          image: mcr.microsoft.com/mssql/server:2022-CU9-ubuntu-20.04
+          resources:
+            requests:
+              memory: "2G"
+              cpu: "2000m"
+            limits:
+              memory: "2G"
+              cpu: "2000m"
+          ports:
+            - containerPort: 1433
+          env:
+            - name: MSSQL_PID
+              value: "Developer"
+            - name: ACCEPT_EULA
+              value: "Y"
+            - name: MSSQL_SA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mssql
+                  key: MSSQL_SA_PASSWORD
+          volumeMounts:
+            - name: mssql
+              mountPath: /var/opt/mssql
+      volumes:
+        - name: mssql
+          persistentVolumeClaim:
+            claimName: mssql
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: database
+  namespace: pass-standalone
+spec:
+  selector:
+    app: database
+  ports:
+    - protocol: TCP
+      port: 1433
+      targetPort: 1433
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: database-lb
+  namespace: pass-standalone
+spec:
+  selector:
+    app: database
+  ports:
+    - protocol: TCP
+      port: 1433
+      targetPort: 1433
+  type: LoadBalancer

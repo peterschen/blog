@@ -1,0 +1,37 @@
+#
+# Execute cloud build: gcloud builds submit  
+# see: https://cloud.google.com/build/docs/configuring-builds/substitute-variable-values
+#
+
+steps:
+# Build the container image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/images/contosouniversity:$BUILD_ID', '.']
+# Push the container image to Artifact Registry
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/images/contosouniversity:$BUILD_ID']
+# Deploy container image to Cloud Run
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+  - 'run'
+  - 'deploy'
+  - 'contosouniversity'
+  - '--image'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/images/contosouniversity:$BUILD_ID'
+  - '--region'
+  - 'us-central1'
+  - '--platform'
+  - 'managed'
+  - '--allow-unauthenticated'
+  - '--update-secrets=/app/secrets/appsettings.json=connectionstrings:latest'
+  - '--vpc-connector'
+  - 'contoso-university'
+  - '--remove-env-vars'
+  - 'ASPNETCORE_ENVIRONMENT'
+  - '--update-env-vars'
+  - 'Logging:Console:LogLevel:Microsoft.AspNetCore.Hosting=Information'
+  - '--update-env-vars'
+  - 'PROJECT_ID=$PROJECT_ID'
+images:
+- us-central1-docker.pkg.dev/$PROJECT_ID/images/contosouniversity:$BUILD_ID

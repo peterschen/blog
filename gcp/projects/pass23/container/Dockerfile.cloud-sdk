@@ -1,0 +1,10 @@
+FROM gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+
+LABEL Author Christoph Petersen <cbpetersen@google.com>
+
+RUN set -eux; \
+    apt-get install -y --no-install-recommends \
+        gettext \
+        kubectl \
+        google-cloud-cli-gke-gcloud-auth-plugin && \
+    rm -rf /var/lib/apt/lists/

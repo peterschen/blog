@@ -1,0 +1,6 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: pass-standalone
+  labels:
+    name: pass-standalone

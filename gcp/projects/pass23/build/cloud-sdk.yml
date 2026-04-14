@@ -1,0 +1,6 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'europe-west4-docker.pkg.dev/$PROJECT_ID/pass/cloud-sdk', '-f', 'container/Dockerfile.cloud-sdk', 'container/']
+
+images:
+- 'europe-west4-docker.pkg.dev/$PROJECT_ID/pass/cloud-sdk'
