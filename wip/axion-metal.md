@@ -256,6 +256,8 @@ wget "$URI" -O $(cd ~; echo $PWD)/cvd-host_package.tar.gz
 export BUCKET="axion-hackaton-3298"
 gcloud storage cp gs://$BUCKET/aosp_cf_arm64_auto.zip ~/
 gcloud storage cp gs://$BUCKET/cvd-host_package.tar.gz ~/
+gcloud storage cp gs://$BUCKET/seafish-img.zip ~/
+gcloud storage cp gs://$BUCKET/cvd.json ~/
 ```
 
 ## Create cvd
