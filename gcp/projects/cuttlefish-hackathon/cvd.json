@@ -1,0 +1,26 @@
+{
+  "instances": [
+    {
+      "@import": "auto",
+      "vm": {
+        "cpus": 4,
+        "memory_mb": 4096,
+        "use_sdcard": true
+      },
+      "graphics": {
+        "displays": [
+          {
+            "width": 1080,
+            "height": 600,
+            "dpi": 120
+          },
+          {
+            "width": 400,
+            "height": 600,
+            "dpi": 120
+          }
+        ]
+      }
+    }
+  ]
+}
