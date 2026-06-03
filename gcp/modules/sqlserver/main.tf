@@ -14,6 +14,7 @@ locals {
   machine_type = var.machine_type
   machine_prefix = var.machine_prefix
   threads_per_core = var.threads_per_core
+  visible_cores = var.visible_cores
   windows_image = var.windows_image
 
   use_developer_edition = var.use_developer_edition
@@ -129,7 +130,7 @@ resource "google_compute_instance" "sql" {
   boot_disk {
     initialize_params {
       image = local.windows_image
-      type = length(regexall("^[cnhxa]{1}4*", local.machine_type)) > 0 ? "hyperdisk-balanced" : "pd-ssd"
+      type = length(regexall("^(?:[cnhx]{1}(?:3|4))", local.machine_type)) > 0 ? "hyperdisk-balanced" : "pd-ssd"
     }
   }
 
@@ -147,6 +148,7 @@ resource "google_compute_instance" "sql" {
 
   advanced_machine_features {
     threads_per_core = local.threads_per_core
+    visible_core_count = local.visible_cores
   }
 
   metadata = {

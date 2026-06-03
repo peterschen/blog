@@ -44,6 +44,11 @@ variable "threads_per_core" {
   default = 2
 }
 
+variable "visible_cores" {
+  type = number
+  default = null
+}
+
 variable "domain_name" {
   type = string
 }
