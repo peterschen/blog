@@ -42,6 +42,14 @@ curl -s \
   --header "Accept: application/json" \
   --compressed | jq -r '.items[] | "\(.name) \(.licenseCode) \(.appendableToDisk) \(.removableFromDisk) \(.allowedReplacementLicenses // [] | join(",")) \(.selfLink)"' | column -s' ' -t -N Name,Code,Appendable,Removable,Replacements,Uri
 
+project="windows-sql-cloud"
+filter=`echo "name = sql-*" | jq -Rr @uri`
+curl -s \
+  "${baseUri}/${project}/global/licenses?filter=${filter}" \
+  --header "Authorization: Bearer ${token}" \
+  --header "Accept: application/json" \
+  --compressed | jq -r '.items[] | "\(.name) \(.licenseCode) \(.appendableToDisk) \(.removableFromDisk) \(.allowedReplacementLicenses // [] | join(",")) \(.selfLink)"' | column -s' ' -t -N Name,Code,Appendable,Removable,Replacements,Uri
+
 gcloud compute disks describe exchange \
     --project cbpetersen-sandbox \
     --zone europe-west4-a
