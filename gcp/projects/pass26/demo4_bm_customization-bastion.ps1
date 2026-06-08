@@ -54,10 +54,11 @@ diset tpcc mssqls_allwarehouse true
 diset tpcc mssqls_timeprofile true
 diset tpcc mssqls_dbase demo4_${i}
 diset tpcc mssqls_driver timed
-diset tpcc mssqls_rampup 5
+diset tpcc mssqls_rampup 10
 diset tpcc mssqls_duration 10
 
 vuset logtotemp 1
+vuset delay 100
 
 puts "Loading script"
 loadscript
