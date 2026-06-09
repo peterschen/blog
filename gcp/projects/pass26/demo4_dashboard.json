@@ -65,9 +65,9 @@
                   "value": 10737418240
                 },
                 {
-                  "label": "HdX Limit (20 GiB/s)",
+                  "label": "HdX Limit (25 GiB/s)",
                   "targetAxis": "Y1",
-                  "value": 21474836480
+                  "value": 2643545600
                 }
               ],
               "yAxis": {
