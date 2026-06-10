@@ -22,6 +22,7 @@ locals {
   sample_name = "pass26"
 
   project_id_demo = var.project_id_demo
+  project_id_demo1 = var.project_id_demo1
   project_id_demo4 = var.project_id_demo4
   project_id_demo4_n2 = var.project_id_demo4_n2
   project_id_demo4_c3 = var.project_id_demo4_c3
@@ -29,6 +30,7 @@ locals {
   project_id_demo4_c4n = var.project_id_demo4_c4n
 
   region_demo = var.region_demo
+  region_demo1 = var.region_demo1
   region_demo4 = var.region_demo4
   region_demo4_n2 = var.region_demo4_n2
   region_demo4_c3 = var.region_demo4_c3
@@ -36,6 +38,7 @@ locals {
   region_demo4_c4n = var.region_demo4_c4n
 
   zone_demo = var.zone_demo
+  zone_demo1 = var.zone_demo1
   zone_demo4 = var.zone_demo4
   zone_demo4_n2 = var.zone_demo4_n2
   zone_demo4_c3 = var.zone_demo4_c3
@@ -44,6 +47,7 @@ locals {
 
   domain_name = "pass.lab"
 
+  enable_demo1 = var.enable_demo1
   enable_demo4 = var.enable_demo4
   enable_demo4_n2 = var.enable_demo4_n2
   enable_demo4_c3 = var.enable_demo4_c3

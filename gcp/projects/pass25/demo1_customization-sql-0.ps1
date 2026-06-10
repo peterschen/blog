@@ -51,7 +51,7 @@ configuration Customization
                 # Initialize disks
                 Initialize-Disk -UniqueId $disk.UniqueId -PassThru | 
                     New-Partition -DriveLetter $driveletter -UseMaximumSize | 
-                    Format-Volume;
+                    Format-Volume -AllocationUnitSize 65536;
 
                 # Add access for s-SqlEngine
                 icacls ${driveletter}:\ /grant "PASS\s-SqlEngine:(OI)(CI)(F)"
