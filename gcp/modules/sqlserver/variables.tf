@@ -41,7 +41,7 @@ variable "machine_prefix" {
 
 variable "threads_per_core" {
   type = number
-  default = 2
+  default = null
 }
 
 variable "visible_cores" {
