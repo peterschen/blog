@@ -53,6 +53,11 @@ variable "visible_cores_sql" {
   default = null
 }
 
+variable "threads_per_core_sql" {
+  type = number
+  default = null
+}
+
 variable "windows_image" {
   type = string
   default = "windows-cloud/windows-2025"

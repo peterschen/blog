@@ -27,6 +27,7 @@ locals {
   machine_type_sql = var.machine_type_sql
 
   visible_cores_sql = var.visible_cores_sql
+  threads_per_core_sql = var.threads_per_core_sql
 
   enable_bastion = var.enable_bastion
   enable_ad = var.enable_ad
@@ -205,7 +206,10 @@ module "sqlserver" {
   
   windows_image = local.sql_image
   machine_type = local.machine_type_sql
+
   visible_cores = local.visible_cores_sql
+  threads_per_core = local.threads_per_core_sql
+
   configuration_customizations = local.customizations_sql
 
   enable_cluster = local.enable_cluster
