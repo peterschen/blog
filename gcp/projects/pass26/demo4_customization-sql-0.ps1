@@ -201,7 +201,9 @@ WITH
     CREDENTIAL = 'cbpetersen-demos',
     MOVE 'demo4' TO '${letter}:\demo4_${i}.mdf',
     MOVE 'demo4_log' TO '${letter}:\demo4_${i}.ldf',
-    STATS = 10, 
+    STATS = 1,
+	MAXTRANSFERSIZE = 1048576,
+	BUFFERCOUNT = 8192,
     RECOVERY,
     REPLACE;
 GO
