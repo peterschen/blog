@@ -10,7 +10,7 @@ configuration Customization
     ); 
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration,
-        SqlServerDsc;
+        ComputerManagementDsc, SqlServerDsc;
 
     $agentCredential = New-Object System.Management.Automation.PSCredential ("$($Parameters.domainName)\s-SqlAgent", $Credential.Password);
     $engineCredential = New-Object System.Management.Automation.PSCredential ("$($Parameters.domainName)\s-SqlEngine", $Credential.Password);
@@ -50,7 +50,7 @@ configuration Customization
             # Initialize disk
             Initialize-Disk -UniqueId $disk.UniqueId -PassThru | 
                 New-Partition -DriveLetter $letter -UseMaximumSize | 
-                Format-Volume;
+                Format-Volume -AllocationUnitSize 65536;
 
             # Add access for s-SqlEngine to the disk
             $acl = Get-Acl -Path "${letter}:\";
@@ -94,7 +94,6 @@ GO
 -- c3-highcpu-88:  176 GiB
 -- n2-standard-96: 384 GiB
 EXEC sp_configure 'max server memory', 153600;
--- EXEC sp_configure 'recovery interval (min)', 15;
 RECONFIGURE;
 GO
 
@@ -196,7 +195,7 @@ FROM
     URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_58.bak',
     URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_59.bak',
     URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_60.bak',
-    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_61.bak',
+    URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_61.bak', 
     URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_62.bak',
     URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_63.bak',
     URL = 's3://storage.googleapis.com/cbpetersen-demos/pass25/demo4_3000_64.bak'
@@ -204,7 +203,9 @@ WITH
     CREDENTIAL = 'cbpetersen-demos',
     MOVE 'demo4' TO '${letter}:\demo4_${i}.mdf',
     MOVE 'demo4_log' TO '${letter}:\demo4_${i}.ldf',
-    STATS = 10, 
+    STATS = 1,
+	MAXTRANSFERSIZE = 1048576,
+	BUFFERCOUNT = 8192,
     RECOVERY,
     REPLACE;
 GO
@@ -219,16 +220,9 @@ ALTER DATABASE [demo4_${i}] SET DELAYED_DURABILITY = DISABLED WITH NO_WAIT;
 -- n2-standard-96: 96 (88 visible, 2 vNUMA) vCPUs
 
 USE [demo4_${i}];
--- Setting MAXDOP to half of the visible vCPUs per vNUMA node
 ALTER DATABASE SCOPED CONFIGURATION SET MAXDOP = 8;
 DBCC SHRINKFILE('demo4_log', TRUNCATEONLY);
 GO
-
--- ALTER DATABASE [demo4_${i}] SET RECOVERY SIMPLE;
--- ALTER DATABASE [demo4_${i}] SET TORN_PAGE_DETECTION OFF;
--- ALTER DATABASE [demo4_${i}] SET PAGE_VERIFY NONE;
--- ALTER DATABASE [demo4_${i}] SET TARGET_RECOVERY_TIME = 15 MINUTES;
-
 "@;
         DependsOn = "[Script]ConfigureDatabase"
         PsDscRunAsCredential = $Credential
@@ -237,6 +231,6 @@ GO
     PendingReboot "RebootAfterRestore"
     {
         Name = "RebootAfterRestore${i}"
-        DependsOn = "[SqlScriptQuery] RestoreDatabase${i}"
+        DependsOn = "[SqlScriptQuery]RestoreDatabase${i}"
     }
 }
