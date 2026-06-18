@@ -64,4 +64,4 @@ gcloud compute disks describe $disk \
 {{< figure 
     src="images/attached_licenses.png"
     alt="Licenses attached to the disk"
-    catpion="Licenses attached to the disk" >}}
+    caption="Licenses attached to the disk" >}}

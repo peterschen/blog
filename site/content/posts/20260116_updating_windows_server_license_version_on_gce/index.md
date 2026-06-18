@@ -41,7 +41,7 @@ This is what the disk looks like now:
 {{< figure 
     src="images/append.png"
     alt="License appended to the disk"
-    catpion="License appended to the disk" >}}
+    caption="License appended to the disk" >}}
 
 When appending the license it is important to remove the old licese. As noted above if that is not done, all licenses will be charged leading to unecessary cost.
 
@@ -80,4 +80,4 @@ This will update the license with the new one in a single operation:
 {{< figure 
     src="featured.png"
     alt="Replace license assigned to the disk"
-    catpion="Replace license assigned to the disk" >}}
+    caption="Replace license assigned to the disk" >}}
