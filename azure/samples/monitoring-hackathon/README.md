@@ -1,13 +1,13 @@
 # Monitoring Hackathon
 
 ## Initial deployment
-This hackathon uses subscription level deployment to roll out a set of resources that are used throughout the challenges. Kicking-off the initial deployment can be done with Azure CLI (or PowerShell). If not specified, the default values will be taken and you will be prompted for `AdminUsername` and `AdminPassword`. 
+This hackathon uses subscription level deployment to roll out a set of resources that are used throughout the challenges. Kicking-off the initial deployment can be done with Azure CLI (or PowerShell). If not specified, the default values will be taken and you will be prompted for `AdminUsername` and `AdminUserPassword`. 
 
 > **Note:** Make sure to select a short prefix for the parameter `NameResourceGroup`. This is the name of the resource group that is created as part of the deployment and also as name or prefix for many of the resources deployed.
 
 ```
 az deployment create \
-    --name mh \
+    --name azmh \
     --location westeurope \
     --template-file azuredeploy.json
 ```
