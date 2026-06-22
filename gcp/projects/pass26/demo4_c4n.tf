@@ -152,6 +152,10 @@ resource "google_compute_region_backend_service" "demo4_c4n" {
   #   enable = true
   #   optional_mode = "INCLUDE_ALL_OPTIONAL"
   # }
+
+  depends_on = [
+    google_compute_instance_group.demo4_c4n
+  ]
 }
 
 resource "google_compute_region_target_tcp_proxy" "demo4_c4n" {
