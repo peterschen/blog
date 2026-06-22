@@ -20,8 +20,8 @@ module "demo4_c4" {
 
   machine_type_bastion = "n4-highcpu-64"
   machine_type_sql = "c4-highcpu-96"
-  visible_cores_sql = 44
-  threads_per_core_sql = 2
+  threads_per_core_sql = local.threads_per_core_demo4_c4
+  visible_cores_sql = local.visible_cores_demo4_c4
 
   customization_bastion = file("${path.module}/demo4_bm_customization-bastion.ps1")
   customizations_sql = [

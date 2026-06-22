@@ -53,6 +53,9 @@ locals {
   enable_demo4_c3 = var.enable_demo4_c3
   enable_demo4_c4 = var.enable_demo4_c4
   enable_demo4_c4n = var.enable_demo4_c4n
+
+  threads_per_core_demo4_c4 = var.threads_per_core_demo4_c4
+  visible_cores_demo4_c4 = var.visible_cores_demo4_c4
 }
 
 module "project" {

@@ -149,3 +149,13 @@ variable "enable_demo4_c4n" {
   type = bool
   default = true
 }
+
+variable "threads_per_core_demo4_c4" {
+  type = number
+  default = null
+}
+
+variable "visible_cores_demo4_c4" {
+  type = number
+  default = null
+}
