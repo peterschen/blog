@@ -58,6 +58,11 @@ variable "threads_per_core_sql" {
   default = null
 }
 
+variable "turbo_mode_sql" {
+  type = bool
+  default = null
+}
+
 variable "windows_image" {
   type = string
   default = "windows-cloud/windows-2025"
@@ -115,5 +120,13 @@ variable "customization_bastion" {
 
 variable "customizations_sql" {
   type = list(string)
+  default = []
+}
+
+variable "modules_dsc_bastion" {
+  type = list(object({
+    Name = string
+    Version = string
+  }))
   default = []
 }

@@ -13,29 +13,31 @@ configuration Customization
         xPSDesiredStateConfiguration;
 
     # Reference: https://github.com/GoogleCloudPlatform/PerfKitBenchmarker/blob/master/perfkitbenchmarker/data/hammerdbcli_tcl/hammerdb_sqlserver_tpc_c_run.tcl
-    $databases = 2
-    for($i = 0; $i -lt $databases + 1; $i++)
+    $i = 0;
+    File "HammerdbConfiguration${i}"
     {
-        File "HammerdbConfiguration${i}"
-        {
-            DestinationPath = "C:\tools\pass_run_$i.tcl"
-            Contents = @"
+        DestinationPath = "C:\tools\pass_run_$i.tcl"
+        Contents = @"
 #!/bin/tclsh
 
 proc wait_to_complete { seconds } {
-set x 0
-set timerstop 0
-while {!`$timerstop} {
-incr x
-after 1000
-if { ![ expr {`$x % 60} ] } {
-set y [ expr `$x / 60 ]
-puts "Timer: `$y minutes elapsed"
-}
-update
-if {  [ vucomplete ] || `$x eq `$seconds } { set timerstop 1 }
-}
-return
+    set x 0
+    set timerstop 0
+    while {!`$timerstop} {
+        incr x
+        after 1000
+        
+        if { ![ expr {`$x % 60} ] } {
+            set y [ expr `$x / 60 ]
+            puts "Timer: `$y minutes elapsed"
+        }
+        
+        update
+        
+        if {  [ vucomplete ] || `$x eq `$seconds } { set timerstop 1 }
+    }
+    
+    return
 }
 
 puts "SETTING CONFIGURATION"
@@ -50,39 +52,40 @@ diset connection mssqls_authentication windows
 diset connection mssqls_trust_server_cert true
 
 diset tpcc mssqls_count_ware 3000
-diset tpcc mssqls_num_vu 400
+diset tpcc mssqls_num_vu 704
 diset tpcc mssqls_allwarehouse true
 diset tpcc mssqls_timeprofile false
 diset tpcc mssqls_dbase demo4_${i}
 diset tpcc mssqls_driver timed
-diset tpcc mssqls_rampup 5
-diset tpcc mssqls_duration 60
+diset tpcc mssqls_rampup 3
+diset tpcc mssqls_duration 10
 diset tpcc mssqls_checkpoint true
 
 vuset logtotemp 1
-vuset delay 100
+vuset nobuff 1
+vuset delay 220
 
 puts "Loading script"
 loadscript
 
 puts "TEST SEQUENCE STARTED"
 vudestroy
-puts "400 VU TEST"
-vuset vu 400
+puts "704 VU TEST"
+vuset vu 704
 vucreate
 vurun
 
-wait_to_complete 4500
+wait_to_complete 5400
 vudestroy
 
 puts "TEST SEQUENCE COMPLETE"
 "@
-        }
+    }
 
-        File "HammerdbRunner${i}"
-        {
-            DestinationPath = "C:\tools\pass_run_$i.ps1"
-            Contents = @"
+    File "HammerdbRunner${i}"
+    {
+        DestinationPath = "C:\tools\pass_run_$i.ps1"
+        Contents = @"
 `$pathTools = "C:\tools";
 `$pathHammerdb = Join-Path -Path `$pathTools -ChildPath "hammerdb\HammerDB-5.0";
 Set-Location -Path `$pathHammerdb;
@@ -90,6 +93,24 @@ Set-Location -Path `$pathHammerdb;
 # Start run
 .\hammerdbcli auto `$pathTools/pass_run_${i}.tcl
 "@
-        }
+    }
+
+    File "BmRunner${i}"
+    {
+        DestinationPath = "C:\tools\bm_$i.ps1"
+        Contents = @"
+`$query = @"
+USE [demo4_${i}];
+CHECKPOINT
+GO
+"@
+
+for(`$i = 0; `$i -lt 6; `$i++) { 
+    Invoke-Sqlcmd -Query `$query -ServerInstance "sql-0" -TrustServerCertificate -ErrorAction Stop;
+
+    cd \tools;
+    .\pass_run_${i}.ps1; 
+}
+"@
     }
 }

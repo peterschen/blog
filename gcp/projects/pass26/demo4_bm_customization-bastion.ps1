@@ -44,20 +44,21 @@ diset connection mssqls_azure false
 diset connection mssqls_server {sql-0}
 diset connection mssqls_port 1433
 diset connection mssqls_tcp true
-diset connection mssqls_checkpoint true
 diset connection mssqls_authentication windows
 diset connection mssqls_trust_server_cert true
 
 diset tpcc mssqls_count_ware 3000
 diset tpcc mssqls_num_vu 704
 diset tpcc mssqls_allwarehouse true
-diset tpcc mssqls_timeprofile true
+diset tpcc mssqls_timeprofile false
 diset tpcc mssqls_dbase demo4_${i}
 diset tpcc mssqls_driver timed
 diset tpcc mssqls_rampup 2
 diset tpcc mssqls_duration 10
+diset tpcc mssqls_checkpoint true
 
 vuset logtotemp 1
+vuset nobuff 1
 vuset delay 100
 
 puts "Loading script"

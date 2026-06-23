@@ -28,6 +28,7 @@ locals {
 
   visible_cores_sql = var.visible_cores_sql
   threads_per_core_sql = var.threads_per_core_sql
+  turbo_mode_sql = var.turbo_mode_sql
 
   enable_bastion = var.enable_bastion
   enable_ad = var.enable_ad
@@ -40,6 +41,8 @@ locals {
 
   customization_bastion = var.customization_bastion
   customizations_sql = var.customizations_sql
+
+  modules_dsc_bastion = var.modules_dsc_bastion
 }
 
 module "project" {
@@ -186,6 +189,8 @@ module "bastion" {
 
   configuration_customization = local.customization_bastion
 
+  modules_dsc = local.modules_dsc_bastion
+
   depends_on = [
     module.ad
   ]
@@ -206,6 +211,7 @@ module "sqlserver" {
   
   windows_image = local.sql_image
   machine_type = local.machine_type_sql
+  turbo_mode = local.turbo_mode_sql
 
   visible_cores = local.visible_cores_sql
   threads_per_core = local.threads_per_core_sql

@@ -28,6 +28,7 @@ locals {
   project_id_demo4_c3 = var.project_id_demo4_c3
   project_id_demo4_c4 = var.project_id_demo4_c4
   project_id_demo4_c4n = var.project_id_demo4_c4n
+  project_id_bm_c4 = var.project_id_bm_c4
 
   region_demo = var.region_demo
   region_demo1 = var.region_demo1
@@ -36,6 +37,7 @@ locals {
   region_demo4_c3 = var.region_demo4_c3
   region_demo4_c4 = var.region_demo4_c4
   region_demo4_c4n = var.region_demo4_c4n
+  region_bm_c4 = var.region_bm_c4
 
   zone_demo = var.zone_demo
   zone_demo1 = var.zone_demo1
@@ -44,6 +46,7 @@ locals {
   zone_demo4_c3 = var.zone_demo4_c3
   zone_demo4_c4 = var.zone_demo4_c4
   zone_demo4_c4n = var.zone_demo4_c4n
+  zone_bm_c4 = var.zone_bm_c4
 
   domain_name = "pass.lab"
 
@@ -56,6 +59,9 @@ locals {
 
   threads_per_core_demo4_c4 = var.threads_per_core_demo4_c4
   visible_cores_demo4_c4 = var.visible_cores_demo4_c4
+  turbo_mode_demo4_c4 = var.turbo_mode_demo4_c4
+
+  bm_configurations_c4 = var.bm_configurations_c4
 }
 
 module "project" {
