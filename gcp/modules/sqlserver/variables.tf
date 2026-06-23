@@ -49,6 +49,11 @@ variable "visible_cores" {
   default = null
 }
 
+variable "turbo_mode" {
+  type = bool
+  default = null
+}
+
 variable "domain_name" {
   type = string
 }

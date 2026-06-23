@@ -13,8 +13,11 @@ locals {
 
   machine_type = var.machine_type
   machine_prefix = var.machine_prefix
+  
   threads_per_core = var.threads_per_core
   visible_cores = var.visible_cores
+  turbo_mode = var.turbo_mode
+
   windows_image = var.windows_image
 
   use_developer_edition = var.use_developer_edition
@@ -149,6 +152,7 @@ resource "google_compute_instance" "sql" {
   advanced_machine_features {
     threads_per_core = local.threads_per_core
     visible_core_count = local.visible_cores
+    turbo_mode = local.turbo_mode == true ? "ALL_CORE_MAX" : null
   }
 
   metadata = {
