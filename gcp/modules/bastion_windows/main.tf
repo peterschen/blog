@@ -25,6 +25,8 @@ locals {
   enable_windowsadmincenter = var.enable_windowsadmincenter
 
   configuration_customization = var.configuration_customization
+
+  modules_dsc = var.modules_dsc
 }
 
 data "google_project" "default" {
@@ -117,7 +119,8 @@ resource "google_compute_instance" "bastion" {
         enableWindowsAdminCenter = local.enable_windowsadmincenter,
         fileContentBenchmark = filebase64("${path.module}/benchmark.ps1"),
         fileContentBenchmarkConfigurations = filebase64("${path.module}/benchmark_configurations.json"),
-        fileContentBenchmarkScenarios = filebase64("${path.module}/benchmark_scenarios.json")
+        fileContentBenchmarkScenarios = filebase64("${path.module}/benchmark_scenarios.json"),
+        modulesDsc = local.modules_dsc
       })
     })
   }

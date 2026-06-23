@@ -92,3 +92,11 @@ variable "configuration_customization" {
   type = string
   default = null
 }
+
+variable "modules_dsc" {
+  type = list(object({
+    Name = string
+    Version = string
+  }))
+  default = []
+}
