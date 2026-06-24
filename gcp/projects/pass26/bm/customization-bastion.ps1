@@ -99,11 +99,11 @@ Set-Location -Path `$pathHammerdb;
     {
         DestinationPath = "C:\tools\bm_$i.ps1"
         Contents = @"
-`$query = @"
+`$query = @`"
 USE [demo4_${i}];
 CHECKPOINT
 GO
-"@
+`"@
 
 for(`$i = 0; `$i -lt 6; `$i++) { 
     Invoke-Sqlcmd -Query `$query -ServerInstance "sql-0" -TrustServerCertificate -ErrorAction Stop;
