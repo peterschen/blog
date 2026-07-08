@@ -194,7 +194,7 @@ configuration ConfigurationWorkload
                 Name = "SQL Server Management Studio 22"
                 ProductID = ""
                 Path = "C:\Windows\temp\vs_SSMS.exe"
-                Arguments = "--quiet"
+                Arguments = "--quiet --wait"
                 DependsOn = "[xRemoteFile]DownloadSsms"
             }
         }
@@ -217,8 +217,8 @@ configuration ConfigurationWorkload
         
             xRemoteFile "DownloadMssqlcmd"
             {
-                Uri = "https://go.microsoft.com/fwlink/?linkid=2230791"
-                DestinationPath = "C:\Windows\temp\mssqlcmd.msi"
+                Uri = "https://github.com/microsoft/go-sqlcmd/releases/download/v1.10.0/sqlcmd-amd64.msi"
+                DestinationPath = "C:\Windows\temp\sqlcmd-amd64.msi"
             }
 
             Package "InstallMsoledb"
@@ -244,10 +244,10 @@ configuration ConfigurationWorkload
             Package "InstallMssqlcmd"
             {
                 Ensure = "Present"
-                Name = "Microsoft Command Line Utilities 15 for SQL Server"
+                Name = "Sqlcmd Tools"
                 ProductID = ""
-                Path = "C:\Windows\temp\mssqlcmd.msi"
-                Arguments = "/quiet /log c:\windows\temp\sqlcmd.log IACCEPTMSSQLCMDLNUTILSLICENSETERMS=YES"
+                Path = "C:\Windows\temp\sqlcmd-amd64.msi"
+                Arguments = "/quiet /log c:\windows\temp\sqlcmd-amd64.log"
                 DependsOn = "[xRemoteFile]DownloadMssqlcmd"
             }
 
