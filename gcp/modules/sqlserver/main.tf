@@ -150,6 +150,9 @@ resource "google_compute_instance" "sql" {
   }
 
   advanced_machine_features {
+    # At least one options must be specified, keep this to make deployment work when all options are null
+    enable_nested_virtualization = false
+    
     threads_per_core = local.threads_per_core
     visible_core_count = local.visible_cores
     turbo_mode = local.turbo_mode == true ? "ALL_CORE_MAX" : null
