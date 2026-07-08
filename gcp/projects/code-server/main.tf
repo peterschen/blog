@@ -45,6 +45,10 @@ module "project" {
   ]
 }
 
+data "google_compute_default_service_account" "default" {
+  project = module.project.id
+}
+
 data "google_service_account" "shared_sa" {
   project = local.serviceaccount_project
   account_id = local.serviceaccount_name
@@ -83,7 +87,8 @@ module "firewall_iap" {
   source = "../../modules/firewall_iap"
   project = module.project.id
   network = google_compute_network.network.name
-  enable_rdp = false
+  enable_ssh = true
+  enable_rdp = true
   enable_http_alt = true
   enable_dotnet_http = true
   enable_dotnet_https = true
@@ -282,4 +287,16 @@ resource "google_artifact_registry_repository_iam_binding" "shared_registry_read
   members = [
     "serviceAccount:${google_service_account.local_sa.email}"
   ]
+}
+
+resource "google_project_iam_member" "log_writer" {
+  project = module.project.id
+  role = "roles/logging.logWriter"
+  member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
+}
+
+resource "google_project_iam_member" "metric_writer" {
+  project = module.project.id
+  role = "roles/monitoring.metricWriter"
+  member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
 }
