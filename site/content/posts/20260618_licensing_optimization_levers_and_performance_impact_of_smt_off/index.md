@@ -58,7 +58,7 @@ In summary the following configuration was used:
 |                              |                   |
 | ---------------------------- | ----------------- |
 | Instance type                | c4-highcpu-96     |
-| Custom visible cores         | 4                 |
+| Custom visible cores         | 2, 4, 8, 16, 32   |
 | Block storage                | Hyperdisk Extreme |
 | Block storage: IOPS          | 350,000           |
 | Block storage: Throughput    | 5,000 MiB/s       |
@@ -74,25 +74,47 @@ In summary the following configuration was used:
 
 For both configurations (Threads per core set to 1 and set to 2) HammerDB was run five times to record standard deviation yielding these results:
 
-| Machine type  | Visible cores | Threads per core | vCPUs | Run | TPM       | NOPM    |
-| ------------- | ------------- | ---------------- | ----- | --- | --------- | ------- |
-| c4-highcpu-96 | 4             | 2                | 8     | 1   | 1,269,679 | 472,694 |
-| c4-highcpu-96 | 4             | 2                | 8     | 2   | 1,379,353 | 611,472 |
-| c4-highcpu-96 | 4             | 2                | 8     | 3   | 1,313,991 | 578,086 |
-| c4-highcpu-96 | 4             | 2                | 8     | 4   | 1,323,344 | 577,071 |
-| c4-highcpu-96 | 4             | 2                | 8     | 5   | 1,176,724 | 518,341 |
-| c4-highcpu-96 | 4             | 1                | 4     | 1   | 1,211,578 | 492,306 |
-| c4-highcpu-96 | 4             | 1                | 4     | 2   | 1,232,441 | 520,195 |
-| c4-highcpu-96 | 4             | 1                | 4     | 3   | 1,323,252 | 570,840 |
-| c4-highcpu-96 | 4             | 1                | 4     | 4   | 1,276,258 | 568,622 |
-| c4-highcpu-96 | 4             | 1                | 4     | 5   | 1,322,779 | 511,448 |
+| Machine type  | Visible cores | Threads per core | vCPUs | Run | TPM       | NOPM      |
+| ------------- | ------------- | ---------------- | ----- | --- | --------- | --------- |
+| c4-highcpu-96 | 16            | 1                | 16    | 0   | 2,111,119 | 909,360   |
+| c4-highcpu-96 | 16            | 1                | 16    | 1   | 2,168,381 | 933,275   |
+| c4-highcpu-96 | 16            | 1                | 16    | 2   | 2,090,277 | 899,555   |
+| c4-highcpu-96 | 16            | 1                | 16    | 3   | 2,172,448 | 934,396   |
+| c4-highcpu-96 | 16            | 1                | 16    | 4   | 2,208,581 | 950,864   |
+| c4-highcpu-96 | 16            | 1                | 16    | 5   | 2,188,570 | 943,380   |
+| c4-highcpu-96 | 16            | 2                | 32    | 0   | 2,846,514 | 1,225,739 |
+| c4-highcpu-96 | 16            | 2                | 32    | 1   | 2,743,198 | 1,180,725 |
+| c4-highcpu-96 | 16            | 2                | 32    | 2   | 2,925,566 | 1,259,347 |
+| c4-highcpu-96 | 16            | 2                | 32    | 3   | 2,901,705 | 1,249,088 |
+| c4-highcpu-96 | 16            | 2                | 32    | 4   | 3,044,777 | 1,310,268 |
+| c4-highcpu-96 | 16            | 2                | 32    | 5   | 3,139,450 | 1,351,805 |
+| c4-highcpu-96 | 32            | 1                | 32    | 0   | 3,709,684 | 1,596,722 |
+| c4-highcpu-96 | 32            | 1                | 32    | 1   | 3,661,909 | 1,576,963 |
+| c4-highcpu-96 | 32            | 1                | 32    | 2   | 3,742,238 | 1,610,888 |
+| c4-highcpu-96 | 32            | 1                | 32    | 3   | 3,771,601 | 1,623,869 |
+| c4-highcpu-96 | 32            | 1                | 32    | 4   | 3,721,839 | 1,601,842 |
+| c4-highcpu-96 | 32            | 1                | 32    | 5   | 3,690,345 | 1,588,337 |
+| c4-highcpu-96 | 32            | 2                | 64    | 0   | 4,739,187 | 2,040,310 |
+| c4-highcpu-96 | 32            | 2                | 64    | 1   | 4,865,799 | 2,095,042 |
+| c4-highcpu-96 | 32            | 2                | 64    | 2   | 4,978,081 | 2,142,613 |
+| c4-highcpu-96 | 32            | 2                | 64    | 3   | 4,845,775 | 2,085,709 |
+| c4-highcpu-96 | 32            | 2                | 64    | 4   | 5,213,186 | 2,243,852 |
+| c4-highcpu-96 | 32            | 2                | 64    | 5   | 5,188,773 | 2,233,186 |
 
 To better understand the benchmark results, I've focused on the transactions per minute (TPM) metric and calculated both the arithmetric mean (average) and geometric mean (geomean) to provide addiional context regarding outliers. Additionally, I've calculated the standard deviation.
 
 | Visible cores | Threads per core | vCPUs | TPM avg   | TPM geomean | TPM stddev |
 | ------------- | ---------------- | ----- | --------- | ----------- | ---------- |
-| 4             | 2                | 8     | 1,292,618 | 1,290,809   | 75,633     |
-| 4             | 1                | 4     | 1,273,262 | 1,272,440   | 51,067     |
+| 2             | 2                | 4     | 1,225,709 | 1,222,624   | 93,383     |
+| 2             | 1                | 2     | 1,132,882 | 1,100,761   | 261,076    |
+| 4             | 2                | 8     | 1,424,082 | 1,423,280   | 53,173     |
+| 4             | 1                | 4     | 1,275,760 | 1,274,014   | 73,906     |
+| 8             | 2                | 16    | 1,661,053 | 1,659,160   | 85,400     |
+| 8             | 1                | 8     | 1,474,558 | 1,467,526   | 151,091    |
+| 16            | 2                | 32    | 2,933,535 | 2,930,716   | 141,176    |
+| 16            | 1                | 16    | 2,156,563 | 2,156,151   | 46,003     |
+| 32            | 2                | 64    | 4,971,800 | 4,968,689   | 193,190    |
+| 32            | 1                | 32    | 3,716,269 | 3,716,103   | 38,568     |
 
 Based on these results I have plotted the absolute performance in TPM and the relative performance difference between the VM with Hyperthreading enabled and disabled:
 
