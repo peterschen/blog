@@ -184,17 +184,17 @@ configuration ConfigurationWorkload
         {
             xRemoteFile "DownloadSsms"
             {
-                Uri = "https://aka.ms/ssmsfullsetup"
-                DestinationPath = "C:\Windows\temp\SSMS-Setup-ENU.exe"
+                Uri = "https://aka.ms/ssms/22/release/vs_SSMS.exe"
+                DestinationPath = "C:\Windows\temp\vs_SSMS.exe"
             }
 
             Package "InstallSsms"
             {
                 Ensure = "Present"
-                Name = "SQL Server Management Studio"
+                Name = "SQL Server Management Studio 22"
                 ProductID = ""
-                Path = "C:\Windows\temp\SSMS-Setup-ENU.exe"
-                Arguments = "/install /quiet"
+                Path = "C:\Windows\temp\vs_SSMS.exe"
+                Arguments = "--quiet"
                 DependsOn = "[xRemoteFile]DownloadSsms"
             }
         }
