@@ -65,17 +65,23 @@ vuset logtotemp 1
 vuset nobuff 1
 vuset delay 220
 
+tcset logtotemp 1
+tcset refreshrate 10
+
 puts "Loading script"
 loadscript
 
 puts "TEST SEQUENCE STARTED"
 vudestroy
+tcstop
 puts "704 VU TEST"
 vuset vu 704
 vucreate
+tcstart
 vurun
 
 wait_to_complete 5400
+tcstop
 vudestroy
 
 puts "TEST SEQUENCE COMPLETE"
