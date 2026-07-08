@@ -21,7 +21,21 @@ variable "zone" {
   default = "europe-west4-a"
 }
 
-variable "machine_type" {
+variable "domain_name" {
   type = string
-  default = "e2-medium"
+  default = null
+}
+
+variable "password" {
+  sensitive = true
+}
+
+variable "machine_type_bastion" {
+  type = string
+  default = "n4-highcpu-4"
+}
+
+variable "machine_type_code" {
+  type = string
+  default = "t2d-standard-2"
 }

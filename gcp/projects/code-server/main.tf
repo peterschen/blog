@@ -17,10 +17,14 @@ locals {
   
   network_range = "10.10.0.0/16"
 
-  machine_type = var.machine_type
+  machine_type_code = var.machine_type_code
+  machine_type_bastion = var.machine_type_bastion
+
+  domain_name = var.domain_name
+  password = var.password
 
   boot_disk_type = "pd-balanced"
-  boot_disk_size = 20
+  boot_disk_size = 100
 
   data_disk_type = "pd-balanced"
   data_disk_size = 100
@@ -85,6 +89,30 @@ module "firewall_iap" {
   enable_dotnet_https = true
 }
 
+module "bastion" {
+  source = "../../modules/bastion_windows"
+  project = module.project.id
+
+  region = local.region
+  zone = local.zone
+
+  network = google_compute_network.network.name
+  subnetwork = google_compute_subnetwork.subnetwork.name
+
+  domain_name = local.domain_name
+  password = local.password
+
+  machine_type = local.machine_type_bastion
+  machine_name = "bastion"
+
+  windows_image = "windows-cloud/windows-2025"
+
+  enable_domain = false
+  enable_ssms = false
+  enable_hammerdb = false
+  enable_discoveryclient = false
+}
+
 resource "google_compute_address" "code" {
   project = module.project.id
   region = local.region
@@ -132,7 +160,7 @@ resource "google_compute_instance" "code" {
   project = module.project.id
   zone = local.zone
   name = "code"
-  machine_type = local.machine_type
+  machine_type = local.machine_type_code
 
   tags = ["ssh", "http-alt-iap", "dotnet-http-iap", "dotnet-https-iap", "hugo-iap"]
 
