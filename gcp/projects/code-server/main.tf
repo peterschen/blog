@@ -300,3 +300,15 @@ resource "google_project_iam_member" "metric_writer" {
   role = "roles/monitoring.metricWriter"
   member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
 }
+
+resource "google_project_iam_member" "log_writer_code" {
+  project = module.project.id
+  role = "roles/logging.logWriter"
+  member = "serviceAccount:${google_service_account.local_sa.email}"
+}
+
+resource "google_project_iam_member" "metric_writer_code" {
+  project = module.project.id
+  role = "roles/monitoring.metricWriter"
+  member = "serviceAccount:${google_service_account.local_sa.email}"
+}
