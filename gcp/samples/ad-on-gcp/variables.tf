@@ -66,12 +66,12 @@ variable "machine_type_joinvm" {
 
 variable "windows_image" {
   type = string
-  default = "windows-cloud/windows-2022"
+  default = "windows-cloud/windows-2025"
 }
 
 variable "windows_core_image" {
   type = string
-  default = "windows-cloud/windows-2022-core"
+  default = "windows-cloud/windows-2025-core"
 }
 
 variable "adjoin_container_uri" {
