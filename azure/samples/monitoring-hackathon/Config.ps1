@@ -44,14 +44,14 @@ configuration Config
 
         xRemoteFile "DiskSpd"
         {
-            Uri = "https://gallery.technet.microsoft.com/DiskSpd-A-Robust-Storage-6ef84e62/file/199535/2/DiskSpd-2.0.21a.zip"
+            Uri = "https://github.com/microsoft/diskspd/releases/download/v2.0.21a/DiskSpd.zip"
             DestinationPath = "c:\tools\DiskSpd"
             DependsOn = "[File]DiskSpd"
         }
 
         Archive "PSTools"
         {
-            Path = "c:\tools\DiskSpd\DiskSpd-2.0.21a.zip"
+            Path = "c:\tools\DiskSpd\DiskSpd.zip"
             Destination = "C:\tools\DiskSpd"
             DependsOn = "[xRemoteFile]DiskSpd"
         }
