@@ -15,11 +15,6 @@ variable "password" {
   sensitive = true
 }
 
-variable "project_id_demo" {
-  type = string
-  default = null
-}
-
 variable "project_id_demo1" {
   type = string
   default = null
@@ -28,36 +23,6 @@ variable "project_id_demo1" {
 variable "project_id_demo4" {
   type = string
   default = null
-}
-
-variable "project_id_demo4_n2" {
-  type = string
-  default = null
-}
-
-variable "project_id_demo4_c3" {
-  type = string
-  default = null
-}
-
-variable "project_id_demo4_c4" {
-  type = string
-  default = null
-}
-
-variable "project_id_demo4_c4n" {
-  type = string
-  default = null
-}
-
-variable "project_id_bm_c4" {
-  type = string
-  default = null
-}
-
-variable "region_demo" {
-  type = string
-  default = "europe-west4"
 }
 
 variable "region_demo1" {
@@ -70,67 +35,12 @@ variable "region_demo4" {
   default = "europe-west4"
 }
 
-variable "region_demo4_n2" {
-  type = string
-  default = "europe-west4"
-}
-
-variable "region_demo4_c3" {
-  type = string
-  default = "europe-west4"
-}
-
-variable "region_demo4_c4" {
-  type = string
-  default = "europe-west4"
-}
-
-variable "region_demo4_c4n" {
-  type = string
-  default = "europe-west4"
-}
-
-variable "region_bm_c4" {
-  type = string
-  default = "europe-west4"
-}
-
-variable "zone_demo" {
-  type = string
-  default = "europe-west4-a"
-}
-
 variable "zone_demo1" {
   type = string
   default = "europe-west4-a"
 }
 
 variable "zone_demo4" {
-  type = string
-  default = "europe-west4-a"
-}
-
-variable "zone_demo4_n2" {
-  type = string
-  default = "europe-west4-a"
-}
-
-variable "zone_demo4_c3" {
-  type = string
-  default = "europe-west4-a"
-}
-
-variable "zone_demo4_c4" {
-  type = string
-  default = "europe-west4-a"
-}
-
-variable "zone_demo4_c4n" {
-  type = string
-  default = "europe-west4-a"
-}
-
-variable "zone_bm_c4" {
   type = string
   default = "europe-west4-a"
 }
@@ -143,51 +53,4 @@ variable "enable_demo1" {
 variable "enable_demo4" {
   type = bool
   default = true
-}
-
-variable "enable_demo4_n2" {
-  type = bool
-  default = true
-}
-
-variable "enable_demo4_c3" {
-  type = bool
-  default = true
-}
-
-variable "enable_demo4_c4" {
-  type = bool
-  default = true
-}
-
-variable "enable_demo4_c4n" {
-  type = bool
-  default = true
-}
-
-variable "threads_per_core_demo4_c4" {
-  type = number
-  default = null
-}
-
-variable "visible_cores_demo4_c4" {
-  type = number
-  default = null
-}
-
-variable "turbo_mode_demo4_c4" {
-  type = bool
-  default = null
-}
-
-variable "bm_configurations_c4" {
-  type = list(object({
-    machine_type = string
-    visible_cores = number
-    threads_per_core = number
-    turbo_mode = bool
-    enabled = bool
-  }))
-
-  default = []
 }

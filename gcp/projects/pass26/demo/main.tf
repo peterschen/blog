@@ -22,7 +22,7 @@ locals {
 
   network_range = "10.0.0.0/16"
 
-  machine_type_dc = "n4-highcpu-2"
+  machine_type_dc = var.machine_type_dc
   machine_type_bastion = var.machine_type_bastion
   machine_type_sql = var.machine_type_sql
 

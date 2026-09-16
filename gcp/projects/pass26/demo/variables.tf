@@ -38,9 +38,14 @@ variable "password" {
   sensitive = true
 }
 
+variable "machine_type_dc" {
+  type = string
+  default = "n4d-highcpu-2"
+}
+
 variable "machine_type_bastion" {
   type = string
-  default = "n4-highcpu-4"
+  default = "n4d-highcpu-4"
 }
 
 variable "machine_type_sql" {
