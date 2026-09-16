@@ -210,7 +210,7 @@ configuration ConfigurationWorkload
         {
             xRemoteFile "DownloadSqlServerBinary"
             {
-                Uri = "https://go.microsoft.com/fwlink/p/?linkid=2215158"
+                Uri = "https://go.microsoft.com/fwlink/?linkid=2344711"
                 DestinationPath = "C:\Windows\temp\sqlserver.exe"
             }
 
