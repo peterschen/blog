@@ -118,6 +118,26 @@ module "bastion" {
   enable_discoveryclient = false
 }
 
+resource "google_compute_resource_policy" "bastion" {
+  project = module.project.id
+  region = local.region
+  name = "bastion-shutdown"
+
+  instance_schedule_policy {
+    vm_stop_schedule {
+      schedule = "0 20 * * *"
+    }
+    time_zone = "Europe/Berlin"
+  }
+}
+
+resource "google_compute_resource_policy_attachment" "bastion" {
+  project = module.project.id
+  name = google_compute_resource_policy.bastion.name
+  instance = module.bastion.instance.name
+  zone = local.zone
+}
+
 resource "google_compute_address" "code" {
   project = module.project.id
   region = local.region
