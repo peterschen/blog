@@ -9,6 +9,9 @@ locals {
   enable_https_alt = var.enable_https_alt
   enable_dotnet_http = var.enable_dotnet_http
   enable_dotnet_https = var.enable_dotnet_https
+  enable_antigravity = var.enable_antigravity
+
+  port_antigravity = var.port_antigravity
 }
 
 resource "google_compute_firewall" "allow-rdp-iap" {
@@ -169,4 +172,24 @@ resource "google_compute_firewall" "allow-dotnet-https-iap" {
   source_ranges = ["35.235.240.0/20"]
 
   target_tags = ["dotnet-https-iap"]
+}
+
+resource "google_compute_firewall" "allow-antigravity-iap" {
+  count = local.enable_antigravity ? 1 : 0
+  
+  project = local.project
+  name = "allow-antigravity-iap"
+  network = local.network
+  priority = 5000
+
+  allow {
+    protocol = "tcp"
+    ports    = [local.port_antigravity]
+  }
+
+  direction = "INGRESS"
+
+  source_ranges = ["35.235.240.0/20"]
+
+  target_tags = ["antigravity-iap"]
 }

@@ -45,3 +45,13 @@ variable "enable_dotnet_https" {
     type = bool
     default = false
 }
+
+variable "enable_antigravity" {
+    type = bool
+    default = false
+}
+
+variable "port_antigravity" {
+  type = number
+  default = 39923
+}
