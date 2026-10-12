@@ -41,7 +41,10 @@ module "project" {
   apis = [
     "cloudresourcemanager.googleapis.com",
     "compute.googleapis.com",
-    "iamcredentials.googleapis.com"
+    "iamcredentials.googleapis.com",
+    "aiplatform.googleapis.com",
+    "discoveryengine.googleapis.com",
+    "storage.googleapis.com"
   ]
 }
 
@@ -92,6 +95,7 @@ module "firewall_iap" {
   enable_http_alt = true
   enable_dotnet_http = true
   enable_dotnet_https = true
+  enable_antigravity = true
 }
 
 module "bastion" {
@@ -187,7 +191,7 @@ resource "google_compute_instance" "code" {
   name = "code"
   machine_type = local.machine_type_code
 
-  tags = ["ssh", "http-alt-iap", "dotnet-http-iap", "dotnet-https-iap", "hugo-iap"]
+  tags = ["ssh", "http-alt-iap", "dotnet-http-iap", "dotnet-https-iap", "hugo-iap", "antigravity-iap"]
 
   boot_disk {
     initialize_params {
@@ -269,6 +273,27 @@ resource "google_project_iam_member" "owner" {
   project = module.project.id
   role = "roles/owner"
   member = "serviceAccount:${google_service_account.local_sa.email}"
+}
+
+# Gemini Enterprise Plus setup
+resource "google_project_iam_member" "service_usage_admin" {
+  project = module.project.id
+  role = "roles/serviceusage.serviceUsageAdmin"
+  member = "user:admin@cbpetersen.altostrat.com"
+}
+
+# Gemini Enterprise Plus setup
+resource "google_project_iam_member" "apiplatform_user" {
+  project = module.project.id
+  role = "roles/aiplatform.user"
+  member = "user:christoph@cbpetersen.altostrat.com"
+}
+
+# Gemini Enterprise Plus setup
+resource "google_project_iam_member" "mcp_tool_user" {
+  project = module.project.id
+  role = "roles/mcp.toolUser"
+  member = "user:christoph@cbpetersen.altostrat.com"
 }
 
 resource "google_compute_instance_iam_member" "compute_sa_admin" {
