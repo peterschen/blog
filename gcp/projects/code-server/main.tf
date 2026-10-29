@@ -92,10 +92,9 @@ module "firewall_iap" {
   network = google_compute_network.network.name
   enable_ssh = true
   enable_rdp = true
+  enable_http = true
+  enable_https = true
   enable_http_alt = true
-  enable_dotnet_http = true
-  enable_dotnet_https = true
-  enable_antigravity = true
 }
 
 module "bastion" {
@@ -191,7 +190,7 @@ resource "google_compute_instance" "code" {
   name = "code"
   machine_type = local.machine_type_code
 
-  tags = ["ssh", "http-alt-iap", "dotnet-http-iap", "dotnet-https-iap", "hugo-iap", "antigravity-iap"]
+  tags = ["ssh", "http-iap", "https-iap", "http-alt-iap", "hugo-iap"]
 
   boot_disk {
     initialize_params {
