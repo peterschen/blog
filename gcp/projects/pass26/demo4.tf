@@ -19,8 +19,8 @@ module "demo4" {
   enable_cluster = false
 
   machine_type_bastion = "n4d-highcpu-48"
-  # machine_type_sql = "c4n-highcpu-192"
-  machine_type_sql = "c4-highcpu-96"
+  machine_type_sql = "c4n-highcpu-192"
+  # machine_type_sql = "c4-highcpu-96"
 
   customization_bastion = file("${path.module}/demo4_customization-bastion.ps1")
   customizations_sql = [
